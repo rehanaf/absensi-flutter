@@ -102,7 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleCheckIn(bool requireLocation, bool needPhoto) async {
     try {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
-      final registeredFaceBase64 = user?['face_biometric']?.toString();
+      final settings = Provider.of<AppSettingsProvider>(context, listen: false);
+      
+      // Only perform verification if requireFace is true
+      final registeredFaceBase64 = settings.requireFace ? user?['face_biometric']?.toString() : null;
 
       final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
@@ -110,8 +113,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
+      // Only send photo to backend if requirePhoto is true
+      final photoToSend = settings.requirePhoto ? data['photoPath'] : null;
+
       setState(() => _isLoadingAction = true);
-      await _apiService.checkIn(data['lat'], data['lng'], photoPath: data['photoPath']);
+      await _apiService.checkIn(data['lat'], data['lng'], photoPath: photoToSend);
       
       if (mounted) {
         ShadToaster.of(context).show(
@@ -133,7 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleCheckOut(bool requireLocation) async {
     try {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
-      final registeredFaceBase64 = user?['face_biometric']?.toString();
+      final settings = Provider.of<AppSettingsProvider>(context, listen: false);
+      final registeredFaceBase64 = settings.requireFace ? user?['face_biometric']?.toString() : null;
 
       // CheckOut never requires photo based on new API logic
       final data = await _getValidAttendanceData(requireLocation, false, 'Absen Pulang', registeredFaceBase64: registeredFaceBase64);
@@ -275,8 +282,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final requireFace = settings.requireFace;
     final requirePhoto = settings.requirePhoto;
     
-    // Photo is only mandatory for check-in if both are true
-    final needPhotoForCheckIn = requireFace && requirePhoto;
+    // Camera opens ONLY if face verification is required
+    final needCameraForCheckIn = requireFace;
 
     final hasFaceBiometric = user != null && user['face_biometric'] != null && user['face_biometric'].toString().trim().isNotEmpty && user['face_biometric'].toString().trim() != 'null';
 
@@ -391,19 +398,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Expanded(
                                   child: GestureDetector(
-                                    onTap: _isLoadingAction ? null : () => _handleCheckIn(requireLoc, needPhotoForCheckIn),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withValues(alpha: _isLoadingAction ? 0.5 : 1.0),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: _isLoadingAction 
-                                      ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
-                                      : const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
+                                    onTap: _isLoadingAction ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF10B981).withValues(alpha: _isLoadingAction ? 0.5 : 1.0),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: _isLoadingAction 
+                                        ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
+                                        : const Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
                                             TwemojiText(text: '📥', style: TextStyle(fontSize: 18)),
                                             SizedBox(width: 8),
                                             Text(

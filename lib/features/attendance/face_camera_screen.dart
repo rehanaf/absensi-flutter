@@ -27,6 +27,9 @@ Uint8List _compressImage(Uint8List list) {
   img.Image? image = img.decodeImage(list);
   if (image == null) return list;
   
+  // Flip horizontally so the backend receives the mirrored version
+  image = img.flipHorizontal(image);
+  
   if (image.width > 400) {
     image = img.copyResize(image, width: 400);
   }
@@ -320,7 +323,10 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                 alignment: Alignment.center,
                 children: [
                   if (_cameraState == CameraState.captured && _capturedImagePath != null)
-                    Image.file(File(_capturedImagePath!), fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                    Transform.scale(
+                      scaleX: -1,
+                      child: Image.file(File(_capturedImagePath!), fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                    )
                   else if (isCameraReady && (_cameraState == CameraState.scanning || _cameraState == CameraState.capturing || _cameraState == CameraState.verifying || _cameraState == CameraState.mismatch))
                     CameraPreview(_cameraController!)
                   else
