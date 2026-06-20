@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
+import 'widgets/live_location_map.dart';
+import '../attendance/face_camera_screen.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../data/services/api_service.dart';
@@ -20,6 +21,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoadingAction = false;
+  
+  bool _isInsideArea = false;
+  Position? _currentPos;
   bool _isFetching = true;
   Map<String, dynamic>? _dashboardData;
   String? _error;
@@ -53,66 +57,39 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> _getLocationAndPhoto(bool requireLocation, bool needPhoto) async {
+  Future<Map<String, dynamic>?> _getValidAttendanceData(bool requireLocation, bool needPhoto, String cameraTitle) async {
     double lat = 0.0;
     double lng = 0.0;
     String? photoPath;
 
     if (requireLocation) {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (mounted) {
-          ShadToaster.of(context).show(
-            const ShadToast.destructive(description: Text('GPS belum diaktifkan.')),
-          );
-        }
+      if (_currentPos == null) {
+        if (mounted) ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Menunggu data lokasi akurat...')));
         return null;
       }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ShadToaster.of(context).show(
-              const ShadToast.destructive(description: Text('Izin GPS ditolak.')),
-            );
-          }
-          return null;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ShadToaster.of(context).show(
-            const ShadToast.destructive(description: Text('Izin GPS ditolak permanen.')),
-          );
-        }
+      if (!_isInsideArea) {
+        if (mounted) ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Gagal: Anda berada di luar area kantor!')));
         return null;
       }
-
-      final position = await Geolocator.getCurrentPosition();
-      lat = position.latitude;
-      lng = position.longitude;
+      lat = _currentPos!.latitude;
+      lng = _currentPos!.longitude;
     }
 
     if (needPhoto) {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
-        imageQuality: 70, 
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => FaceCameraScreen(title: cameraTitle)),
       );
 
-      if (image == null) {
+      if (result == null || result['path'] == null) {
         if (mounted) {
           ShadToaster.of(context).show(
-            const ShadToast.destructive(description: Text('Foto wajah wajib diambil.')),
+            const ShadToast.destructive(description: Text('Proses dibatalkan.')),
           );
         }
         return null;
       }
-      photoPath = image.path;
+      photoPath = result['path'];
     }
 
     return {
@@ -123,14 +100,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleCheckIn(bool requireLocation, bool needPhoto) async {
-    setState(() => _isLoadingAction = true);
     try {
-      final data = await _getLocationAndPhoto(requireLocation, needPhoto);
+      final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk');
       if (data == null) {
         setState(() => _isLoadingAction = false);
         return;
       }
 
+      setState(() => _isLoadingAction = true);
       await _apiService.checkIn(data['lat'], data['lng'], photoPath: data['photoPath']);
       
       if (mounted) {
@@ -151,15 +128,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleCheckOut(bool requireLocation) async {
-    setState(() => _isLoadingAction = true);
     try {
       // CheckOut never requires photo based on new API logic
-      final data = await _getLocationAndPhoto(requireLocation, false);
+      final data = await _getValidAttendanceData(requireLocation, false, 'Absen Pulang');
       if (data == null) {
         setState(() => _isLoadingAction = false);
         return;
       }
 
+      setState(() => _isLoadingAction = true);
       await _apiService.checkOut(data['lat'], data['lng'], photoPath: data['photoPath']);
       
       if (mounted) {
@@ -180,29 +157,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleRegisterFace() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const FaceCameraScreen(title: 'Daftar Wajah')),
+    );
+
+    if (result == null || result['base64'] == null) {
+      if (mounted) ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Pendaftaran wajah dibatalkan.')));
+      return;
+    }
+
     setState(() => _isLoadingAction = true);
     try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
-        imageQuality: 50,
-      );
-
-      if (image == null) {
-        if (mounted) {
-          ShadToaster.of(context).show(
-            const ShadToast.destructive(description: Text('Pendaftaran wajah dibatalkan.')),
-          );
-        }
-        setState(() => _isLoadingAction = false);
-        return;
-      }
-
-      final bytes = await image.readAsBytes();
-      final base64String = base64Encode(bytes);
-
-      await _apiService.registerFace(base64String);
+      await _apiService.registerFace(result['base64']);
 
       if (mounted) {
         // Update user state locally or refresh
@@ -360,8 +327,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildStatusBanner(),
                         const SizedBox(height: 24),
 
+                        if (requireLoc) ...[
+                          LiveLocationMap(
+                            officeLat: settings.officeLat,
+                            officeLng: settings.officeLng,
+                            officeRadius: settings.officeRadius,
+                            onLocationUpdate: (isInside, pos) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) {
+                                  setState(() {
+                                    _isInsideArea = isInside;
+                                    _currentPos = pos;
+                                  });
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+
                         if (user?['can_attend'] == true) ...[
-                          if (!hasFaceBiometric) ...[
+                          if (requireFace && !hasFaceBiometric) ...[
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
