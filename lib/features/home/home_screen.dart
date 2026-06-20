@@ -105,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final settings = Provider.of<AppSettingsProvider>(context, listen: false);
       
       // Only perform verification if requireFace is true
-      final registeredFaceBase64 = settings.requireFace ? user?['face_biometric']?.toString() : null;
+      final registeredFaceBase64 = (settings.requireFace && user != null) ? user['face_biometric']?.toString() : null;
 
       final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
@@ -140,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       final settings = Provider.of<AppSettingsProvider>(context, listen: false);
-      final registeredFaceBase64 = settings.requireFace ? user?['face_biometric']?.toString() : null;
+      final registeredFaceBase64 = (settings.requireFace && user != null) ? user['face_biometric']?.toString() : null;
 
       // CheckOut never requires photo based on new API logic
       final data = await _getValidAttendanceData(requireLocation, false, 'Absen Pulang', registeredFaceBase64: registeredFaceBase64);
