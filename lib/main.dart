@@ -71,12 +71,14 @@ class MyApp extends StatelessWidget {
             colorScheme: _getColorScheme(settings.themeColorName, false),
             textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.plusJakartaSans),
             radius: BorderRadius.circular(12),
+            toastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
           ),
           darkTheme: ShadThemeData(
             brightness: Brightness.dark,
             colorScheme: _getColorScheme(settings.themeColorName, true),
             textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.plusJakartaSans),
             radius: BorderRadius.circular(12),
+            toastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
           ),
           routerConfig: router,
         );
