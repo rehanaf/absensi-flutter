@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> _getValidAttendanceData(bool requireLocation, bool needPhoto, String cameraTitle) async {
+  Future<Map<String, dynamic>?> _getValidAttendanceData(bool requireLocation, bool needPhoto, String cameraTitle, {String? registeredFaceBase64}) async {
     double lat = 0.0;
     double lng = 0.0;
     String? photoPath;
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (needPhoto) {
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => FaceCameraScreen(title: cameraTitle)),
+        MaterialPageRoute(builder: (context) => FaceCameraScreen(title: cameraTitle, registeredFaceBase64: registeredFaceBase64)),
       );
 
       if (result == null || result['path'] == null) {
@@ -101,7 +101,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleCheckIn(bool requireLocation, bool needPhoto) async {
     try {
-      final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk');
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      final registeredFaceBase64 = user?['face_biometric']?.toString();
+
+      final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
         setState(() => _isLoadingAction = false);
         return;
@@ -129,8 +132,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleCheckOut(bool requireLocation) async {
     try {
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      final registeredFaceBase64 = user?['face_biometric']?.toString();
+
       // CheckOut never requires photo based on new API logic
-      final data = await _getValidAttendanceData(requireLocation, false, 'Absen Pulang');
+      final data = await _getValidAttendanceData(requireLocation, false, 'Absen Pulang', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
         setState(() => _isLoadingAction = false);
         return;
@@ -272,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Photo is only mandatory for check-in if both are true
     final needPhotoForCheckIn = requireFace && requirePhoto;
 
-    final hasFaceBiometric = user != null && user['face_biometric'] != null;
+    final hasFaceBiometric = user != null && user['face_biometric'] != null && user['face_biometric'].toString().trim().isNotEmpty && user['face_biometric'].toString().trim() != 'null';
 
     return Scaffold(
       body: SafeArea(
