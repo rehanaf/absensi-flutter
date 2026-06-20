@@ -24,19 +24,11 @@ tasks.register<Delete>("clean") {
 }
 
 subprojects {
-    afterEvaluate {
-        val android = extensions.findByName("android")
-        if (android != null) {
-            try {
-                (android as? com.android.build.gradle.BaseExtension)?.compileOptions?.apply {
-                    sourceCompatibility = JavaVersion.VERSION_17
-                    targetCompatibility = JavaVersion.VERSION_17
-                }
-            } catch (e: Throwable) {}
-        }
-        
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-            compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
