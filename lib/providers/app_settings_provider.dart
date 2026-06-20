@@ -58,9 +58,9 @@ class AppSettingsProvider with ChangeNotifier {
           _themeColorName = settingsMap['theme_color'].toString().toLowerCase();
         }
         
-        _requireLocation = settingsMap['require_location'] == '1' || settingsMap['require_location'] == true;
-        _requireFace = settingsMap['require_face'] == '1' || settingsMap['require_face'] == true;
-        _requirePhoto = settingsMap['require_photo'] == '1' || settingsMap['require_photo'] == true;
+        _requireLocation = settingsMap['require_location']?.toString() == '1' || settingsMap['require_location']?.toString().toLowerCase() == 'true';
+        _requireFace = settingsMap['require_face']?.toString() == '1' || settingsMap['require_face']?.toString().toLowerCase() == 'true';
+        _requirePhoto = settingsMap['require_photo']?.toString() == '1' || settingsMap['require_photo']?.toString().toLowerCase() == 'true';
 
         if (settingsMap['office_lat'] != null) {
           _officeLat = double.tryParse(settingsMap['office_lat'].toString()) ?? _officeLat;
@@ -78,9 +78,9 @@ class AppSettingsProvider with ChangeNotifier {
         if (settings['theme_color'] != null) {
           _themeColorName = settings['theme_color'].toString().toLowerCase();
         }
-        _requireLocation = settings['require_location'] == '1' || settings['require_location'] == true;
-        _requireFace = settings['require_face'] == '1' || settings['require_face'] == true;
-        _requirePhoto = settings['require_photo'] == '1' || settings['require_photo'] == true;
+        _requireLocation = settings['require_location']?.toString() == '1' || settings['require_location']?.toString().toLowerCase() == 'true';
+        _requireFace = settings['require_face']?.toString() == '1' || settings['require_face']?.toString().toLowerCase() == 'true';
+        _requirePhoto = settings['require_photo']?.toString() == '1' || settings['require_photo']?.toString().toLowerCase() == 'true';
 
         if (settings['office_lat'] != null) {
           _officeLat = double.tryParse(settings['office_lat'].toString()) ?? _officeLat;

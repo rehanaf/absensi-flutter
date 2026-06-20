@@ -41,9 +41,9 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release
 
-      # Build Web
-      - name: Build Web
-        run: flutter build web --release
+      # # Build Web
+      # - name: Build Web
+      #   run: flutter build web --release
 
       # Upload Artifact Android
       - name: Upload Android APK
@@ -52,86 +52,86 @@ jobs:
           name: android-apk-release
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      # Upload Artifact Web
-      - name: Upload Web Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-release
-          path: build/web
+      # # Upload Artifact Web
+      # - name: Upload Web Artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: web-release
+      #     path: build/web
 
-  # ==========================================
-  # JOB 2: BUILD WINDOWS (Runner: Windows)
-  # ==========================================
-  build-windows:
-    runs-on: windows-2025
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  # # ==========================================
+  # # JOB 2: BUILD WINDOWS (Runner: Windows)
+  # # ==========================================
+  # build-windows:
+  #   runs-on: windows-2025
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: 'stable'
+  #         cache: true
+  #
+  #     - name: Install Dependencies
+  #       run: flutter pub get
+  #
+  #     # Enable Windows Desktop Build
+  #     - name: Enable Windows Build
+  #       run: flutter config --enable-windows-desktop
+  #
+  #     # Build Windows executable
+  #     - name: Build Windows
+  #       run: flutter build windows --release
+  #
+  #     # Upload Artifact Windows (Folder ZIP berisi .exe dan .dll pendukung)
+  #     - name: Upload Windows Build
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: windows-release
+  #         path: build/windows/x64/runner/Release
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      # Enable Windows Desktop Build
-      - name: Enable Windows Build
-        run: flutter config --enable-windows-desktop
-
-      # Build Windows executable
-      - name: Build Windows
-        run: flutter build windows --release
-
-      # Upload Artifact Windows (Folder ZIP berisi .exe dan .dll pendukung)
-      - name: Upload Windows Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-release
-          path: build/windows/x64/runner/Release
-
-  # ==========================================
-  # JOB 3: BUILD IOS & MACOS (Runner: macOS)
-  # ==========================================
-  build-ios-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      # Enable macOS Desktop Build
-      - name: Enable macOS Build
-        run: flutter config --enable-macos-desktop
-
-      # Build iOS (Tanpa Code Signing)
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign
-
-      # Build macOS app
-      - name: Build macOS
-        run: flutter build macos --release
-
-      # Upload Artifact iOS
-      - name: Upload iOS Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-release-no-codesign
-          path: build/ios/iphoneos
-
-      # Upload Artifact macOS
-      - name: Upload macOS Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-release
-          path: build/macos/Build/Products/Release
+  # # ==========================================
+  # # JOB 3: BUILD IOS & MACOS (Runner: macOS)
+  # # ==========================================
+  # build-ios-macos:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: 'stable'
+  #         cache: true
+  #
+  #     - name: Install Dependencies
+  #       run: flutter pub get
+  #
+  #     # Enable macOS Desktop Build
+  #     - name: Enable macOS Build
+  #       run: flutter config --enable-macos-desktop
+  #
+  #     # Build iOS (Tanpa Code Signing)
+  #     - name: Build iOS
+  #       run: flutter build ios --release --no-codesign
+  #
+  #     # Build macOS app
+  #     - name: Build macOS
+  #       run: flutter build macos --release
+  #
+  #     # Upload Artifact iOS
+  #     - name: Upload iOS Build
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ios-release-no-codesign
+  #         path: build/ios/iphoneos
+  #
+  #     # Upload Artifact macOS
+  #     - name: Upload macOS Build
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: macos-release
+  #         path: build/macos/Build/Products/Release
