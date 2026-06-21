@@ -34,6 +34,15 @@ class AppSettingsProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  String? getSetting(String key) {
+    for (var item in _rawSettings) {
+      if (item is Map && item['key'] == key) {
+        return item['value']?.toString();
+      }
+    }
+    return null;
+  }
+
   Future<void> fetchSettings() async {
     _isLoading = true;
     _errorMessage = null;
