@@ -137,7 +137,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) {
         ShadToaster.of(context).show(const ShadToast(description: Text('Profil berhasil diperbarui')));
         // Refresh global user state
-        Provider.of<AuthProvider>(context, listen: false).fetchUser();
+        Provider.of<AuthProvider>(context, listen: false).checkAuthStatus();
         Navigator.pop(context);
       }
     } catch (e) {
