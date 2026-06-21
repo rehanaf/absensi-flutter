@@ -462,11 +462,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ],
-                            ),
                           ),
                           const SizedBox(height: 32),
                         ],
-
+                        ],
                         Text('Statistik (${_dashboardData?['month'] ?? '-'})', style: ShadTheme.of(context).textTheme.large),
                         const SizedBox(height: 16),
                         Row(
