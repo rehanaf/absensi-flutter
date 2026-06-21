@@ -18,6 +18,7 @@ import '../settings/settings_screen.dart';
 // Admin Mode Screens (Placeholders)
 import '../admin/admin_dashboard_screen.dart';
 import '../admin/admin_attendances_screen.dart';
+import '../admin/admin_management_screen.dart';
 import '../admin/admin_settings_screen.dart';
 
 // Parent Mode Screens (Placeholders)
@@ -86,13 +87,15 @@ class _MainScreenState extends State<MainScreen> {
     final List<Widget> _adminScreens = const [
       AdminDashboardScreen(),
       AdminAttendancesScreen(),
+      AdminManagementScreen(),
       AdminSettingsScreen(),
       SettingsScreen(), // Reuse generic settings for profile/logout
     ];
 
     final List<CustomNavItem> adminItems = [
       CustomNavItem('📊', 'Dasbor'),
-      CustomNavItem('👥', 'Laporan'),
+      CustomNavItem('📋', 'Laporan'),
+      CustomNavItem('🗂️', 'Manajemen'),
       CustomNavItem('🛠️', 'Konfigurasi'),
       CustomNavItem('⚙️', 'Setting'),
     ];

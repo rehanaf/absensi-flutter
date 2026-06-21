@@ -141,4 +141,42 @@ class ApiService {
       rethrow;
     }
   }
+
+  // --- Admin: Users Management ---
+
+  Future<List<dynamic>> getUsers() async {
+    try {
+      final response = await _apiClient.dio.get('/admin/users');
+      return response.data; // Backend returns JSON array directly or {data: ...} depending on framework, but the controller says response()->json(User::with...get()) which is a JSON array
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> createUser(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/users', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUser(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/users/$id', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteUser(int id) async {
+    try {
+      final response = await _apiClient.dio.delete('/admin/users/$id');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
