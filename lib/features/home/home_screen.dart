@@ -287,6 +287,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final hasFaceBiometric = user != null && user['face_biometric'] != null && user['face_biometric'].toString().trim().isNotEmpty && user['face_biometric'].toString().trim() != 'null';
 
+    final todayStatus = _dashboardData?['today_status'] ?? 'belum_absen';
+    final todayData = _dashboardData?['today_data'];
+    
+    final bool canCheckIn = todayStatus == 'belum_absen';
+    final bool canCheckOut = todayStatus == 'hadir' && todayData != null && todayData['check_out'] == null;
+
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -398,68 +404,68 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Expanded(
                                   child: GestureDetector(
-                                    onTap: _isLoadingAction ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
+                                    onTap: (_isLoadingAction || !canCheckIn) ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 200),
                                       padding: const EdgeInsets.symmetric(vertical: 16),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF10B981).withValues(alpha: _isLoadingAction ? 0.5 : 1.0),
+                                        color: canCheckIn ? const Color(0xFF10B981).withValues(alpha: _isLoadingAction ? 0.5 : 1.0) : Colors.grey.shade300,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: _isLoadingAction 
                                         ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
-                                        : const Row(
+                                        : Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                            TwemojiText(text: '📥', style: TextStyle(fontSize: 18)),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              'Absen Masuk', 
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700, 
-                                                color: Colors.white
-                                              )
-                                            ),
-                                          ],
-                                        ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: _isLoadingAction ? null : () => _handleCheckOut(requireLoc),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEF4444).withValues(alpha: _isLoadingAction ? 0.5 : 1.0),
-                                      borderRadius: BorderRadius.circular(12),
+                                              TwemojiText(text: '📥', style: TextStyle(fontSize: 18, color: canCheckIn ? Colors.white : Colors.grey)),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Absen Masuk', 
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700, 
+                                                  color: canCheckIn ? Colors.white : Colors.grey.shade600
+                                                )
+                                              ),
+                                            ],
+                                          ),
                                     ),
-                                    child: _isLoadingAction 
-                                      ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
-                                      : const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            TwemojiText(text: '📤', style: TextStyle(fontSize: 18)),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              'Absen Pulang', 
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white
-                                              )
-                                            ),
-                                          ],
-                                        ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: (_isLoadingAction || !canCheckOut) ? null : () => _handleCheckOut(requireLoc),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      decoration: BoxDecoration(
+                                        color: canCheckOut ? const Color(0xFFEF4444).withValues(alpha: _isLoadingAction ? 0.5 : 1.0) : Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: _isLoadingAction 
+                                        ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
+                                        : Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              TwemojiText(text: '📤', style: TextStyle(fontSize: 18, color: canCheckOut ? Colors.white : Colors.grey)),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Absen Pulang', 
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: canCheckOut ? Colors.white : Colors.grey.shade600
+                                                )
+                                              ),
+                                            ],
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 32),
                         ],
-                      ],
 
                         Text('Statistik (${_dashboardData?['month'] ?? '-'})', style: ShadTheme.of(context).textTheme.large),
                         const SizedBox(height: 16),
