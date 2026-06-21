@@ -15,23 +15,36 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
 
-  late TextEditingController _nameController;
-  late TextEditingController _toleranceController;
-  
+  int? _selectedGroupId;
+  String _selectedDay = 'Monday';
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
+  bool _isFlexible = false;
 
   bool _isLoading = false;
+  bool _isLoadingGroups = true;
+  List<dynamic> _groups = [];
+
+  final Map<String, String> _daysMap = {
+    'Monday': 'Senin',
+    'Tuesday': 'Selasa',
+    'Wednesday': 'Rabu',
+    'Thursday': 'Kamis',
+    'Friday': 'Jumat',
+    'Saturday': 'Sabtu',
+    'Sunday': 'Minggu',
+  };
 
   @override
   void initState() {
     super.initState();
     final schedule = widget.schedule;
     
-    _nameController = TextEditingController(text: schedule?['name'] ?? '');
-    _toleranceController = TextEditingController(text: schedule?['late_tolerance_minutes']?.toString() ?? '15');
-    
     if (schedule != null) {
+      _selectedGroupId = schedule['group_id'];
+      _selectedDay = schedule['day'] ?? 'Monday';
+      _isFlexible = schedule['is_flexible'] == 1 || schedule['is_flexible'] == true;
+
       if (schedule['start_time'] != null) {
         final parts = schedule['start_time'].toString().split(':');
         if (parts.length >= 2) _startTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
@@ -41,19 +54,31 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
         if (parts.length >= 2) _endTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
       }
     }
+
+    _fetchGroups();
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _toleranceController.dispose();
-    super.dispose();
+  Future<void> _fetchGroups() async {
+    try {
+      final groups = await _apiService.getGroups();
+      if (mounted) {
+        setState(() {
+          _groups = groups;
+          _isLoadingGroups = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingGroups = false);
+        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat grup: $e')));
+      }
+    }
   }
 
   String _formatTimeOfDay(TimeOfDay time) {
     final h = time.hour.toString().padLeft(2, '0');
     final m = time.minute.toString().padLeft(2, '0');
-    return '$h:$m';
+    return '$h:$m:00'; // H:i:s
   }
 
   Future<void> _pickTime(bool isStart) async {
@@ -84,12 +109,16 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
 
     setState(() => _isLoading = true);
 
-    final data = {
-      'name': _nameController.text,
+    final data = <String, dynamic>{
+      'day': _selectedDay,
       'start_time': _formatTimeOfDay(_startTime!),
       'end_time': _formatTimeOfDay(_endTime!),
-      'late_tolerance_minutes': int.tryParse(_toleranceController.text) ?? 0,
+      'is_flexible': _isFlexible,
     };
+
+    if (_selectedGroupId != null) {
+      data['group_id'] = _selectedGroupId;
+    }
 
     try {
       if (widget.schedule == null) {
@@ -117,7 +146,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Jadwal' : 'Tambah Jadwal'),
       ),
-      body: _isLoading
+      body: _isLoading || _isLoadingGroups
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
@@ -126,11 +155,62 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadInputFormField(
-                      label: const Text('Nama Jadwal'),
-                      placeholder: const Text('Contoh: Shift Pagi / Reguler'),
-                      controller: _nameController,
-                      validator: (v) => v.isEmpty ? 'Nama jadwal tidak boleh kosong' : null,
+                    Text('Grup', style: ShadTheme.of(context).textTheme.small),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int?>(
+                          isExpanded: true,
+                          value: _selectedGroupId,
+                          hint: const Text('Jadwal Default (Semua)'),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('Jadwal Default (Semua Pengguna)'),
+                            ),
+                            ..._groups.map<DropdownMenuItem<int?>>((g) {
+                              return DropdownMenuItem<int?>(
+                                value: g['id'],
+                                child: Text(g['name'] ?? 'Unknown Group'),
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            setState(() => _selectedGroupId = val);
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text('Hari', style: ShadTheme.of(context).textTheme.small),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedDay,
+                          items: _daysMap.entries.map<DropdownMenuItem<String>>((entry) {
+                            return DropdownMenuItem<String>(
+                              value: entry.key,
+                              child: Text(entry.value),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedDay = val);
+                          },
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 24),
                     
@@ -193,11 +273,25 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    ShadInputFormField(
-                      label: const Text('Toleransi Terlambat (Menit)'),
-                      controller: _toleranceController,
-                      keyboardType: TextInputType.number,
-                      validator: (v) => v.isEmpty ? 'Toleransi tidak boleh kosong' : null,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Waktu Fleksibel?'),
+                              Text('Aktifkan jika tidak ada teguran terlambat', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                        ShadSwitch(
+                          value: _isFlexible,
+                          onChanged: (val) {
+                            setState(() => _isFlexible = val);
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 32),
                     

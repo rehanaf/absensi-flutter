@@ -122,6 +122,21 @@ class _AdminSchedulesScreenState extends State<AdminSchedulesScreen> {
                   itemBuilder: (context, index) {
                     final schedule = _schedules[index];
 
+                    final groupName = schedule['group'] != null ? schedule['group']['name'] : 'Jadwal Default';
+                    final dayEn = schedule['day'] ?? 'Monday';
+                    
+                    final dayMap = {
+                      'Monday': 'Senin',
+                      'Tuesday': 'Selasa',
+                      'Wednesday': 'Rabu',
+                      'Thursday': 'Kamis',
+                      'Friday': 'Jumat',
+                      'Saturday': 'Sabtu',
+                      'Sunday': 'Minggu',
+                    };
+                    final dayId = dayMap[dayEn] ?? dayEn;
+                    final isFlexible = schedule['is_flexible'] == 1 || schedule['is_flexible'] == true;
+
                     return Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: ShadTheme.of(context).colorScheme.border),
@@ -130,14 +145,15 @@ class _AdminSchedulesScreenState extends State<AdminSchedulesScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blue.withOpacity(0.1),
-                          child: const Icon(LucideIcons.clock, color: Colors.blue),
+                          child: const Icon(LucideIcons.calendarClock, color: Colors.blue),
                         ),
-                        title: Text(schedule['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text('$dayId ($groupName)', style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('${schedule['start_time']} - ${schedule['end_time']}'),
-                            Text('Toleransi Terlambat: ${schedule['late_tolerance_minutes']} menit', style: const TextStyle(fontSize: 12)),
+                            if (isFlexible)
+                              const Text('Fleksibel', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
                           ],
                         ),
                         isThreeLine: true,
