@@ -332,4 +332,41 @@ class ApiService {
       rethrow;
     }
   }
+
+  // --- Admin: Attendances Management ---
+
+  Future<List<dynamic>> getAttendances() async {
+    try {
+      final response = await _apiClient.dio.get('/admin/attendances');
+      return response.data['attendances'] ?? [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> createAttendance(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/attendances', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateAttendance(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/attendances/$id', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAttendance(int id) async {
+    try {
+      await _apiClient.dio.delete('/admin/attendances/$id');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

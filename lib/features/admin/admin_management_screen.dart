@@ -4,6 +4,7 @@ import 'users/admin_users_screen.dart';
 import 'schedules/admin_schedules_screen.dart';
 import 'groups/admin_groups_screen.dart';
 import 'form_fields/admin_form_fields_screen.dart';
+import 'attendances/admin_attendances_screen.dart';
 
 class AdminManagementScreen extends StatelessWidget {
   const AdminManagementScreen({super.key});
@@ -69,6 +70,20 @@ class AdminManagementScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AdminFormFieldsScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            
+            _buildMenuCard(
+              context,
+              title: 'Rekap Absensi',
+              description: 'Kelola dan koreksi data kehadiran secara manual',
+              icon: LucideIcons.clipboardList,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminAttendancesScreen()),
                 );
               },
             ),
