@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'users/admin_users_screen.dart';
+import 'schedules/admin_schedules_screen.dart';
+import 'groups/admin_groups_screen.dart';
+import 'form_fields/admin_form_fields_screen.dart';
 
 class AdminManagementScreen extends StatelessWidget {
   const AdminManagementScreen({super.key});
@@ -30,7 +33,45 @@ class AdminManagementScreen extends StatelessWidget {
               },
             ),
             
-            // Future management items can be added here (e.g. Roles, Departments)
+            _buildMenuCard(
+              context,
+              title: 'Jadwal Kerja',
+              description: 'Atur jam masuk, jam pulang, dan toleransi keterlambatan',
+              icon: LucideIcons.calendarClock,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminSchedulesScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            
+            _buildMenuCard(
+              context,
+              title: 'Kelompok / Kelas',
+              description: 'Kelola pengelompokan pengguna',
+              icon: LucideIcons.layoutGrid,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminGroupsScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildMenuCard(
+              context,
+              title: 'Kolom Profil',
+              description: 'Kelola isian tambahan untuk profil pengguna',
+              icon: LucideIcons.formInput,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminFormFieldsScreen()),
+                );
+              },
+            ),
           ],
         ),
       ),

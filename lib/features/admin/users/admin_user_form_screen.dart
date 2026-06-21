@@ -26,6 +26,10 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
   int? _selectedRoleId;
   bool _canAttend = true;
   bool _isLoading = false;
+  bool _isLoadingFields = true;
+
+  List<dynamic> _formFieldsConfig = [];
+  final Map<String, TextEditingController> _customFieldControllers = {};
 
   @override
   void initState() {
@@ -52,6 +56,34 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
         }
       });
     }
+
+    _fetchFormFields();
+  }
+
+  Future<void> _fetchFormFields() async {
+    try {
+      final fields = await _apiService.getFormFields();
+      if (!mounted) return;
+      
+      setState(() {
+        _formFieldsConfig = fields;
+        
+        final userProfile = widget.user?['profile']?['meta_data'] ?? {};
+        
+        for (var field in _formFieldsConfig) {
+          final fieldName = field['field_name'];
+          _customFieldControllers[fieldName] = TextEditingController(
+            text: userProfile[fieldName]?.toString() ?? '',
+          );
+        }
+        _isLoadingFields = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingFields = false);
+        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat kolom profil: $e')));
+      }
+    }
   }
 
   @override
@@ -61,6 +93,9 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     _usernameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    for (var controller in _customFieldControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -81,6 +116,16 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
       'role_id': _selectedRoleId,
       'can_attend': _canAttend,
     };
+
+    // Append custom fields
+    if (_formFieldsConfig.isNotEmpty) {
+      final customFields = <String, dynamic>{};
+      for (var field in _formFieldsConfig) {
+        final fieldName = field['field_name'];
+        customFields[fieldName] = _customFieldControllers[fieldName]?.text ?? '';
+      }
+      data['custom_fields'] = customFields;
+    }
 
     if (_passwordController.text.isNotEmpty) {
       data['password'] = _passwordController.text;
@@ -117,7 +162,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Pengguna' : 'Tambah Pengguna'),
       ),
-      body: _isLoading
+      body: _isLoading || _isLoadingFields
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
@@ -216,6 +261,34 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 32),
+
+                    if (_formFieldsConfig.isNotEmpty) ...[
+                      Text('Data Tambahan', style: ShadTheme.of(context).textTheme.large),
+                      const SizedBox(height: 16),
+                      ..._formFieldsConfig.map((field) {
+                        final label = field['field_label'];
+                        final type = field['field_type'];
+                        final isRequired = field['is_required'] == 1 || field['is_required'] == true;
+                        
+                        TextInputType keyboardType = TextInputType.text;
+                        if (type == 'number') keyboardType = TextInputType.number;
+                        if (type == 'email') keyboardType = TextInputType.emailAddress;
+                        if (type == 'phone') keyboardType = TextInputType.phone;
+                        
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: ShadInputFormField(
+                            label: Text(label + (isRequired ? ' *' : '')),
+                            controller: _customFieldControllers[field['field_name']],
+                            keyboardType: keyboardType,
+                            validator: isRequired 
+                                ? (v) => v.isEmpty ? '$label wajib diisi' : null 
+                                : null,
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 16),
+                    ],
                     
                     ShadButton(
                       onPressed: _submit,

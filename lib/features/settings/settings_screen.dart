@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../core/widgets/twemoji_text.dart';
+import 'profile_edit_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -37,50 +38,9 @@ class SettingsScreen extends StatelessWidget {
                       Text('Profile Info', style: ShadTheme.of(context).textTheme.large),
                       GestureDetector(
                         onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: ShadTheme.of(context).colorScheme.background,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                            ),
-                            builder: (context) => Padding(
-                              padding: EdgeInsets.only(
-                                bottom: MediaQuery.of(context).viewInsets.bottom,
-                              ),
-                              child: SafeArea(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text('Edit Profile', style: ShadTheme.of(context).textTheme.h4),
-                                      const SizedBox(height: 8),
-                                      Text('Perbarui informasi pribadi Anda di bawah ini.', style: ShadTheme.of(context).textTheme.muted),
-                                      const SizedBox(height: 24),
-                                      const Text('Nama Lengkap', style: TextStyle(fontWeight: FontWeight.w500)),
-                                      const SizedBox(height: 8),
-                                      ShadInput(initialValue: user?['name']?.toString() ?? ''),
-                                      const SizedBox(height: 16),
-                                      const Text('Kata Sandi Baru', style: TextStyle(fontWeight: FontWeight.w500)),
-                                      const SizedBox(height: 8),
-                                      const ShadInput(placeholder: Text('Opsional, biarkan kosong jika tidak diubah'), obscureText: true),
-                                      const SizedBox(height: 32),
-                                      ShadButton(
-                                        child: const Text('Simpan Perubahan'),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          ShadToaster.of(context).show(
-                                            const ShadToast(description: Text('Fitur pembaruan profil sedang dalam pengembangan.')),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileEditScreen()),
                           );
                         },
                         child: Text(

@@ -34,6 +34,24 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> updateMyProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.put('/user/profile', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<dynamic>> getPublicFormFields() async {
+    try {
+      final response = await _apiClient.dio.get('/form-fields');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> registerFace(String faceBiometric) async {
     try {
       final response = await _apiClient.dio.post('/user/register-face', data: {
@@ -175,6 +193,141 @@ class ApiService {
     try {
       final response = await _apiClient.dio.delete('/admin/users/$id');
       return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // --- Admin: Schedules Management ---
+
+  Future<List<dynamic>> getSchedules() async {
+    try {
+      final response = await _apiClient.dio.get('/admin/schedules');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> createSchedule(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/schedules', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateSchedule(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/schedules/$id', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteSchedule(int id) async {
+    try {
+      final response = await _apiClient.dio.delete('/admin/schedules/$id');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // --- Admin: Groups Management ---
+
+  Future<List<dynamic>> getGroups() async {
+    try {
+      final response = await _apiClient.dio.get('/admin/groups');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> createGroup(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/groups', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateGroup(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/groups/$id', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteGroup(int id) async {
+    try {
+      final response = await _apiClient.dio.delete('/admin/groups/$id');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> attachUserToGroup(int groupId, int userId) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/groups/$groupId/attach-user', data: {
+        'user_id': userId,
+      });
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> detachUserFromGroup(int groupId, int userId) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/groups/$groupId/detach-user', data: {
+        'user_id': userId,
+      });
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // --- Admin: Form Fields Management ---
+
+  Future<List<dynamic>> getFormFields() async {
+    try {
+      final response = await _apiClient.dio.get('/admin/form-fields');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> createFormField(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/admin/form-fields', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateFormField(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/form-fields/$id', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteFormField(int id) async {
+    try {
+      await _apiClient.dio.delete('/admin/form-fields/$id');
     } catch (e) {
       rethrow;
     }
