@@ -51,7 +51,8 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
   CameraState _cameraState = CameraState.initializing;
   String? _capturedImagePath;
   String? _capturedBase64;
-  double _faceAccuracy = 0.0;
+  double _faceAccuracy = 0.0; // ML Kit pose accuracy
+  double _tfliteSimilarity = 0.0; // TFLite visual similarity percentage
   
   List<double>? _registeredEmbedding;
   String _statusMessage = 'Memuat Kamera...';
@@ -240,11 +241,15 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
           
           double distance = FaceRecognitionService().calculateDistance(liveEmbedding, _registeredEmbedding!);
           
+          double similarity = 100 - (distance * 20);
+          if (similarity < 0) similarity = 0;
+          
           if (distance > 1.0) {
             // Mismatch!
             setState(() {
               _cameraState = CameraState.mismatch;
-              _statusMessage = 'Wajah Tidak Cocok! (Dist: ${distance.toStringAsFixed(2)})';
+              _tfliteSimilarity = similarity;
+              _statusMessage = 'Wajah Tidak Cocok! (Mirip: ${similarity.toStringAsFixed(1)}%)';
             });
             // Restart stream after 2 seconds
             Future.delayed(const Duration(seconds: 2), () {
@@ -253,6 +258,10 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
               }
             });
             return;
+          } else {
+            setState(() {
+              _tfliteSimilarity = similarity;
+            });
           }
         }
       }
@@ -284,6 +293,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       _capturedImagePath = null;
       _capturedBase64 = null;
       _faceAccuracy = 0.0;
+      _tfliteSimilarity = 0.0;
     });
     _initCamera();
   }
@@ -361,7 +371,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                       ),
                       child: Text(
                         _cameraState == CameraState.captured
-                            ? (widget.registeredFaceBase64 != null ? 'Wajah Cocok! Akurasi: ${_faceAccuracy.toStringAsFixed(1)}%' : 'Akurasi Wajah: ${_faceAccuracy.toStringAsFixed(1)}%')
+                            ? (widget.registeredFaceBase64 != null ? 'Wajah Cocok! Kemiripan: ${_tfliteSimilarity.toStringAsFixed(1)}%' : 'Wajah Berhasil Dipindai!')
                             : _cameraState == CameraState.mismatch
                                 ? _statusMessage
                                 : _cameraState == CameraState.verifying

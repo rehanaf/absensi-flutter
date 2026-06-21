@@ -62,8 +62,20 @@ class FaceRecognitionService {
     // Run inference
     _interpreter!.run(input, output);
 
-    // Return the 192D vector
-    return output[0];
+    List<double> raw = output[0];
+    
+    // L2 Normalization (Crucial for Euclidean Distance / Cosine Similarity)
+    double sumSq = 0.0;
+    for (double v in raw) {
+      sumSq += v * v;
+    }
+    double magnitude = sqrt(sumSq);
+    if (magnitude == 0) magnitude = 1e-10; // Prevent division by zero
+    
+    List<double> normalized = raw.map((v) => v / magnitude).toList();
+
+    // Return the normalized 192D vector
+    return normalized;
   }
 
   /// Calculate Euclidean distance between two 192D embeddings
