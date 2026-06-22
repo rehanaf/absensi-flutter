@@ -356,6 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           LiveLocationMap(
                             officeLat: settings.officeLat,
                             officeLng: settings.officeLng,
+                            locationName: settings.locationName,
                             officeRadius: settings.officeRadius,
                             onLocationUpdate: (isInside, pos) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {

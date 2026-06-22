@@ -8,6 +8,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 class LiveLocationMap extends StatefulWidget {
   final double officeLat;
   final double officeLng;
+  final String locationName;
   final double officeRadius;
   final Function(bool isInsideArea, Position? currentPos) onLocationUpdate;
 
@@ -15,6 +16,7 @@ class LiveLocationMap extends StatefulWidget {
     super.key,
     required this.officeLat,
     required this.officeLng,
+    this.locationName = 'Area Kantor',
     required this.officeRadius,
     required this.onLocationUpdate,
   });
@@ -180,12 +182,21 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  _isInsideArea ? 'Anda berada di dalam area kantor' : 'Anda berada di luar area kantor',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _isInsideArea ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.locationName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                    Text(
+                      _isInsideArea ? 'Anda berada di dalam jangkauan' : 'Anda berada di luar jangkauan',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: _isInsideArea ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

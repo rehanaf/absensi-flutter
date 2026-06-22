@@ -12,6 +12,7 @@ class AppSettingsProvider with ChangeNotifier {
   bool _requirePhoto = false;
   double _officeLat = -6.200000;
   double _officeLng = 106.816666;
+  String _locationName = 'Lokasi Kantor';
   double _officeRadius = 50.0;
   List<dynamic> _dynamicFields = [];
   List<dynamic> _roles = [];
@@ -27,6 +28,7 @@ class AppSettingsProvider with ChangeNotifier {
   bool get requirePhoto => _requirePhoto;
   double get officeLat => _officeLat;
   double get officeLng => _officeLng;
+  String get locationName => _locationName;
   double get officeRadius => _officeRadius;
   List<dynamic> get dynamicFields => _dynamicFields;
   List<dynamic> get roles => _roles;
@@ -71,11 +73,14 @@ class AppSettingsProvider with ChangeNotifier {
         _requireFace = settingsMap['require_face']?.toString() == '1' || settingsMap['require_face']?.toString().toLowerCase() == 'true';
         _requirePhoto = settingsMap['require_photo']?.toString() == '1' || settingsMap['require_photo']?.toString().toLowerCase() == 'true';
 
-        if (settingsMap['office_lat'] != null) {
-          _officeLat = double.tryParse(settingsMap['office_lat'].toString()) ?? _officeLat;
+        if (settingsMap['center_latitude'] != null) {
+          _officeLat = double.tryParse(settingsMap['center_latitude'].toString()) ?? _officeLat;
         }
-        if (settingsMap['office_lng'] != null) {
-          _officeLng = double.tryParse(settingsMap['office_lng'].toString()) ?? _officeLng;
+        if (settingsMap['center_longitude'] != null) {
+          _officeLng = double.tryParse(settingsMap['center_longitude'].toString()) ?? _officeLng;
+        }
+        if (settingsMap['location_name'] != null) {
+          _locationName = settingsMap['location_name'].toString();
         }
         if (settingsMap['office_radius'] != null) {
           _officeRadius = double.tryParse(settingsMap['office_radius'].toString()) ?? _officeRadius;
@@ -91,11 +96,14 @@ class AppSettingsProvider with ChangeNotifier {
         _requireFace = settings['require_face']?.toString() == '1' || settings['require_face']?.toString().toLowerCase() == 'true';
         _requirePhoto = settings['require_photo']?.toString() == '1' || settings['require_photo']?.toString().toLowerCase() == 'true';
 
-        if (settings['office_lat'] != null) {
-          _officeLat = double.tryParse(settings['office_lat'].toString()) ?? _officeLat;
+        if (settings['center_latitude'] != null) {
+          _officeLat = double.tryParse(settings['center_latitude'].toString()) ?? _officeLat;
         }
-        if (settings['office_lng'] != null) {
-          _officeLng = double.tryParse(settings['office_lng'].toString()) ?? _officeLng;
+        if (settings['center_longitude'] != null) {
+          _officeLng = double.tryParse(settings['center_longitude'].toString()) ?? _officeLng;
+        }
+        if (settings['location_name'] != null) {
+          _locationName = settings['location_name'].toString();
         }
         if (settings['office_radius'] != null) {
           _officeRadius = double.tryParse(settings['office_radius'].toString()) ?? _officeRadius;
