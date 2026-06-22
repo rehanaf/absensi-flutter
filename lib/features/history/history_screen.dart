@@ -94,7 +94,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           separatorBuilder: (context, index) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final att = _attendances[index];
-                            final date = att['date'] ?? '-';
+                            final rawDate = att['date']?.toString() ?? '-';
+                            final date = rawDate.length >= 10 ? rawDate.substring(0, 10) : rawDate;
                             final checkIn = att['check_in'] ?? '--:--:--';
                             final checkOut = att['check_out'] ?? '--:--:--';
                             final status = att['status'] ?? '-';

@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'widgets/live_location_map.dart';
-import '../attendance/face_camera_screen.dart';
+import '../attendance/face_camera_export.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../data/services/api_service.dart';
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       lng = _currentPos!.longitude;
     }
 
-    if (needPhoto) {
+    if (needPhoto && !kIsWeb) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => FaceCameraScreen(title: cameraTitle, registeredFaceBase64: registeredFaceBase64)),
@@ -170,6 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleRegisterFace() async {
+    if (kIsWeb) {
+      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Pendaftaran wajah tidak didukung di versi Web.')));
+      return;
+    }
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FaceCameraScreen(title: 'Daftar Wajah')),
@@ -366,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
 
                         if (user?['can_attend'] == true) ...[
-                          if (requireFace && !hasFaceBiometric) ...[
+                          if (requireFace && !hasFaceBiometric && !kIsWeb) ...[
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -500,6 +506,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             (_dashboardData!['recent_history'] as List).length,
                             (index) {
                               final history = _dashboardData!['recent_history'][index];
+                              final rawDate = history['date']?.toString() ?? '-';
+                              final dateStr = rawDate.length >= 10 ? rawDate.substring(0, 10) : rawDate;
+                              
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 12),
                                 padding: const EdgeInsets.all(16),
@@ -515,7 +524,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(history['date'] ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold)),
                                           Text('Status: ${history['status'] ?? '-'}', style: ShadTheme.of(context).textTheme.muted),
                                         ],
                                       ),

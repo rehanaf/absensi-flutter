@@ -189,10 +189,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                     const SizedBox(height: 16),
                     ShadInputFormField(
-                      label: const Text('Username'),
+                      label: Text(settings.getSetting('username_label') ?? 'Username'),
                       controller: _usernameController,
-                      enabled: canEditUsername,
-                      validator: canEditUsername ? (v) => v.isEmpty ? 'Username tidak boleh kosong' : null : null,
+                      readOnly: !canEditUsername,
+                      validator: (v) => v.isEmpty ? 'Tidak boleh kosong' : null,
                     ),
                     const SizedBox(height: 16),
                     ShadInputFormField(

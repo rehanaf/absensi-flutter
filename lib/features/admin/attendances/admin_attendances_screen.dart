@@ -132,6 +132,8 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                         final isLate = att['is_late'] == 1 || att['is_late'] == true;
                         final lateMinutes = att['late_minutes'] ?? 0;
 
+                        final dateStr = date.toString().length >= 10 ? date.toString().substring(0, 10) : date.toString();
+
                         return Container(
                           decoration: BoxDecoration(
                             border: Border.all(color: ShadTheme.of(context).colorScheme.border),
@@ -151,8 +153,7 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Tanggal: $date'),
-                                Text('Masuk: $checkIn | Keluar: $checkOut'),
+                                Text('$dateStr | $checkIn - $checkOut'),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [

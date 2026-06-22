@@ -17,7 +17,7 @@ import '../settings/settings_screen.dart';
 
 // Admin Mode Screens (Placeholders)
 import '../admin/admin_dashboard_screen.dart';
-import '../admin/admin_attendances_screen.dart';
+import '../admin/attendances/admin_attendances_screen.dart';
 import '../admin/admin_management_screen.dart';
 import '../admin/admin_settings_screen.dart';
 
