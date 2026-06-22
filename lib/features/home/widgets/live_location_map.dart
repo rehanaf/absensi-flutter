@@ -149,6 +149,17 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
               const Icon(Icons.location_off, color: Colors.red, size: 32),
               const SizedBox(height: 8),
               Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ShadButton.outline(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _error = null;
+                  });
+                  _initLocation();
+                },
+                child: const Text('Coba Lagi'),
+              ),
             ],
           ),
         ),

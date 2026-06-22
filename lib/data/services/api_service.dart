@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../core/api_client.dart';
 
 class ApiService {
@@ -71,10 +73,18 @@ class ApiService {
       });
 
       if (photoPath != null) {
-        formData.files.add(MapEntry(
-          'photo',
-          await MultipartFile.fromFile(photoPath),
-        ));
+        if (kIsWeb) {
+          final bytes = base64Decode(photoPath);
+          formData.files.add(MapEntry(
+            'photo',
+            MultipartFile.fromBytes(bytes, filename: 'photo.jpg'),
+          ));
+        } else {
+          formData.files.add(MapEntry(
+            'photo',
+            await MultipartFile.fromFile(photoPath),
+          ));
+        }
       }
 
       final response = await _apiClient.dio.post(
@@ -96,10 +106,18 @@ class ApiService {
       });
 
       if (photoPath != null) {
-        formData.files.add(MapEntry(
-          'photo',
-          await MultipartFile.fromFile(photoPath),
-        ));
+        if (kIsWeb) {
+          final bytes = base64Decode(photoPath);
+          formData.files.add(MapEntry(
+            'photo',
+            MultipartFile.fromBytes(bytes, filename: 'photo.jpg'),
+          ));
+        } else {
+          formData.files.add(MapEntry(
+            'photo',
+            await MultipartFile.fromFile(photoPath),
+          ));
+        }
       }
 
       final response = await _apiClient.dio.post(

@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       lng = _currentPos!.longitude;
     }
 
-    if (needPhoto && !kIsWeb) {
+    if (needPhoto) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => FaceCameraScreen(title: cameraTitle, registeredFaceBase64: registeredFaceBase64)),
@@ -114,8 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      // Only send photo to backend if requirePhoto is true
-      final photoToSend = settings.requirePhoto ? data['photoPath'] : null;
+      // Send photo if we have it, to prevent Laravel 422 if it strictly requires photo when camera is used
+      final photoToSend = data['photoPath'];
 
       setState(() => _isLoadingAction = true);
       await _apiService.checkIn(data['lat'], data['lng'], photoPath: photoToSend);
@@ -143,8 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final settings = Provider.of<AppSettingsProvider>(context, listen: false);
       final registeredFaceBase64 = (settings.requireFace && user != null) ? user['face_biometric']?.toString() : null;
 
-      // CheckOut never requires photo based on new API logic
-      final data = await _getValidAttendanceData(requireLocation, false, 'Absen Pulang', registeredFaceBase64: registeredFaceBase64);
+      final needCamera = settings.requirePhoto || (settings.requireFace && registeredFaceBase64 != null);
+      final data = await _getValidAttendanceData(requireLocation, needCamera, 'Absen Pulang', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
         setState(() => _isLoadingAction = false);
         return;
@@ -171,11 +171,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleRegisterFace() async {
-    if (kIsWeb) {
-      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Pendaftaran wajah tidak didukung di versi Web.')));
-      return;
-    }
-
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FaceCameraScreen(title: 'Daftar Wajah')),
@@ -288,8 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final requireFace = settings.requireFace;
     final requirePhoto = settings.requirePhoto;
     
-    // Camera opens ONLY if face verification is required
-    final needCameraForCheckIn = requireFace;
+    // Camera opens if either photo or face verification is required
+    final needCameraForCheckIn = requirePhoto || requireFace;
 
     final hasFaceBiometric = user != null && user['face_biometric'] != null && user['face_biometric'].toString().trim().isNotEmpty && user['face_biometric'].toString().trim() != 'null';
 
@@ -373,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
 
                         if (user?['can_attend'] == true) ...[
-                          if (requireFace && !hasFaceBiometric && !kIsWeb) ...[
+                          if (requireFace && !hasFaceBiometric) ...[
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
