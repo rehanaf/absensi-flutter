@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -8,7 +9,52 @@ import 'providers/theme_provider.dart';
 import 'providers/workspace_provider.dart';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui' as ui;
 
+TextStyle _tiktokSans({
+  Paint? background,
+  Color? backgroundColor,
+  Color? color,
+  TextDecoration? decoration,
+  Color? decorationColor,
+  TextDecorationStyle? decorationStyle,
+  double? decorationThickness,
+  List<ui.FontFeature>? fontFeatures,
+  double? fontSize,
+  FontStyle? fontStyle,
+  FontWeight? fontWeight,
+  Paint? foreground,
+  double? height,
+  double? letterSpacing,
+  Locale? locale,
+  List<ui.Shadow>? shadows,
+  TextBaseline? textBaseline,
+  TextStyle? textStyle,
+  double? wordSpacing,
+}) {
+  return GoogleFonts.getFont(
+    'TikTok Sans',
+    background: background,
+    backgroundColor: backgroundColor,
+    color: color,
+    decoration: decoration,
+    decorationColor: decorationColor,
+    decorationStyle: decorationStyle,
+    decorationThickness: decorationThickness,
+    fontFeatures: fontFeatures,
+    fontSize: fontSize,
+    fontStyle: fontStyle,
+    fontWeight: fontWeight,
+    foreground: foreground,
+    height: height,
+    letterSpacing: letterSpacing,
+    locale: locale,
+    shadows: shadows,
+    textBaseline: textBaseline,
+    textStyle: textStyle,
+    wordSpacing: wordSpacing,
+  );
+}
 void main() {
   runApp(
     MultiProvider(
@@ -69,7 +115,7 @@ class MyApp extends StatelessWidget {
           theme: ShadThemeData(
             brightness: Brightness.light,
             colorScheme: _getColorScheme(settings.themeColorName, false),
-            textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.plusJakartaSans),
+            textTheme: ShadTextTheme.fromGoogleFont(_tiktokSans),
             radius: BorderRadius.circular(12),
             primaryToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
             destructiveToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
@@ -77,12 +123,18 @@ class MyApp extends StatelessWidget {
           darkTheme: ShadThemeData(
             brightness: Brightness.dark,
             colorScheme: _getColorScheme(settings.themeColorName, true),
-            textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.plusJakartaSans),
+            textTheme: ShadTextTheme.fromGoogleFont(_tiktokSans),
             radius: BorderRadius.circular(12),
             primaryToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
             destructiveToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
           ),
           routerConfig: router,
+          builder: (context, child) {
+            return GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: child,
+            );
+          },
         );
       },
     );

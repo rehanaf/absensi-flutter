@@ -319,33 +319,95 @@ class _HomeScreenState extends State<HomeScreen> {
                       ]
                     )
                   : ListView(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: EdgeInsets.zero,
                       children: [
-                        Card(
-                          elevation: 0,
-                          color: ShadTheme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Selamat datang kembali,',
-                                  style: ShadTheme.of(context).textTheme.p,
+                        SizedBox(
+                          height: 160,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: double.infinity,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: ShadTheme.of(context).colorScheme.primary,
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(20),
+                                    bottomRight: Radius.circular(20),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 0,
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  user?['name'] ?? 'User',
-                                  style: ShadTheme.of(context).textTheme.h3,
+                              ),
+                              Positioned(
+                                top: 64,
+                                left: 24,
+                                right: 24,
+                                child: Container(
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: ShadTheme.of(context).colorScheme.background,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: CircleAvatar(
+                                          radius: 36,
+                                          backgroundColor: ShadTheme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                          child: Text(
+                                            (user?['name'] ?? 'U')[0].toUpperCase(),
+                                            style: TextStyle(
+                                              color: ShadTheme.of(context).colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 28,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 24),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                user?['name'] ?? 'User',
+                                                style: ShadTheme.of(context).textTheme.h4,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                user?['username'] ?? 'username',
+                                                style: ShadTheme.of(context).textTheme.muted.copyWith(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        
-                        _buildStatusBanner(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildStatusBanner(),
+                              const SizedBox(height: 24),
 
                         if (requireLoc) ...[
                           LiveLocationMap(
@@ -533,6 +595,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         else
                           const Center(child: Text('Belum ada riwayat')),
 
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                       ],
                     ),
         ),

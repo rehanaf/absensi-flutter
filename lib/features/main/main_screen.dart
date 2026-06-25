@@ -154,6 +154,13 @@ class _MainScreenState extends State<MainScreen> {
         title: Text(settings.appName, style: ShadTheme.of(context).textTheme.h4),
         backgroundColor: ShadTheme.of(context).colorScheme.background,
         scrolledUnderElevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: ShadTheme.of(context).colorScheme.border,
+            height: 1.0,
+          ),
+        ),
         actions: [
           if (availableModes.length > 1)
             Padding(
@@ -237,7 +244,7 @@ class _MainScreenState extends State<MainScreen> {
                       Text(
                         item.label, 
                         style: TextStyle(
-                          fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+                          fontFamily: GoogleFonts.getFont('TikTok Sans').fontFamily,
                           fontWeight: FontWeight.w700, 
                           fontSize: 10,
                           color: isActive 
