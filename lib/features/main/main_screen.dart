@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/widgets/twemoji_text.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
@@ -65,6 +66,28 @@ class _MainScreenState extends State<MainScreen> {
         workspace.setMode(availableModes.contains('absen') ? 'absen' : availableModes.first);
       }
     });
+
+    // Dengarkan notifikasi saat aplikasi sedang aktif (foreground)
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (mounted && message.notification != null) {
+        ShadToaster.of(context).show(
+          ShadToast(
+            title: Text(message.notification!.title ?? 'Notifikasi Baru'),
+            description: Text(message.notification!.body ?? ''),
+            action: ShadButton.outline(
+              child: const Text('Lihat'),
+              onPressed: () {
+                ShadToaster.of(context).hide();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -79,14 +102,13 @@ class _MainScreenState extends State<MainScreen> {
     final List<CustomNavItem> absenItems = [
       CustomNavItem('🏠', 'Beranda'),
       CustomNavItem('🕰️', 'History'),
-      CustomNavItem('📝', 'Pengajuan'),
+      CustomNavItem('📝', 'Izin'),
       CustomNavItem('⚙️', 'Setting'),
     ];
 
     // Tabs for Admin Mode
     final List<Widget> _adminScreens = const [
       AdminDashboardScreen(),
-      AdminAttendancesScreen(),
       AdminManagementScreen(),
       AdminSettingsScreen(),
       SettingsScreen(), // Reuse generic settings for profile/logout
@@ -94,7 +116,6 @@ class _MainScreenState extends State<MainScreen> {
 
     final List<CustomNavItem> adminItems = [
       CustomNavItem('📊', 'Dasbor'),
-      CustomNavItem('📋', 'Laporan'),
       CustomNavItem('🗂️', 'Manajemen'),
       CustomNavItem('🛠️', 'Konfigurasi'),
       CustomNavItem('⚙️', 'Setting'),
@@ -162,29 +183,15 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
-          if (availableModes.length > 1)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: ShadSelect<String>(
-                placeholder: Text('Mode: ${getModeDisplayName(workspace.activeMode)}'),
-                initialValue: workspace.activeMode,
-                options: availableModes.map((mode) {
-                  return ShadOption(
-                    value: mode,
-                    child: Text('Mode: ${getModeDisplayName(mode)}'),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _currentIndex = 0);
-                    workspace.setMode(val);
-                  }
-                },
-                selectedOptionBuilder: (context, value) {
-                  return Text(getModeDisplayName(value));
-                },
-              ),
-            ),
+          IconButton(
+            icon: const Icon(LucideIcons.bell),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(
@@ -210,6 +217,82 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
         ],
+      ),
+      drawer: Drawer(
+        backgroundColor: ShadTheme.of(context).colorScheme.background,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+              decoration: BoxDecoration(
+                color: ShadTheme.of(context).colorScheme.primary.withOpacity(0.05),
+                border: Border(bottom: BorderSide(color: ShadTheme.of(context).colorScheme.border)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundColor: ShadTheme.of(context).colorScheme.primary.withOpacity(0.1),
+                    child: Text(
+                      initial,
+                      style: TextStyle(
+                        color: ShadTheme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    name,
+                    style: ShadTheme.of(context).textTheme.h4,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    user?['username'] ?? 'username',
+                    style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            if (availableModes.length > 1) ...[
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Ganti Mode', style: ShadTheme.of(context).textTheme.large),
+                    const SizedBox(height: 12),
+                    ShadSelect<String>(
+                      placeholder: Text('Mode: ${getModeDisplayName(workspace.activeMode)}'),
+                      initialValue: workspace.activeMode,
+                      options: availableModes.map((mode) {
+                        return ShadOption(
+                          value: mode,
+                          child: Text('Mode: ${getModeDisplayName(mode)}'),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _currentIndex = 0);
+                          workspace.setMode(val);
+                          Navigator.pop(context); // Close drawer after selection
+                        }
+                      },
+                      selectedOptionBuilder: (context, value) {
+                        return Text(getModeDisplayName(value));
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+            ],
+            // More menu items could go here
+          ],
+        ),
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -244,7 +327,7 @@ class _MainScreenState extends State<MainScreen> {
                       Text(
                         item.label, 
                         style: TextStyle(
-                          fontFamily: GoogleFonts.getFont('TikTok Sans').fontFamily,
+                          fontFamily: 'Pliant',
                           fontWeight: FontWeight.w700, 
                           fontSize: 10,
                           color: isActive 

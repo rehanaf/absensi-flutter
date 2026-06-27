@@ -10,6 +10,7 @@ class LiveLocationMap extends StatefulWidget {
   final double officeLng;
   final String locationName;
   final double officeRadius;
+  final bool isFlexible;
   final Function(bool isInsideArea, Position? currentPos) onLocationUpdate;
 
   const LiveLocationMap({
@@ -18,6 +19,7 @@ class LiveLocationMap extends StatefulWidget {
     required this.officeLng,
     this.locationName = 'Area Kantor',
     required this.officeRadius,
+    this.isFlexible = false,
     required this.onLocationUpdate,
   });
 
@@ -103,7 +105,7 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
       widget.officeLng,
     );
 
-    final isInside = distance <= widget.officeRadius;
+    final isInside = widget.isFlexible ? true : (distance <= widget.officeRadius);
 
     setState(() {
       _currentPosition = pos;
@@ -197,11 +199,13 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.locationName,
+                      widget.isFlexible ? 'Lokasi Fleksibel Aktif' : widget.locationName,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     Text(
-                      _isInsideArea ? 'Anda berada di dalam jangkauan' : 'Anda berada di luar jangkauan',
+                      widget.isFlexible 
+                          ? 'Bebas melakukan absen dari mana saja' 
+                          : (_isInsideArea ? 'Anda berada di dalam jangkauan' : 'Anda berada di luar jangkauan'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: _isInsideArea ? const Color(0xFF10B981) : const Color(0xFFEF4444),
@@ -228,18 +232,19 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.example.absensi',
                 ),
-                CircleLayer(
-                  circles: [
-                    CircleMarker(
-                      point: officeLatLng,
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      borderColor: Colors.blue,
-                      borderStrokeWidth: 2,
-                      radius: widget.officeRadius, // Radius in meters
-                      useRadiusInMeter: true,
-                    ),
-                  ],
-                ),
+                if (!widget.isFlexible)
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: officeLatLng,
+                        color: Colors.blue.withValues(alpha: 0.3),
+                        borderColor: Colors.blue,
+                        borderStrokeWidth: 2,
+                        radius: widget.officeRadius, // Radius in meters
+                        useRadiusInMeter: true,
+                      ),
+                    ],
+                  ),
                 MarkerLayer(
                   markers: [
                     if (_currentPosition != null)

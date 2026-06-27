@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../data/services/api_service.dart';
-import '../../../providers/app_settings_provider.dart';
 
 class AdminUserFormScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
@@ -28,6 +26,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
   bool _isLoading = false;
   bool _isLoadingFields = true;
 
+  List<dynamic> _roles = [];
   List<dynamic> _formFieldsConfig = [];
   final Map<String, TextEditingController> _customFieldControllers = {};
 
@@ -43,29 +42,21 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     _passwordController = TextEditingController();
     
     if (user != null) {
-      _selectedRoleId = user['role_id'];
+      _selectedRoleId = int.tryParse(user['role_id']?.toString() ?? '');
       _canAttend = user['can_attend'] == 1 || user['can_attend'] == true;
-    } else {
-      // Set default role if available
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final roles = Provider.of<AppSettingsProvider>(context, listen: false).roles;
-        if (roles.isNotEmpty && _selectedRoleId == null) {
-          setState(() {
-            _selectedRoleId = roles.first['id'];
-          });
-        }
-      });
     }
 
-    _fetchFormFields();
+    _fetchData();
   }
 
-  Future<void> _fetchFormFields() async {
+  Future<void> _fetchData() async {
     try {
+      final rolesRes = await _apiService.getRoles();
       final fields = await _apiService.getFormFields();
       if (!mounted) return;
       
       setState(() {
+        _roles = rolesRes['roles'] ?? [];
         _formFieldsConfig = fields;
         
         final userProfile = widget.user?['profile']?['meta_data'] ?? {};
@@ -76,12 +67,19 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
             text: userProfile[fieldName]?.toString() ?? '',
           );
         }
+        
+        if (widget.user == null && _roles.isNotEmpty && _selectedRoleId == null) {
+          _selectedRoleId = int.tryParse(_roles.first['id']?.toString() ?? '');
+        } else if (_selectedRoleId != null && !_roles.any((r) => int.tryParse(r['id']?.toString() ?? '') == _selectedRoleId)) {
+           _selectedRoleId = null;
+        }
+
         _isLoadingFields = false;
       });
     } catch (e) {
       if (mounted) {
         setState(() => _isLoadingFields = false);
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat kolom profil: $e')));
+        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat data: $e')));
       }
     }
   }
@@ -156,7 +154,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.user != null;
-    final roles = Provider.of<AppSettingsProvider>(context).roles;
+    final roles = _roles;
 
     return Scaffold(
       appBar: AppBar(
@@ -231,8 +229,8 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
                                 value: _selectedRoleId,
                                 items: roles.map<DropdownMenuItem<int>>((r) {
                                   return DropdownMenuItem<int>(
-                                    value: r['id'],
-                                    child: Text(r['name'] ?? 'Unknown'),
+                                    value: int.tryParse(r['id']?.toString() ?? ''),
+                                    child: Text(r['display_name'] ?? r['name'] ?? 'Unknown'),
                                   );
                                 }).toList(),
                                 onChanged: (val) {

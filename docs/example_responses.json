@@ -1,0 +1,850 @@
+{
+    "GET /api/user": {
+        "id": 1,
+        "role_id": 1,
+        "name": "Admin Sekolah",
+        "email": "admin@sekolah.com",
+        "email_verified_at": null,
+        "username": "ADMIN001",
+        "phone_number": "081234567890",
+        "face_biometric": null,
+        "can_attend": true,
+        "location_id": 1,
+        "is_location_flexible": true,
+        "created_at": "2026-06-25T16:20:24.000000Z",
+        "updated_at": "2026-06-25T16:20:24.000000Z",
+        "role": {
+            "id": 1,
+            "name": "admin",
+            "display_name": "Administrator",
+            "created_at": "2026-06-25T16:20:24.000000Z",
+            "updated_at": "2026-06-25T16:20:24.000000Z"
+        },
+        "profile": null,
+        "groups": [],
+        "location": {
+            "id": 1,
+            "name": "Kantor Pusat",
+            "latitude": "-6.175392",
+            "longitude": "106.827153",
+            "radius": 100,
+            "created_at": "2026-06-25T16:20:24.000000Z",
+            "updated_at": "2026-06-25T16:20:24.000000Z"
+        }
+    },
+    "GET /api/dashboard/admin": {
+        "date": "2026-06-27",
+        "daily": {
+            "total_users": 2,
+            "total_present": 1,
+            "total_permits": 0,
+            "total_absent": 1
+        },
+        "chart_7_days": [
+            {
+                "date": "2026-06-21",
+                "present": 0,
+                "permits": 0,
+                "absent": 2
+            },
+            {
+                "date": "2026-06-22",
+                "present": 0,
+                "permits": 0,
+                "absent": 2
+            },
+            {
+                "date": "2026-06-23",
+                "present": 0,
+                "permits": 0,
+                "absent": 2
+            },
+            {
+                "date": "2026-06-24",
+                "present": 0,
+                "permits": 0,
+                "absent": 2
+            },
+            {
+                "date": "2026-06-25",
+                "present": 0,
+                "permits": 0,
+                "absent": 2
+            },
+            {
+                "date": "2026-06-26",
+                "present": 0,
+                "permits": 0,
+                "absent": 2
+            },
+            {
+                "date": "2026-06-27",
+                "present": 1,
+                "permits": 0,
+                "absent": 1
+            }
+        ],
+        "statistics": {
+            "total_all_users": 3,
+            "total_can_attend": 2,
+            "total_roles": 4,
+            "roles_breakdown": [
+                {
+                    "name": "Administrator",
+                    "count": 1
+                },
+                {
+                    "name": "Guru",
+                    "count": 0
+                },
+                {
+                    "name": "Siswa",
+                    "count": 1
+                },
+                {
+                    "name": "Wali Murid",
+                    "count": 1
+                }
+            ],
+            "total_groups": 3,
+            "groups_breakdown": [
+                {
+                    "name": "Kelas 10 MIPA 1",
+                    "count": 0
+                },
+                {
+                    "name": "Kelas 10 IPS 1",
+                    "count": 0
+                },
+                {
+                    "name": "Staff Guru",
+                    "count": 0
+                }
+            ]
+        }
+    },
+    "GET /api/admin/users": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "role_id": 1,
+                "name": "Admin Sekolah",
+                "email": "admin@sekolah.com",
+                "email_verified_at": null,
+                "username": "ADMIN001",
+                "phone_number": "081234567890",
+                "face_biometric": null,
+                "can_attend": true,
+                "location_id": 1,
+                "is_location_flexible": true,
+                "created_at": "2026-06-25T16:20:24.000000Z",
+                "updated_at": "2026-06-25T16:20:24.000000Z",
+                "role": {
+                    "id": 1,
+                    "name": "admin",
+                    "display_name": "Administrator",
+                    "created_at": "2026-06-25T16:20:24.000000Z",
+                    "updated_at": "2026-06-25T16:20:24.000000Z"
+                },
+                "profile": null
+            }
+        ],
+        "first_page_url": "http://absensi.test/api/admin/users?page=1",
+        "from": 1,
+        "last_page": 3,
+        "last_page_url": "http://absensi.test/api/admin/users?page=3",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/users?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": "http://absensi.test/api/admin/users?page=2",
+                "label": "2",
+                "page": 2,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/users?page=3",
+                "label": "3",
+                "page": 3,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/users?page=2",
+                "label": "pagination.next",
+                "page": 2,
+                "active": false
+            }
+        ],
+        "next_page_url": "http://absensi.test/api/admin/users?page=2",
+        "path": "http://absensi.test/api/admin/users",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 3
+    },
+    "GET /api/admin/roles": {
+        "roles": [
+            {
+                "id": 1,
+                "name": "admin",
+                "display_name": "Administrator",
+                "created_at": "2026-06-25T16:20:24.000000Z",
+                "updated_at": "2026-06-25T16:20:24.000000Z",
+                "permissions": [
+                    {
+                        "id": 1,
+                        "name": "manage-users",
+                        "display_name": "Mengelola Karyawan & User",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 1
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "name": "manage-roles",
+                        "display_name": "Mengelola Role & Hak Akses",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 2
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "name": "manage-groups",
+                        "display_name": "Mengelola Grup / Divisi",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 3
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "name": "manage-schedules",
+                        "display_name": "Mengelola Jadwal Absensi",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 4
+                        }
+                    },
+                    {
+                        "id": 5,
+                        "name": "manage-locations",
+                        "display_name": "Mengelola Lokasi Cabang",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 5
+                        }
+                    },
+                    {
+                        "id": 6,
+                        "name": "manage-attendances",
+                        "display_name": "Mengelola Data Absensi Manual",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 6
+                        }
+                    },
+                    {
+                        "id": 7,
+                        "name": "manage-settings",
+                        "display_name": "Mengubah Pengaturan Sistem",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 7
+                        }
+                    },
+                    {
+                        "id": 8,
+                        "name": "approve-permits",
+                        "display_name": "Menyetujui & Mengelola Izin",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 8
+                        }
+                    },
+                    {
+                        "id": 9,
+                        "name": "view-reports",
+                        "display_name": "Melihat & Mengunduh Laporan",
+                        "created_at": "2026-06-25T16:48:46.000000Z",
+                        "updated_at": "2026-06-25T16:48:46.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 9
+                        }
+                    },
+                    {
+                        "id": 10,
+                        "name": "manage-holidays",
+                        "display_name": "Mengelola Hari Libur",
+                        "created_at": "2026-06-25T17:02:57.000000Z",
+                        "updated_at": "2026-06-25T17:02:57.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 10
+                        }
+                    },
+                    {
+                        "id": 11,
+                        "name": "manage-shifts",
+                        "display_name": "Mengelola Shift & Roster",
+                        "created_at": "2026-06-25T17:02:57.000000Z",
+                        "updated_at": "2026-06-25T17:02:57.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 11
+                        }
+                    },
+                    {
+                        "id": 12,
+                        "name": "manage-announcements",
+                        "display_name": "Membuat Pengumuman",
+                        "created_at": "2026-06-25T17:02:57.000000Z",
+                        "updated_at": "2026-06-25T17:02:57.000000Z",
+                        "pivot": {
+                            "role_id": 1,
+                            "permission_id": 12
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "name": "guru",
+                "display_name": "Guru",
+                "created_at": "2026-06-25T16:20:24.000000Z",
+                "updated_at": "2026-06-25T16:20:24.000000Z",
+                "permissions": []
+            },
+            {
+                "id": 3,
+                "name": "siswa",
+                "display_name": "Siswa",
+                "created_at": "2026-06-25T16:20:24.000000Z",
+                "updated_at": "2026-06-25T16:20:24.000000Z",
+                "permissions": []
+            },
+            {
+                "id": 4,
+                "name": "parent",
+                "display_name": "Wali Murid",
+                "created_at": "2026-06-25T16:20:24.000000Z",
+                "updated_at": "2026-06-25T16:20:24.000000Z",
+                "permissions": []
+            }
+        ],
+        "available_permissions": [
+            {
+                "id": 1,
+                "name": "manage-users",
+                "display_name": "Mengelola Karyawan & User",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 2,
+                "name": "manage-roles",
+                "display_name": "Mengelola Role & Hak Akses",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 3,
+                "name": "manage-groups",
+                "display_name": "Mengelola Grup / Divisi",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 4,
+                "name": "manage-schedules",
+                "display_name": "Mengelola Jadwal Absensi",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 5,
+                "name": "manage-locations",
+                "display_name": "Mengelola Lokasi Cabang",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 6,
+                "name": "manage-attendances",
+                "display_name": "Mengelola Data Absensi Manual",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 7,
+                "name": "manage-settings",
+                "display_name": "Mengubah Pengaturan Sistem",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 8,
+                "name": "approve-permits",
+                "display_name": "Menyetujui & Mengelola Izin",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 9,
+                "name": "view-reports",
+                "display_name": "Melihat & Mengunduh Laporan",
+                "created_at": "2026-06-25T16:48:46.000000Z",
+                "updated_at": "2026-06-25T16:48:46.000000Z"
+            },
+            {
+                "id": 10,
+                "name": "manage-holidays",
+                "display_name": "Mengelola Hari Libur",
+                "created_at": "2026-06-25T17:02:57.000000Z",
+                "updated_at": "2026-06-25T17:02:57.000000Z"
+            },
+            {
+                "id": 11,
+                "name": "manage-shifts",
+                "display_name": "Mengelola Shift & Roster",
+                "created_at": "2026-06-25T17:02:57.000000Z",
+                "updated_at": "2026-06-25T17:02:57.000000Z"
+            },
+            {
+                "id": 12,
+                "name": "manage-announcements",
+                "display_name": "Membuat Pengumuman",
+                "created_at": "2026-06-25T17:02:57.000000Z",
+                "updated_at": "2026-06-25T17:02:57.000000Z"
+            }
+        ]
+    },
+    "GET /api/admin/groups": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "Kelas 10 MIPA 1",
+                "type": "kelas",
+                "created_at": "2026-06-25T16:20:25.000000Z",
+                "updated_at": "2026-06-25T16:20:25.000000Z"
+            }
+        ],
+        "first_page_url": "http://absensi.test/api/admin/groups?page=1",
+        "from": 1,
+        "last_page": 3,
+        "last_page_url": "http://absensi.test/api/admin/groups?page=3",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/groups?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": "http://absensi.test/api/admin/groups?page=2",
+                "label": "2",
+                "page": 2,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/groups?page=3",
+                "label": "3",
+                "page": 3,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/groups?page=2",
+                "label": "pagination.next",
+                "page": 2,
+                "active": false
+            }
+        ],
+        "next_page_url": "http://absensi.test/api/admin/groups?page=2",
+        "path": "http://absensi.test/api/admin/groups",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 3
+    },
+    "GET /api/admin/schedules": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "group_id": null,
+                "monday_in": "07:00:00",
+                "monday_out": "16:00:00",
+                "tuesday_in": "07:00:00",
+                "tuesday_out": "16:00:00",
+                "wednesday_in": "07:00:00",
+                "wednesday_out": "16:00:00",
+                "thursday_in": "07:00:00",
+                "thursday_out": "16:00:00",
+                "friday_in": "07:00:00",
+                "friday_out": "16:00:00",
+                "saturday_in": null,
+                "saturday_out": null,
+                "sunday_in": null,
+                "sunday_out": null,
+                "is_flexible": false,
+                "created_at": "2026-06-25T16:20:25.000000Z",
+                "updated_at": "2026-06-25T16:20:25.000000Z",
+                "group": null
+            }
+        ],
+        "first_page_url": "http://absensi.test/api/admin/schedules?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/schedules?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/schedules?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/schedules",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 1
+    },
+    "GET /api/admin/locations": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "Kantor Pusat",
+                "latitude": "-6.175392",
+                "longitude": "106.827153",
+                "radius": 100,
+                "created_at": "2026-06-25T16:20:24.000000Z",
+                "updated_at": "2026-06-25T16:20:24.000000Z"
+            }
+        ],
+        "first_page_url": "http://absensi.test/api/admin/locations?page=1",
+        "from": 1,
+        "last_page": 2,
+        "last_page_url": "http://absensi.test/api/admin/locations?page=2",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/locations?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": "http://absensi.test/api/admin/locations?page=2",
+                "label": "2",
+                "page": 2,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/locations?page=2",
+                "label": "pagination.next",
+                "page": 2,
+                "active": false
+            }
+        ],
+        "next_page_url": "http://absensi.test/api/admin/locations?page=2",
+        "path": "http://absensi.test/api/admin/locations",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 2
+    },
+    "GET /api/admin/attendances": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "user_id": 1,
+                "date": "27 Juni 2026",
+                "check_in": "16:41:07",
+                "check_out": "16:52:31",
+                "status": "hadir",
+                "is_late": 0,
+                "late_minutes": 0,
+                "location_data": {
+                    "lat": "0",
+                    "lng": "0"
+                },
+                "photo_path": null,
+                "created_at": "2026-06-27T09:41:07.000000Z",
+                "updated_at": "2026-06-27T09:52:31.000000Z",
+                "photo_url": null,
+                "user": {
+                    "id": 1,
+                    "role_id": 1,
+                    "name": "Admin Sekolah",
+                    "email": "admin@sekolah.com",
+                    "email_verified_at": null,
+                    "username": "ADMIN001",
+                    "phone_number": "081234567890",
+                    "face_biometric": null,
+                    "can_attend": true,
+                    "location_id": 1,
+                    "is_location_flexible": true,
+                    "created_at": "2026-06-25T16:20:24.000000Z",
+                    "updated_at": "2026-06-25T16:20:24.000000Z"
+                }
+            }
+        ],
+        "first_page_url": "http://absensi.test/api/admin/attendances?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/attendances?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/attendances?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/attendances",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": 1,
+        "total": 1
+    },
+    "GET /api/admin/permits": {
+        "current_page": 1,
+        "data": [],
+        "first_page_url": "http://absensi.test/api/admin/permits?page=1",
+        "from": null,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/permits?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/permits?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/permits",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": null,
+        "total": 0
+    },
+    "GET /api/admin/holidays": {
+        "current_page": 1,
+        "data": [],
+        "first_page_url": "http://absensi.test/api/admin/holidays?page=1",
+        "from": null,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/holidays?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/holidays?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/holidays",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": null,
+        "total": 0
+    },
+    "GET /api/admin/shifts": {
+        "current_page": 1,
+        "data": [],
+        "first_page_url": "http://absensi.test/api/admin/shifts?page=1",
+        "from": null,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/shifts?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/shifts?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/shifts",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": null,
+        "total": 0
+    },
+    "GET /api/admin/rosters": {
+        "current_page": 1,
+        "data": [],
+        "first_page_url": "http://absensi.test/api/admin/rosters?page=1",
+        "from": null,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/rosters?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/rosters?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/rosters",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": null,
+        "total": 0
+    },
+    "GET /api/admin/announcements": {
+        "current_page": 1,
+        "data": [],
+        "first_page_url": "http://absensi.test/api/admin/announcements?page=1",
+        "from": null,
+        "last_page": 1,
+        "last_page_url": "http://absensi.test/api/admin/announcements?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://absensi.test/api/admin/announcements?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://absensi.test/api/admin/announcements",
+        "per_page": 1,
+        "prev_page_url": null,
+        "to": null,
+        "total": 0
+    }
+}

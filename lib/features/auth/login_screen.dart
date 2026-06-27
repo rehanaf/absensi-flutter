@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -37,6 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (success && mounted) {
+      // Notify OS to save credentials
+      TextInput.finishAutofillContext();
       context.go('/home');
     } else if (mounted) {
       ShadToaster.of(context).show(
@@ -59,6 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              AutofillGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
               Text(
                 'Welcome to',
                 style: ShadTheme.of(context).textTheme.h3,
@@ -72,6 +79,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _usernameController,
                 placeholder: Text(settings.identityLabel),
                 keyboardType: TextInputType.text,
+                autofillHints: const [AutofillHints.username],
+                textInputAction: TextInputAction.next,
                 leading: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Text('👤', style: TextStyle(fontSize: 16)),
@@ -82,6 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passwordController,
                 placeholder: const Text('Password'),
                 obscureText: _obscurePassword,
+                autofillHints: const [AutofillHints.password],
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _isLoading ? null : _login(),
                 leading: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Text('🔒', style: TextStyle(fontSize: 16)),
@@ -102,11 +114,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ShadButton(
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading 
-                    ? const CircularProgressIndicator()
+                    ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: ShadTheme.of(context).colorScheme.primaryForeground))
                     : const Text('Login'),
               ),
-
-            ],
+                ],
+              ),
+            ),
+          ],
           ),
         ),
       ),

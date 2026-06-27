@@ -88,74 +88,87 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ],
                         )
-                      : ListView.separated(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _attendances.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final att = _attendances[index];
-                            final rawDate = att['date']?.toString() ?? '-';
-                            final date = rawDate.length >= 10 ? rawDate.substring(0, 10) : rawDate;
-                            final checkIn = att['check_in'] ?? '--:--:--';
-                            final checkOut = att['check_out'] ?? '--:--:--';
-                            final status = att['status'] ?? '-';
-                            final isLate = att['is_late'] == 1 || att['is_late'] == true;
-                            final lateMinutes = att['late_minutes'] ?? 0;
-
-                            Color statusColor = Colors.green;
-                            if (status == 'izin' || status == 'sakit') statusColor = Colors.orange;
-                            if (status == 'alpa') statusColor = Colors.red;
-
-                            return Container(
+                      : ListView(
+                          padding: const EdgeInsets.all(24),
+                          children: [
+                            Container(
                               decoration: BoxDecoration(
                                 border: Border.all(color: ShadTheme.of(context).colorScheme.border),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: ListTile(
-                                leading: att['photo_url'] != null
-                                    ? CircleAvatar(
-                                        backgroundImage: NetworkImage(att['photo_url']),
-                                        backgroundColor: Colors.grey.shade200,
-                                      )
-                                    : CircleAvatar(
-                                        backgroundColor: Colors.blue.withOpacity(0.1),
-                                        child: const Icon(LucideIcons.calendarClock, color: Colors.blue),
-                                      ),
-                                title: Text('Tanggal: $date', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Masuk: $checkIn | Keluar: $checkOut'),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: statusColor.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Text('Status: $status', style: TextStyle(color: statusColor, fontSize: 10)),
-                                        ),
-                                        if (isLate) ...[
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: Colors.red.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(4),
+                              clipBehavior: Clip.hardEdge,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: Column(
+                                  children: List.generate(
+                                    _attendances.length,
+                                    (index) {
+                                      final att = _attendances[index];
+                                      final rawDate = att['date']?.toString() ?? '-';
+                                      final date = rawDate;
+                                      final checkIn = att['check_in'] ?? '--:--';
+                                      final checkOut = att['check_out'] ?? '--:--';
+                                      final status = att['status'] ?? '-';
+                                      final isLate = att['is_late'] == 1 || att['is_late'] == true;
+                                      final lateMinutes = att['late_minutes'] ?? 0;
+
+                                      Color badgeColor = ShadTheme.of(context).colorScheme.primary;
+                                      if (status == 'hadir') badgeColor = Colors.green;
+                                      if (status == 'sakit' || status == 'izin') badgeColor = Colors.orange;
+                                      if (status == 'alpa' || status == 'alpha') badgeColor = Colors.red;
+
+                                      return Column(
+                                        children: [
+                                          InkWell(
+                                            onTap: () {},
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  if (att['photo_url'] != null)
+                                                    CircleAvatar(
+                                                      backgroundImage: NetworkImage(att['photo_url']),
+                                                      backgroundColor: Colors.grey.shade200,
+                                                    )
+                                                  else
+                                                    CircleAvatar(
+                                                      backgroundColor: Colors.blue.withOpacity(0.1),
+                                                      child: const Icon(LucideIcons.calendarClock, color: Colors.blue),
+                                                    ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(date, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                                        const SizedBox(height: 4),
+                                                        Text('Masuk: $checkIn  •  Pulang: $checkOut', style: ShadTheme.of(context).textTheme.muted),
+                                                        if (isLate) ...[
+                                                          const SizedBox(height: 4),
+                                                          Text('Terlambat $lateMinutes menit', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  ShadBadge(
+                                                    backgroundColor: badgeColor,
+                                                    child: Text(status.toString().toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                            child: Text('Terlambat $lateMinutes mnt', style: const TextStyle(color: Colors.red, fontSize: 10)),
                                           ),
-                                        ]
-                                      ],
-                                    ),
-                                  ],
+                                          if (index < _attendances.length - 1)
+                                            Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                                        ],
+                                      );
+                                    },
+                                  ),
                                 ),
-                                isThreeLine: true,
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
         ),
       ),

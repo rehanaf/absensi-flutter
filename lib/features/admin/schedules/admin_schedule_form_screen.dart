@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../../data/services/api_service.dart';
+import 'dart:async';
 
 class AdminScheduleFormScreen extends StatefulWidget {
   final Map<String, dynamic>? schedule;
@@ -16,14 +17,14 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
   final _apiService = ApiService();
 
   int? _selectedGroupId;
+  String _selectedGroupName = 'Jadwal Default (Semua)';
+  
   String _selectedDay = 'Monday';
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   bool _isFlexible = false;
 
   bool _isLoading = false;
-  bool _isLoadingGroups = true;
-  List<dynamic> _groups = [];
 
   final Map<String, String> _daysMap = {
     'Monday': 'Senin',
@@ -42,6 +43,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     
     if (schedule != null) {
       _selectedGroupId = schedule['group_id'];
+      _selectedGroupName = schedule['group']?['name'] ?? (_selectedGroupId == null ? 'Jadwal Default (Semua)' : 'Group #$_selectedGroupId');
       _selectedDay = schedule['day'] ?? 'Monday';
       _isFlexible = schedule['is_flexible'] == 1 || schedule['is_flexible'] == true;
 
@@ -52,25 +54,6 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
       if (schedule['end_time'] != null) {
         final parts = schedule['end_time'].toString().split(':');
         if (parts.length >= 2) _endTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-      }
-    }
-
-    _fetchGroups();
-  }
-
-  Future<void> _fetchGroups() async {
-    try {
-      final groups = await _apiService.getGroups();
-      if (mounted) {
-        setState(() {
-          _groups = groups;
-          _isLoadingGroups = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingGroups = false);
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat grup: $e')));
       }
     }
   }
@@ -96,6 +79,21 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
       setState(() {
         if (isStart) _startTime = picked;
         else _endTime = picked;
+      });
+    }
+  }
+
+  Future<void> _showGroupPicker() async {
+    final selectedGroup = await showDialog<Map<String, dynamic>?>(
+      context: context,
+      builder: (context) => _GroupSelectionDialog(apiService: _apiService),
+    );
+
+    // If popped with exactly null, it means no selection/canceled, but if we want 'Default' we return an empty map { 'id': null, 'name': '...' }
+    if (selectedGroup != null) {
+      setState(() {
+        _selectedGroupId = selectedGroup['id'];
+        _selectedGroupName = selectedGroup['name'] ?? 'Unknown';
       });
     }
   }
@@ -146,7 +144,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Jadwal' : 'Tambah Jadwal'),
       ),
-      body: _isLoading || _isLoadingGroups
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
@@ -157,32 +155,20 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                   children: [
                     Text('Grup', style: ShadTheme.of(context).textTheme.small),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<int?>(
-                          isExpanded: true,
-                          value: _selectedGroupId,
-                          hint: const Text('Jadwal Default (Semua)'),
-                          items: [
-                            const DropdownMenuItem<int?>(
-                              value: null,
-                              child: Text('Jadwal Default (Semua Pengguna)'),
-                            ),
-                            ..._groups.map<DropdownMenuItem<int?>>((g) {
-                              return DropdownMenuItem<int?>(
-                                value: g['id'],
-                                child: Text(g['name'] ?? 'Unknown Group'),
-                              );
-                            }),
+                    GestureDetector(
+                      onTap: _showGroupPicker,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_selectedGroupName),
+                            const Icon(LucideIcons.chevronDown, size: 16),
                           ],
-                          onChanged: (val) {
-                            setState(() => _selectedGroupId = val);
-                          },
                         ),
                       ),
                     ),
@@ -306,3 +292,124 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     );
   }
 }
+
+class _GroupSelectionDialog extends StatefulWidget {
+  final ApiService apiService;
+
+  const _GroupSelectionDialog({required this.apiService});
+
+  @override
+  State<_GroupSelectionDialog> createState() => _GroupSelectionDialogState();
+}
+
+class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
+  List<dynamic> _searchResults = [];
+  bool _isLoading = false;
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchGroups('');
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchGroups(query);
+    });
+  }
+
+  Future<void> _searchGroups(String query) async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _searchQuery = query;
+    });
+
+    try {
+      final response = await widget.apiService.getGroups(search: query);
+      if (mounted) {
+        setState(() {
+          _searchResults = response['data'] as List<dynamic>? ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxHeight: 600, maxWidth: 400),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Pilih Kelompok', style: ShadTheme.of(context).textTheme.h4),
+            const SizedBox(height: 16),
+            ShadInput(
+              placeholder: const Text('Cari kelompok...'),
+              onChanged: _onSearchChanged,
+            ),
+            const SizedBox(height: 16),
+            
+            // Option for default (All)
+            ListTile(
+              leading: const Icon(LucideIcons.users, color: Colors.blue),
+              title: const Text('Jadwal Default (Semua Pengguna)', style: TextStyle(fontWeight: FontWeight.bold)),
+              onTap: () => Navigator.pop(context, {'id': null, 'name': 'Jadwal Default (Semua)'}),
+            ),
+            const Divider(),
+
+            if (_isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (_searchResults.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    _searchQuery.isEmpty ? 'Tidak ada kelompok tersedia.' : 'Kelompok tidak ditemukan.',
+                    style: ShadTheme.of(context).textTheme.muted,
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _searchResults.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final group = _searchResults[index];
+                    return ListTile(
+                      title: Text(group['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(group['type'] ?? ''),
+                      onTap: () => Navigator.pop(context, group),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ShadButton.outline(
+                child: const Text('Batal'),
+                onPressed: () => Navigator.pop(context), // returns null
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+

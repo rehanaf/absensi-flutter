@@ -1,0 +1,94 @@
+GET|HEAD        / .............................................................. routes/web.php:5
+GET|HEAD        api/admin/announcements announcements.index › Api\Admin\AnnouncementController@i…
+POST            api/admin/announcements announcements.store › Api\Admin\AnnouncementController@s…
+GET|HEAD        api/admin/announcements/{announcement} announcements.show › Api\Admin\Announceme…
+PUT|PATCH       api/admin/announcements/{announcement} announcements.update › Api\Admin\Announce…
+DELETE          api/admin/announcements/{announcement} announcements.destroy › Api\Admin\Announc…
+GET|HEAD        api/admin/attendances .. attendances.index › Api\Admin\AttendanceController@index
+POST            api/admin/attendances .. attendances.store › Api\Admin\AttendanceController@store
+GET|HEAD        api/admin/attendances/{attendance} attendances.show › Api\Admin\AttendanceContro…
+PUT|PATCH       api/admin/attendances/{attendance} attendances.update › Api\Admin\AttendanceCont…
+DELETE          api/admin/attendances/{attendance} attendances.destroy › Api\Admin\AttendanceCon…
+GET|HEAD        api/admin/faces .................................. Api\Admin\FaceController@index
+PUT             api/admin/faces/{user} .......................... Api\Admin\FaceController@update
+DELETE          api/admin/faces/{user} ......................... Api\Admin\FaceController@destroy
+GET|HEAD        api/admin/form-fields ... form-fields.index › Api\Admin\FormFieldController@index
+POST            api/admin/form-fields ... form-fields.store › Api\Admin\FormFieldController@store
+GET|HEAD        api/admin/form-fields/{form_field} form-fields.show › Api\Admin\FormFieldControl…
+PUT|PATCH       api/admin/form-fields/{form_field} form-fields.update › Api\Admin\FormFieldContr…
+DELETE          api/admin/form-fields/{form_field} form-fields.destroy › Api\Admin\FormFieldCont…
+GET|HEAD        api/admin/groups ................. groups.index › Api\Admin\GroupController@index
+POST            api/admin/groups ................. groups.store › Api\Admin\GroupController@store
+GET|HEAD        api/admin/groups/{group} ........... groups.show › Api\Admin\GroupController@show
+PUT|PATCH       api/admin/groups/{group} ....... groups.update › Api\Admin\GroupController@update
+DELETE          api/admin/groups/{group} ..... groups.destroy › Api\Admin\GroupController@destroy
+POST            api/admin/groups/{group}/attach-user ....... Api\Admin\GroupController@attachUser
+POST            api/admin/groups/{group}/detach-user ....... Api\Admin\GroupController@detachUser
+GET|HEAD        api/admin/holidays ........... holidays.index › Api\Admin\HolidayController@index
+POST            api/admin/holidays ........... holidays.store › Api\Admin\HolidayController@store
+GET|HEAD        api/admin/holidays/{holiday} ... holidays.show › Api\Admin\HolidayController@show
+PUT|PATCH       api/admin/holidays/{holiday} holidays.update › Api\Admin\HolidayController@update
+DELETE          api/admin/holidays/{holiday} holidays.destroy › Api\Admin\HolidayController@dest…
+GET|HEAD        api/admin/locations ........ locations.index › Api\Admin\LocationController@index
+POST            api/admin/locations ........ locations.store › Api\Admin\LocationController@store
+GET|HEAD        api/admin/locations/{location} locations.show › Api\Admin\LocationController@show
+PUT|PATCH       api/admin/locations/{location} locations.update › Api\Admin\LocationController@u…
+DELETE          api/admin/locations/{location} locations.destroy › Api\Admin\LocationController@…
+GET|HEAD        api/admin/permits .............. permits.index › Api\Admin\PermitController@index
+POST            api/admin/permits .............. permits.store › Api\Admin\PermitController@store
+GET|HEAD        api/admin/permits/{permit} ....... permits.show › Api\Admin\PermitController@show
+PUT|PATCH       api/admin/permits/{permit} ... permits.update › Api\Admin\PermitController@update
+DELETE          api/admin/permits/{permit} . permits.destroy › Api\Admin\PermitController@destroy
+GET|HEAD        api/admin/reports/attendances ............ Api\Admin\ReportController@attendances
+GET|HEAD        api/admin/reports/export ...................... Api\Admin\ReportController@export
+GET|HEAD        api/admin/roles .................... roles.index › Api\Admin\RoleController@index
+POST            api/admin/roles .................... roles.store › Api\Admin\RoleController@store
+GET|HEAD        api/admin/roles/{role} ............... roles.show › Api\Admin\RoleController@show
+PUT|PATCH       api/admin/roles/{role} ........... roles.update › Api\Admin\RoleController@update
+DELETE          api/admin/roles/{role} ......... roles.destroy › Api\Admin\RoleController@destroy
+POST            api/admin/roles/{role}/sync-permissions Api\Admin\RoleController@syncPermissions 
+GET|HEAD        api/admin/rosters .............. rosters.index › Api\Admin\RosterController@index
+POST            api/admin/rosters .............. rosters.store › Api\Admin\RosterController@store
+GET|HEAD        api/admin/rosters/{roster} ....... rosters.show › Api\Admin\RosterController@show
+PUT|PATCH       api/admin/rosters/{roster} ... rosters.update › Api\Admin\RosterController@update
+DELETE          api/admin/rosters/{roster} . rosters.destroy › Api\Admin\RosterController@destroy
+GET|HEAD        api/admin/schedules ........ schedules.index › Api\Admin\ScheduleController@index
+POST            api/admin/schedules ........ schedules.store › Api\Admin\ScheduleController@store
+GET|HEAD        api/admin/schedules/{schedule} schedules.show › Api\Admin\ScheduleController@show
+PUT|PATCH       api/admin/schedules/{schedule} schedules.update › Api\Admin\ScheduleController@u…
+DELETE          api/admin/schedules/{schedule} schedules.destroy › Api\Admin\ScheduleController@…
+GET|HEAD        api/admin/settings .................................. Api\SettingController@index
+GET|HEAD        api/admin/shifts ................. shifts.index › Api\Admin\ShiftController@index
+POST            api/admin/shifts ................. shifts.store › Api\Admin\ShiftController@store
+GET|HEAD        api/admin/shifts/{shift} ........... shifts.show › Api\Admin\ShiftController@show
+PUT|PATCH       api/admin/shifts/{shift} ....... shifts.update › Api\Admin\ShiftController@update
+DELETE          api/admin/shifts/{shift} ..... shifts.destroy › Api\Admin\ShiftController@destroy
+GET|HEAD        api/admin/users .................... users.index › Api\Admin\UserController@index
+POST            api/admin/users .................... users.store › Api\Admin\UserController@store
+GET|HEAD        api/admin/users/{user} ............... users.show › Api\Admin\UserController@show
+PUT|PATCH       api/admin/users/{user} ........... users.update › Api\Admin\UserController@update
+DELETE          api/admin/users/{user} ......... users.destroy › Api\Admin\UserController@destroy
+POST            api/attendance/check-in ........................ Api\AttendanceController@checkIn
+POST            api/attendance/check-out ...................... Api\AttendanceController@checkOut
+GET|HEAD        api/attendance/history ......................... Api\AttendanceController@history
+GET|HEAD        api/dashboard/admin ............................... Api\DashboardController@admin
+GET|HEAD        api/dashboard/parent ............................. Api\DashboardController@parent
+GET|HEAD        api/dashboard/user ................................. Api\DashboardController@user
+GET|HEAD        api/form-fields ................................ Api\SettingController@formFields
+POST            api/login .............................................. Api\AuthController@login
+POST            api/logout ............................................ Api\AuthController@logout
+GET|HEAD        api/notifications .............................. Api\NotificationController@index
+POST            api/notifications/read-all ............. Api\NotificationController@markAllAsRead
+PUT             api/notifications/{id}/read ............... Api\NotificationController@markAsRead
+GET|HEAD        api/parent/children/attendances .......... Api\Parent\ChildController@attendances
+GET|HEAD        api/permits .......................................... Api\PermitController@index
+POST            api/permits .......................................... Api\PermitController@store
+GET|HEAD        api/settings ........................................ Api\SettingController@index
+GET|HEAD        api/user .................................................. Api\AuthController@me
+POST            api/user/fcm-token ...................... Api\NotificationController@saveFcmToken
+PUT             api/user/profile ............................... Api\AuthController@updateProfile
+POST            api/user/register-face .......................... Api\AuthController@registerFace
+GET|HEAD        sanctum/csrf-cookie sanctum.csrf-cookie › Laravel\Sanctum › CsrfCookieController…
+GET|HEAD        storage/{path} storage.local › vendor/laravel/framework/src/Illuminate/Filesyste…
+PUT             storage/{path} storage.local.upload › vendor/laravel/framework/src/Illuminate/Fi…
+GET|HEAD        up vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationB…

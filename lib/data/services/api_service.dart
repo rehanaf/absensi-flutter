@@ -169,9 +169,22 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateAdminSettings(Map<String, dynamic> settings) async {
     try {
-      final response = await _apiClient.dio.post('/admin/settings', data: {
-        'settings': settings
-      });
+      FormData formData = FormData();
+      bool hasFile = false;
+      
+      for (var entry in settings.entries) {
+        if (entry.value is MultipartFile) {
+          hasFile = true;
+          formData.files.add(MapEntry('settings[${entry.key}]', entry.value));
+        } else if (entry.value != null) {
+          formData.fields.add(MapEntry('settings[${entry.key}]', entry.value.toString()));
+        }
+      }
+
+      final response = await _apiClient.dio.post(
+        '/admin/settings',
+        data: hasFile ? formData : { 'settings': settings },
+      );
       return response.data;
     } catch (e) {
       rethrow;
@@ -180,10 +193,10 @@ class ApiService {
 
   // --- Admin: Users Management ---
 
-  Future<List<dynamic>> getUsers() async {
+  Future<Map<String, dynamic>> getUsers({int page = 1, String? search}) async {
     try {
-      final response = await _apiClient.dio.get('/admin/users');
-      return response.data; // Backend returns JSON array directly or {data: ...} depending on framework, but the controller says response()->json(User::with...get()) which is a JSON array
+      final response = await _apiClient.dio.get('/admin/users', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
     } catch (e) {
       rethrow;
     }
@@ -218,9 +231,9 @@ class ApiService {
 
   // --- Admin: Schedules Management ---
 
-  Future<List<dynamic>> getSchedules() async {
+  Future<Map<String, dynamic>> getSchedules({int page = 1, String? search}) async {
     try {
-      final response = await _apiClient.dio.get('/admin/schedules');
+      final response = await _apiClient.dio.get('/admin/schedules', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
     } catch (e) {
       rethrow;
@@ -256,9 +269,9 @@ class ApiService {
 
   // --- Admin: Groups Management ---
 
-  Future<List<dynamic>> getGroups() async {
+  Future<Map<String, dynamic>> getGroups({int page = 1, String? search}) async {
     try {
-      final response = await _apiClient.dio.get('/admin/groups');
+      final response = await _apiClient.dio.get('/admin/groups', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
     } catch (e) {
       rethrow;
@@ -353,10 +366,10 @@ class ApiService {
 
   // --- Admin: Attendances Management ---
 
-  Future<List<dynamic>> getAttendances() async {
+  Future<Map<String, dynamic>> getAttendances({int page = 1, String? search}) async {
     try {
-      final response = await _apiClient.dio.get('/admin/attendances');
-      return response.data['attendances'] ?? [];
+      final response = await _apiClient.dio.get('/admin/attendances', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
     } catch (e) {
       rethrow;
     }
@@ -387,4 +400,170 @@ class ApiService {
       rethrow;
     }
   }
+
+  // --- Admin: Locations ---
+  Future<Map<String, dynamic>> getLocations({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/locations', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createLocation(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/locations', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updateLocation(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/locations/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deleteLocation(int id) async {
+    try { await _apiClient.dio.delete('/admin/locations/'); } catch (e) { rethrow; }
+  }
+
+  // --- Admin: Roles ---
+  Future<Map<String, dynamic>> getRoles({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/roles', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createRole(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/roles', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updateRole(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/roles/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deleteRole(int id) async {
+    try { await _apiClient.dio.delete('/admin/roles/'); } catch (e) { rethrow; }
+  }
+
+  // --- Admin: Permits ---
+  Future<Map<String, dynamic>> getPermits({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/permits', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createPermit(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/permits', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updatePermit(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/permits/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deletePermit(int id) async {
+    try { await _apiClient.dio.delete('/admin/permits/'); } catch (e) { rethrow; }
+  }
+
+  // --- Admin: Holidays ---
+  Future<Map<String, dynamic>> getHolidays({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/holidays', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createHoliday(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/holidays', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updateHoliday(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/holidays/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deleteHoliday(int id) async {
+    try { await _apiClient.dio.delete('/admin/holidays/'); } catch (e) { rethrow; }
+  }
+
+  // --- Admin: Shifts ---
+  Future<Map<String, dynamic>> getShifts({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/shifts', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createShift(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/shifts', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updateShift(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/shifts/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deleteShift(int id) async {
+    try { await _apiClient.dio.delete('/admin/shifts/'); } catch (e) { rethrow; }
+  }
+
+  // --- Admin: Rosters ---
+  Future<Map<String, dynamic>> getRosters({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/rosters', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createRoster(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/rosters', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updateRoster(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/rosters/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deleteRoster(int id) async {
+    try { await _apiClient.dio.delete('/admin/rosters/'); } catch (e) { rethrow; }
+  }
+
+  // --- Admin: Announcements ---
+  Future<Map<String, dynamic>> getAnnouncements({int page = 1, String? search}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/announcements', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
+      return response.data;
+    } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> createAnnouncement(Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.post('/admin/announcements', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<Map<String, dynamic>> updateAnnouncement(int id, Map<String, dynamic> data) async {
+    try { final response = await _apiClient.dio.put('/admin/announcements/', data: data); return response.data; } catch (e) { rethrow; }
+  }
+  Future<void> deleteAnnouncement(int id) async {
+    try { await _apiClient.dio.delete('/admin/announcements/'); } catch (e) { rethrow; }
+  }
+
+
+
+  // --- Notifications & FCM ---
+
+  Future<Map<String, dynamic>> registerFcmToken(String fcmToken, {String? deviceName}) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/user/fcm-token',
+        data: {
+          'fcm_token': fcmToken,
+          if (deviceName != null) 'device_name': deviceName,
+        }
+      );
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getNotifications() async {
+    try {
+      final response = await _apiClient.dio.get('/notifications');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> markNotificationAsRead(int id) async {
+    try {
+      final response = await _apiClient.dio.put('/notifications//read');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> markAllNotificationsAsRead() async {
+    try {
+      final response = await _apiClient.dio.post('/notifications/read-all');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
 }

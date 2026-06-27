@@ -8,10 +8,12 @@ import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/workspace_provider.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui' as ui;
 
-TextStyle _tiktokSans({
+TextStyle _appFont({
   Paint? background,
   Color? backgroundColor,
   Color? color,
@@ -32,8 +34,8 @@ TextStyle _tiktokSans({
   TextStyle? textStyle,
   double? wordSpacing,
 }) {
-  return GoogleFonts.getFont(
-    'TikTok Sans',
+  return TextStyle(
+    fontFamily: 'Pliant',
     background: background,
     backgroundColor: backgroundColor,
     color: color,
@@ -51,11 +53,17 @@ TextStyle _tiktokSans({
     locale: locale,
     shadows: shadows,
     textBaseline: textBaseline,
-    textStyle: textStyle,
     wordSpacing: wordSpacing,
-  );
+  ).merge(textStyle);
 }
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -115,7 +123,7 @@ class MyApp extends StatelessWidget {
           theme: ShadThemeData(
             brightness: Brightness.light,
             colorScheme: _getColorScheme(settings.themeColorName, false),
-            textTheme: ShadTextTheme.fromGoogleFont(_tiktokSans),
+            textTheme: ShadTextTheme.fromGoogleFont(_appFont), // Can still use fromGoogleFont because our _appFont matches the signature
             radius: BorderRadius.circular(12),
             primaryToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
             destructiveToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
@@ -123,7 +131,7 @@ class MyApp extends StatelessWidget {
           darkTheme: ShadThemeData(
             brightness: Brightness.dark,
             colorScheme: _getColorScheme(settings.themeColorName, true),
-            textTheme: ShadTextTheme.fromGoogleFont(_tiktokSans),
+            textTheme: ShadTextTheme.fromGoogleFont(_appFont),
             radius: BorderRadius.circular(12),
             primaryToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
             destructiveToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),

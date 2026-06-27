@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../data/services/api_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -46,6 +47,29 @@ class AuthProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', _token!);
       
+      try {
+        final messaging = FirebaseMessaging.instance;
+        
+        // Meminta izin notifikasi (wajib untuk iOS dan Android 13+)
+        NotificationSettings settings = await messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+        if (settings.authorizationStatus == AuthorizationStatus.authorized || 
+            settings.authorizationStatus == AuthorizationStatus.provisional) {
+          final fcmToken = await messaging.getToken();
+          if (fcmToken != null) {
+            await _apiService.registerFcmToken(fcmToken);
+          }
+        } else {
+          debugPrint('User declined or has not accepted permission');
+        }
+      } catch (e) {
+        debugPrint('FCM Error: $e');
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;

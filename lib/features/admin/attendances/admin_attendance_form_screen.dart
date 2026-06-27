@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../../data/services/api_service.dart';
+import 'dart:async';
 
 class AdminAttendanceFormScreen extends StatefulWidget {
   final Map<String, dynamic>? attendance;
@@ -19,14 +20,14 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
   late TextEditingController _lateMinutesController;
 
   int? _selectedUserId;
+  String _selectedUserName = 'Pilih Pengguna';
+  
   DateTime? _selectedDate;
   TimeOfDay? _checkInTime;
   TimeOfDay? _checkOutTime;
   bool _isLate = false;
 
   bool _isLoading = false;
-  bool _isLoadingUsers = true;
-  List<dynamic> _users = [];
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
 
     if (att != null) {
       _selectedUserId = att['user_id'];
+      _selectedUserName = att['user']?['name'] ?? 'Pengguna #${att['user_id']}';
       
       if (att['date'] != null) {
         _selectedDate = DateTime.tryParse(att['date']);
@@ -53,28 +55,6 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
       _isLate = att['is_late'] == 1 || att['is_late'] == true;
     } else {
       _selectedDate = DateTime.now();
-    }
-
-    _fetchUsers();
-  }
-
-  Future<void> _fetchUsers() async {
-    try {
-      final users = await _apiService.getUsers();
-      if (!mounted) return;
-      setState(() {
-        _users = users;
-        if (_selectedUserId == null && users.isNotEmpty) {
-          // auto-select first user if not editing
-          _selectedUserId = users[0]['id'];
-        }
-        _isLoadingUsers = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingUsers = false);
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat pengguna: $e')));
-      }
     }
   }
 
@@ -124,6 +104,20 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
       setState(() {
         if (isStart) _checkInTime = picked;
         else _checkOutTime = picked;
+      });
+    }
+  }
+
+  Future<void> _showUserPicker() async {
+    final selectedUser = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => _UserSelectionDialog(apiService: _apiService),
+    );
+
+    if (selectedUser != null) {
+      setState(() {
+        _selectedUserId = selectedUser['id'];
+        _selectedUserName = selectedUser['name'] ?? 'Unknown';
       });
     }
   }
@@ -178,7 +172,7 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Absensi' : 'Tambah Absensi Manual'),
       ),
-      body: _isLoading || _isLoadingUsers
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
@@ -189,26 +183,20 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                   children: [
                     Text('Pengguna', style: ShadTheme.of(context).textTheme.small),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<int>(
-                          isExpanded: true,
-                          value: _selectedUserId,
-                          hint: const Text('Pilih Pengguna'),
-                          items: _users.map<DropdownMenuItem<int>>((u) {
-                            return DropdownMenuItem<int>(
-                              value: u['id'],
-                              child: Text(u['name'] ?? 'Unknown'),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            if (val != null) setState(() => _selectedUserId = val);
-                          },
+                    GestureDetector(
+                      onTap: _showUserPicker,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_selectedUserName),
+                            const Icon(LucideIcons.chevronDown, size: 16),
+                          ],
                         ),
                       ),
                     ),
@@ -350,3 +338,115 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     );
   }
 }
+
+class _UserSelectionDialog extends StatefulWidget {
+  final ApiService apiService;
+
+  const _UserSelectionDialog({required this.apiService});
+
+  @override
+  State<_UserSelectionDialog> createState() => _UserSelectionDialogState();
+}
+
+class _UserSelectionDialogState extends State<_UserSelectionDialog> {
+  List<dynamic> _searchResults = [];
+  bool _isLoading = false;
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchUsers('');
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchUsers(query);
+    });
+  }
+
+  Future<void> _searchUsers(String query) async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _searchQuery = query;
+    });
+
+    try {
+      final response = await widget.apiService.getUsers(search: query);
+      if (mounted) {
+        setState(() {
+          _searchResults = response['data'] as List<dynamic>? ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxHeight: 600, maxWidth: 400),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Pilih Pengguna', style: ShadTheme.of(context).textTheme.h4),
+            const SizedBox(height: 16),
+            ShadInput(
+              placeholder: const Text('Cari pengguna...'),
+              onChanged: _onSearchChanged,
+            ),
+            const SizedBox(height: 16),
+            if (_isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (_searchResults.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    _searchQuery.isEmpty ? 'Tidak ada pengguna tersedia.' : 'Pengguna tidak ditemukan.',
+                    style: ShadTheme.of(context).textTheme.muted,
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _searchResults.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final user = _searchResults[index];
+                    return ListTile(
+                      title: Text(user['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(user['email'] ?? ''),
+                      onTap: () => Navigator.pop(context, user),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ShadButton.outline(
+                child: const Text('Batal'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+

@@ -5,6 +5,13 @@ import 'schedules/admin_schedules_screen.dart';
 import 'groups/admin_groups_screen.dart';
 import 'form_fields/admin_form_fields_screen.dart';
 import 'attendances/admin_attendances_screen.dart';
+import 'holidays/admin_holidays_screen.dart';
+import 'shifts/admin_shifts_screen.dart';
+import 'rosters/admin_rosters_screen.dart';
+import 'announcements/admin_announcements_screen.dart';
+import 'permits/admin_permits_screen.dart';
+import 'locations/admin_locations_screen.dart';
+import 'roles/admin_roles_screen.dart';
 
 class AdminManagementScreen extends StatelessWidget {
   const AdminManagementScreen({super.key});
@@ -21,71 +28,174 @@ class AdminManagementScreen extends StatelessWidget {
             Text('Kelola data master sistem', style: ShadTheme.of(context).textTheme.muted),
             const SizedBox(height: 24),
             
-            _buildMenuCard(
-              context,
-              title: 'Pengguna',
-              description: 'Kelola data karyawan, siswa, dan admin',
-              icon: LucideIcons.users,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminUsersScreen()),
-                );
-              },
-            ),
-            
-            _buildMenuCard(
-              context,
-              title: 'Jadwal Kerja',
-              description: 'Atur jam masuk, jam pulang, dan toleransi keterlambatan',
-              icon: LucideIcons.calendarClock,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminSchedulesScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            
-            _buildMenuCard(
-              context,
-              title: 'Kelompok / Kelas',
-              description: 'Kelola pengelompokan pengguna',
-              icon: LucideIcons.layoutGrid,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminGroupsScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            _buildMenuCard(
-              context,
-              title: 'Kolom Profil',
-              description: 'Kelola isian tambahan untuk profil pengguna',
-              icon: LucideIcons.formInput,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminFormFieldsScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            
-            _buildMenuCard(
-              context,
-              title: 'Rekap Absensi',
-              description: 'Kelola dan koreksi data kehadiran secara manual',
-              icon: LucideIcons.clipboardList,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminAttendancesScreen()),
-                );
-              },
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    _buildMenuRow(
+                      context,
+                      title: 'Pengguna',
+                      description: 'Kelola data karyawan, siswa, dan admin',
+                      icon: LucideIcons.users,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminUsersScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Jadwal Kerja',
+                      description: 'Atur jam masuk, jam pulang, dan toleransi keterlambatan',
+                      icon: LucideIcons.calendarClock,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminSchedulesScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Kelompok / Kelas',
+                      description: 'Kelola pengelompokan pengguna',
+                      icon: LucideIcons.layoutGrid,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminGroupsScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Kolom Profil',
+                      description: 'Kelola isian tambahan untuk profil pengguna',
+                      icon: LucideIcons.formInput,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminFormFieldsScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Rekap Absensi',
+                      description: 'Kelola dan koreksi data kehadiran secara manual',
+                      icon: LucideIcons.clipboardList,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminAttendancesScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Hari Libur',
+                      description: 'Kelola data hari libur nasional atau perusahaan',
+                      icon: LucideIcons.calendar,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminHolidaysScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Shift Kerja',
+                      description: 'Kelola data shift kerja karyawan',
+                      icon: LucideIcons.clock,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminShiftsScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Roster Jadwal',
+                      description: 'Kelola jadwal / roster per pengguna',
+                      icon: LucideIcons.calendarDays,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminRostersScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Pengumuman',
+                      description: 'Kelola pengumuman untuk ditampilkan di beranda',
+                      icon: LucideIcons.megaphone,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminAnnouncementsScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Izin & Cuti',
+                      description: 'Kelola data pengajuan izin dan cuti',
+                      icon: LucideIcons.fileText,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminPermitsScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Cabang / Lokasi',
+                      description: 'Kelola data titik lokasi absensi',
+                      icon: LucideIcons.mapPin,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminLocationsScreen()),
+                        );
+                      },
+                    ),
+                    Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                    _buildMenuRow(
+                      context,
+                      title: 'Role & Akses',
+                      description: 'Kelola peran pengguna dan hak akses',
+                      icon: LucideIcons.shieldCheck,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AdminRolesScreen()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -93,15 +203,11 @@ class AdminManagementScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, {required String title, required String description, required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
+  Widget _buildMenuRow(BuildContext context, {required String title, required String description, required IconData icon, required VoidCallback onTap}) {
+    return InkWell(
       onTap: onTap,
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: ShadTheme.of(context).colorScheme.border),
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: Row(
           children: [
             Container(

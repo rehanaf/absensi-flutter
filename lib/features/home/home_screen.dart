@@ -294,6 +294,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool canCheckIn = todayStatus == 'belum_absen';
     final bool canCheckOut = todayStatus == 'hadir' && todayData != null && todayData['check_out'] == null;
 
+    final bool isLocationFlexible = user?['is_location_flexible'] == true || user?['is_location_flexible'] == 1;
+    final Map<String, dynamic>? userLocation = user?['location'];
+    
+    double targetLat = settings.officeLat;
+    double targetLng = settings.officeLng;
+    String targetLocationName = settings.locationName;
+    double targetRadius = settings.officeRadius;
+
+    if (userLocation != null) {
+      targetLat = double.tryParse(userLocation['latitude']?.toString() ?? '') ?? targetLat;
+      targetLng = double.tryParse(userLocation['longitude']?.toString() ?? '') ?? targetLng;
+      targetLocationName = userLocation['name'] ?? targetLocationName;
+      targetRadius = double.tryParse(userLocation['radius']?.toString() ?? '') ?? targetRadius;
+    }
+
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -411,10 +426,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         if (requireLoc) ...[
                           LiveLocationMap(
-                            officeLat: settings.officeLat,
-                            officeLng: settings.officeLng,
-                            locationName: settings.locationName,
-                            officeRadius: settings.officeRadius,
+                            officeLat: targetLat,
+                            officeLng: targetLng,
+                            locationName: targetLocationName,
+                            officeRadius: targetRadius,
+                            isFlexible: isLocationFlexible,
                             onLocationUpdate: (isInside, pos) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 if (mounted) {
@@ -565,7 +581,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             (index) {
                               final history = _dashboardData!['recent_history'][index];
                               final rawDate = history['date']?.toString() ?? '-';
-                              final dateStr = rawDate.length >= 10 ? rawDate.substring(0, 10) : rawDate;
+                              final dateStr = rawDate;
+                              final checkIn = history['check_in'] ?? '--:--';
+                              final checkOut = history['check_out'] ?? '--:--';
+                              final status = history['status'] ?? '-';
+                              
+                              Color badgeColor = ShadTheme.of(context).colorScheme.primary;
+                              if (status == 'hadir') badgeColor = Colors.green;
+                              if (status == 'sakit' || status == 'izin') badgeColor = Colors.orange;
+                              if (status == 'alpha') badgeColor = Colors.red;
                               
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 12),
@@ -575,17 +599,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const TwemojiText(text: '🕒', style: TextStyle(fontSize: 20)),
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 2.0),
+                                      child: TwemojiText(text: '🕒', style: TextStyle(fontSize: 20)),
+                                    ),
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          Text('Status: ${history['status'] ?? '-'}', style: ShadTheme.of(context).textTheme.muted),
+                                          const SizedBox(height: 4),
+                                          Text('Masuk: $checkIn  •  Pulang: $checkOut', style: ShadTheme.of(context).textTheme.muted),
                                         ],
                                       ),
+                                    ),
+                                    ShadBadge(
+                                      backgroundColor: badgeColor,
+                                      child: Text(status.toString().toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
                                     ),
                                   ],
                                 ),
@@ -597,8 +630,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                        ), const SizedBox(height: 24),
                       ],
                     ),
         ),

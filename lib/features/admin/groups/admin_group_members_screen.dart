@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../../data/services/api_service.dart';
+import 'dart:async';
 
 class AdminGroupMembersScreen extends StatefulWidget {
   final Map<String, dynamic> group;
@@ -16,8 +17,6 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
   bool _isLoading = false;
   
   late List<dynamic> _members;
-  List<dynamic> _allUsers = [];
-  bool _isLoadingUsers = false;
 
   @override
   void initState() {
@@ -29,7 +28,9 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
     setState(() => _isLoading = true);
     try {
       // Re-fetch groups and find this group to update members
-      final groups = await _apiService.getGroups();
+      // (assuming getGroups without search/page will return it if we use search by group name)
+      final groupsData = await _apiService.getGroups(search: widget.group['name']);
+      final groups = groupsData['data'] as List<dynamic>? ?? [];
       final updatedGroup = groups.firstWhere(
         (g) => g['id'] == widget.group['id'],
         orElse: () => widget.group,
@@ -81,68 +82,12 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
   }
 
   Future<void> _showAddMemberDialog() async {
-    setState(() => _isLoadingUsers = true);
-    try {
-      if (_allUsers.isEmpty) {
-        _allUsers = await _apiService.getUsers();
-      }
-    } catch (e) {
-      if (mounted) ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat pengguna: $e')));
-      setState(() => _isLoadingUsers = false);
-      return;
-    }
-    setState(() => _isLoadingUsers = false);
-
-    // Filter out users already in the group
-    final memberIds = _members.map((m) => m['id']).toSet();
-    final availableUsers = _allUsers.where((u) => !memberIds.contains(u['id'])).toList();
-
-    if (!mounted) return;
-
     final selectedUserId = await showDialog<int>(
       context: context,
-      builder: (context) {
-        return Dialog(
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            constraints: const BoxConstraints(maxHeight: 500, maxWidth: 400),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tambah Anggota', style: ShadTheme.of(context).textTheme.h4),
-                const SizedBox(height: 16),
-                if (availableUsers.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text('Semua pengguna sudah berada di kelompok ini.'),
-                  )
-                else
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: availableUsers.length,
-                      itemBuilder: (context, index) {
-                        final user = availableUsers[index];
-                        return ListTile(
-                          title: Text(user['name'] ?? 'No Name'),
-                          subtitle: Text(user['email'] ?? ''),
-                          onTap: () => Navigator.pop(context, user['id']),
-                        );
-                      },
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ShadButton.outline(
-                    child: const Text('Batal'),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context) => _AddMemberDialog(
+        apiService: _apiService,
+        currentMemberIds: _members.map((m) => m['id']).toSet(),
+      ),
     );
 
     if (selectedUserId != null) {
@@ -172,7 +117,7 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
       appBar: AppBar(
         title: Text('Anggota: ${widget.group['name']}'),
       ),
-      body: _isLoading || _isLoadingUsers
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _members.isEmpty
               ? Center(
@@ -190,33 +135,174 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
                     ],
                   ),
                 )
-              : ListView.separated(
+              : ListView(
                   padding: const EdgeInsets.all(16),
-                  itemCount: _members.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final member = _members[index];
-                    return Container(
+                  children: [
+                    Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        color: ShadTheme.of(context).colorScheme.background,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: ListTile(
-                        title: Text(member['name'] ?? ''),
-                        subtitle: Text(member['email'] ?? ''),
-                        trailing: IconButton(
-                          icon: const Icon(LucideIcons.userMinus, color: Colors.red),
-                          onPressed: () => _detachUser(member['id']),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Column(
+                          children: _members.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final member = entry.value;
+                            final isLast = index == _members.length - 1;
+                            
+                            return Column(
+                              children: [
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  title: Text(member['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  subtitle: Text(member['email'] ?? ''),
+                                  trailing: IconButton(
+                                    icon: const Icon(LucideIcons.userMinus, color: Colors.red),
+                                    onPressed: () => _detachUser(member['id']),
+                                  ),
+                                ),
+                                if (!isLast) Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                              ],
+                            );
+                          }).toList(),
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddMemberDialog,
         icon: const Icon(LucideIcons.userPlus),
         label: const Text('Tambah Anggota'),
+        backgroundColor: ShadTheme.of(context).colorScheme.primary,
+        foregroundColor: ShadTheme.of(context).colorScheme.primaryForeground,
       ),
     );
   }
 }
+
+class _AddMemberDialog extends StatefulWidget {
+  final ApiService apiService;
+  final Set<dynamic> currentMemberIds;
+
+  const _AddMemberDialog({
+    required this.apiService,
+    required this.currentMemberIds,
+  });
+
+  @override
+  State<_AddMemberDialog> createState() => _AddMemberDialogState();
+}
+
+class _AddMemberDialogState extends State<_AddMemberDialog> {
+  List<dynamic> _searchResults = [];
+  bool _isLoading = false;
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchUsers('');
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchUsers(query);
+    });
+  }
+
+  Future<void> _searchUsers(String query) async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _searchQuery = query;
+    });
+
+    try {
+      final response = await widget.apiService.getUsers(search: query);
+      if (mounted) {
+        setState(() {
+          final allUsers = response['data'] as List<dynamic>? ?? [];
+          _searchResults = allUsers.where((u) => !widget.currentMemberIds.contains(u['id'])).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxHeight: 600, maxWidth: 400),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tambah Anggota', style: ShadTheme.of(context).textTheme.h4),
+            const SizedBox(height: 16),
+            ShadInput(
+              placeholder: const Text('Cari pengguna...'),
+              onChanged: _onSearchChanged,
+            ),
+            const SizedBox(height: 16),
+            if (_isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (_searchResults.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    _searchQuery.isEmpty ? 'Tidak ada pengguna tersedia.' : 'Pengguna tidak ditemukan.',
+                    style: ShadTheme.of(context).textTheme.muted,
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _searchResults.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final user = _searchResults[index];
+                    return ListTile(
+                      title: Text(user['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(user['email'] ?? ''),
+                      onTap: () => Navigator.pop(context, user['id']),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ShadButton.outline(
+                child: const Text('Batal'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+

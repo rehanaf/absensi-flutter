@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "482635294519",
+    "project_id": "absensi-37fe8",
+    "storage_bucket": "absensi-37fe8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482635294519:android:cb7f952999c75d9b3a5cb2",
+        "android_client_info": {
+          "package_name": "com.reyraphael.absensi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvEB2uVa9MJoyzo55MHQIymwaqKSbBM1E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
