@@ -183,37 +183,16 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.bell),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-              );
-            },
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (_currentIndex == activeItems.length) {
-                    _currentIndex = _previousIndex;
-                  } else {
-                    _previousIndex = _currentIndex;
-                    _currentIndex = activeItems.length;
-                  }
-                });
+            child: IconButton(
+              icon: const TwemojiText(text: '🔔', style: TextStyle(fontSize: 20)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                );
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: _currentIndex == activeItems.length ? secondaryColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const TwemojiText(text: '🔔', style: TextStyle(fontSize: 20)),
-              ),
             ),
           ),
         ],

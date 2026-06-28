@@ -56,9 +56,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -66,15 +69,46 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-              Text(
-                'Welcome to',
-                style: ShadTheme.of(context).textTheme.h3,
-              ),
-              Text(
-                settings.appName,
-                style: ShadTheme.of(context).textTheme.h1,
-              ),
-              const SizedBox(height: 48),
+                    if (settings.getSettingImageUrl('logo') != null && settings.getSettingImageUrl('logo')!.isNotEmpty)
+                      Center(
+                        child: Image.network(
+                          settings.getSettingImageUrl('logo')!, 
+                          height: 80, 
+                          errorBuilder: (c,e,s) => Column(children: [
+                            const Icon(Icons.broken_image, size: 50, color: Colors.red),
+                            Text('Error: ', style: const TextStyle(color: Colors.red, fontSize: 10), textAlign: TextAlign.center)
+                          ])
+                        ),
+                      ),
+                    if (settings.getSettingImageUrl('logo') != null && settings.getSettingImageUrl('logo')!.isNotEmpty)
+                      const SizedBox(height: 16),
+                    Text(
+                      settings.appName,
+                      style: ShadTheme.of(context).textTheme.h3,
+                      textAlign: TextAlign.center,
+                    ),
+                    if (settings.getSetting('app_description') != null && settings.getSetting('app_description')!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 300),
+                          child: Text(
+                            settings.getSetting('app_description')!,
+                            style: ShadTheme.of(context).textTheme.p.copyWith(
+                              color: ShadTheme.of(context).colorScheme.mutedForeground,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+                    Text(
+                      'Masuk',
+                      style: ShadTheme.of(context).textTheme.h3,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
               ShadInput(
                 controller: _usernameController,
                 placeholder: Text(settings.identityLabel),
@@ -117,12 +151,36 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: ShadTheme.of(context).colorScheme.primaryForeground))
                     : const Text('Login'),
               ),
-                ],
+              if (settings.allowRegistration) ...[
+                const SizedBox(height: 16),
+                Center(
+                  child: GestureDetector(
+                    onTap: () => context.push('/register'),
+                    child: Text.rich(
+                      TextSpan(
+                        text: 'Belum punya akun? ',
+                        children: [
+                          TextSpan(
+                            text: 'Daftar sekarang',
+                            style: TextStyle(
+                              color: ShadTheme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
+      ),
+      ),
       ),
     );
   }

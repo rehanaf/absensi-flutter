@@ -8,8 +8,8 @@ class AppSettingsProvider with ChangeNotifier {
   String _identityLabel = 'ID';
   String _themeColorName = 'zinc';
   bool _requireLocation = false;
-  bool _requireFace = false;
-  bool _requirePhoto = false;
+  String _attendanceMode = 'none';
+  bool _allowRegistration = false;
   double _officeLat = -6.200000;
   double _officeLng = 106.816666;
   String _locationName = 'Lokasi Kantor';
@@ -24,8 +24,8 @@ class AppSettingsProvider with ChangeNotifier {
   String get identityLabel => _identityLabel;
   String get themeColorName => _themeColorName;
   bool get requireLocation => _requireLocation;
-  bool get requireFace => _requireFace;
-  bool get requirePhoto => _requirePhoto;
+  String get attendanceMode => _attendanceMode;
+  bool get allowRegistration => _allowRegistration;
   double get officeLat => _officeLat;
   double get officeLng => _officeLng;
   String get locationName => _locationName;
@@ -45,10 +45,19 @@ class AppSettingsProvider with ChangeNotifier {
     return null;
   }
 
+  String? getSettingImageUrl(String key) {
+    for (var item in _rawSettings) {
+      if (item is Map && item['key'] == key) {
+        return item['image_url']?.toString();
+      }
+    }
+    return null;
+  }
+
   Future<void> fetchSettings() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     try {
       final data = await _apiService.getSettings();
@@ -70,8 +79,8 @@ class AppSettingsProvider with ChangeNotifier {
         }
         
         _requireLocation = settingsMap['require_location']?.toString() == '1' || settingsMap['require_location']?.toString().toLowerCase() == 'true';
-        _requireFace = settingsMap['require_face']?.toString() == '1' || settingsMap['require_face']?.toString().toLowerCase() == 'true';
-        _requirePhoto = settingsMap['require_photo']?.toString() == '1' || settingsMap['require_photo']?.toString().toLowerCase() == 'true';
+        _attendanceMode = settingsMap['attendance_mode']?.toString() ?? 'none';
+        _allowRegistration = settingsMap['allow_registration']?.toString() == '1' || settingsMap['allow_registration']?.toString().toLowerCase() == 'true';
 
         if (settingsMap['center_latitude'] != null) {
           _officeLat = double.tryParse(settingsMap['center_latitude'].toString()) ?? _officeLat;
@@ -93,8 +102,8 @@ class AppSettingsProvider with ChangeNotifier {
           _themeColorName = settings['theme_color'].toString().toLowerCase();
         }
         _requireLocation = settings['require_location']?.toString() == '1' || settings['require_location']?.toString().toLowerCase() == 'true';
-        _requireFace = settings['require_face']?.toString() == '1' || settings['require_face']?.toString().toLowerCase() == 'true';
-        _requirePhoto = settings['require_photo']?.toString() == '1' || settings['require_photo']?.toString().toLowerCase() == 'true';
+        _attendanceMode = settings['attendance_mode']?.toString() ?? 'none';
+        _allowRegistration = settings['allow_registration']?.toString() == '1' || settings['allow_registration']?.toString().toLowerCase() == 'true';
 
         if (settings['center_latitude'] != null) {
           _officeLat = double.tryParse(settings['center_latitude'].toString()) ?? _officeLat;

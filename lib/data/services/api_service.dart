@@ -15,6 +15,15 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/register', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _apiClient.dio.post('/login', data: {
@@ -539,7 +548,7 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> getNotifications() async {
+  Future<dynamic> getNotifications() async {
     try {
       final response = await _apiClient.dio.get('/notifications');
       return response.data;

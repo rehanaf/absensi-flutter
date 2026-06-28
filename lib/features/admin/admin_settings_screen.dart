@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -151,6 +152,42 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           ],
         ),
       );
+    } else if (type == 'select') {
+      // Parse options
+      List<String> options = [];
+      if (item['options'] != null) {
+        if (item['options'] is List) {
+          options = (item['options'] as List).map((e) => e.toString()).toList();
+        } else if (item['options'] is String) {
+          try {
+            final decoded = jsonDecode(item['options']);
+            if (decoded is List) options = decoded.map((e) => e.toString()).toList();
+          } catch (_) {}
+        }
+      }
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label ?? key, style: ShadTheme.of(context).textTheme.large),
+            const SizedBox(height: 8),
+            ShadSelect<String>(
+              placeholder: const Text('Pilih Opsi'),
+              initialValue: _formValues[key] as String?,
+              options: options.map((opt) => ShadOption(value: opt, child: Text(opt.toUpperCase()))).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _formValues[key] = val);
+                }
+              },
+              selectedOptionBuilder: (context, value) {
+                return Text(value.toUpperCase());
+              },
+            ),
+          ],
+        ),
+      );
     } else if (type == 'color') {
       return Padding(
         padding: const EdgeInsets.only(bottom: 24),
@@ -296,32 +333,42 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       ),
       body: groups.isEmpty
           ? const Center(child: Text('Tidak ada pengaturan tersedia.'))
-          : DefaultTabController(
-              length: groups.length,
-              child: Column(
-                children: [
-                  TabBar(
-                    isScrollable: true,
-                    tabs: groups.map((g) => Tab(text: g)).toList(),
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: groups.map((g) {
-                        final items = groupedSettings[g]!;
-                        return ListView(
-                          padding: const EdgeInsets.all(24.0),
-                          children: [
-                            Text('Pengaturan $g', style: ShadTheme.of(context).textTheme.h4),
-                            const SizedBox(height: 24),
-                            ...items.map(_buildField),
-                          ],
-                        );
-                      }).toList(),
+          : Column(
+              children: [
+                const SizedBox(height: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: ShadTabs<String>(
+                        scrollable: true,
+                        key: ValueKey(groups.join('-')),
+                        value: groups.first,
+                        tabs: groups.map((g) {
+                          final items = groupedSettings[g]!;
+                          return ShadTab(
+                            value: g,
+                            child: Text(g),
+                            content: ListView(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(vertical: 24.0),
+                              children: [
+                                Text('Pengaturan $g', style: ShadTheme.of(context).textTheme.h4),
+                                const SizedBox(height: 24),
+                                ...items.map(_buildField),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }
 }
+
+

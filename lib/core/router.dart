@@ -4,6 +4,7 @@ import '../providers/app_settings_provider.dart';
 import '../features/splash/splash_screen.dart';
 
 import '../features/auth/login_screen.dart';
+import '../features/auth/register_screen.dart';
 import '../features/main/main_screen.dart';
 
 final router = GoRouter(
@@ -23,6 +24,10 @@ final router = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
     ),
     GoRoute(
       path: '/home',

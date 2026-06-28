@@ -105,8 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       final settings = Provider.of<AppSettingsProvider>(context, listen: false);
       
-      // Only perform verification if requireFace is true
-      final registeredFaceBase64 = (settings.requireFace && user != null) ? user['face_biometric']?.toString() : null;
+      // Only perform verification if attendanceMode is recognition
+      final registeredFaceBase64 = (settings.attendanceMode == 'recognition' && user != null) ? user['face_biometric']?.toString() : null;
 
       final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
@@ -141,9 +141,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       final settings = Provider.of<AppSettingsProvider>(context, listen: false);
-      final registeredFaceBase64 = (settings.requireFace && user != null) ? user['face_biometric']?.toString() : null;
+      final registeredFaceBase64 = (settings.attendanceMode == 'recognition' && user != null) ? user['face_biometric']?.toString() : null;
 
-      final needCamera = settings.requirePhoto || (settings.requireFace && registeredFaceBase64 != null);
+      final needCamera = settings.attendanceMode == 'selfie' || (settings.attendanceMode == 'recognition' && registeredFaceBase64 != null);
       final data = await _getValidAttendanceData(requireLocation, needCamera, 'Absen Pulang', registeredFaceBase64: registeredFaceBase64);
       if (data == null) {
         setState(() => _isLoadingAction = false);
@@ -280,11 +280,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = auth.user;
 
     final requireLoc = settings.requireLocation;
-    final requireFace = settings.requireFace;
-    final requirePhoto = settings.requirePhoto;
+    final attendanceMode = settings.attendanceMode;
     
-    // Camera opens if either photo or face verification is required
-    final needCameraForCheckIn = requirePhoto || requireFace;
+    // Camera opens if mode is selfie or recognition
+    final needCameraForCheckIn = attendanceMode == 'selfie' || attendanceMode == 'recognition';
 
     final hasFaceBiometric = user != null && user['face_biometric'] != null && user['face_biometric'].toString().trim().isNotEmpty && user['face_biometric'].toString().trim() != 'null';
 
@@ -446,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
 
                         if (user?['can_attend'] == true) ...[
-                          if (requireFace && !hasFaceBiometric) ...[
+                          if (attendanceMode == 'recognition' && !hasFaceBiometric) ...[
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
