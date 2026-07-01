@@ -1,16 +1,11 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'widgets/live_location_map.dart';
 import '../attendance/face_camera_export.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../data/services/api_service.dart';
-import '../../core/widgets/twemoji_text.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,11 +60,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (requireLocation) {
       if (_currentPos == null) {
-        if (mounted) ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Menunggu data lokasi akurat...')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menunggu data lokasi akurat...')));
         return null;
       }
       if (!_isInsideArea) {
-        if (mounted) ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Gagal: Anda berada di luar area kantor!')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal: Anda berada di luar area kantor!')));
         return null;
       }
       lat = _currentPos!.latitude;
@@ -84,8 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (result == null || result['path'] == null) {
         if (mounted) {
-          ShadToaster.of(context).show(
-            const ShadToast.destructive(description: Text('Proses dibatalkan.')),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Proses dibatalkan.')),
           );
         }
         return null;
@@ -105,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       final settings = Provider.of<AppSettingsProvider>(context, listen: false);
       
-      // Only perform verification if attendanceMode is recognition
       final registeredFaceBase64 = (settings.attendanceMode == 'recognition' && user != null) ? user['face_biometric']?.toString() : null;
 
       final data = await _getValidAttendanceData(requireLocation, needPhoto, 'Absen Masuk', registeredFaceBase64: registeredFaceBase64);
@@ -114,22 +108,21 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      // Send photo if we have it, to prevent Laravel 422 if it strictly requires photo when camera is used
       final photoToSend = data['photoPath'];
 
       setState(() => _isLoadingAction = true);
       await _apiService.checkIn(data['lat'], data['lng'], photoPath: photoToSend);
       
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(description: Text('Check in berhasil!')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Check in berhasil!')),
         );
         _fetchDashboard();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: ${e.toString()}')),
         );
       }
     } finally {
@@ -154,15 +147,15 @@ class _HomeScreenState extends State<HomeScreen> {
       await _apiService.checkOut(data['lat'], data['lng'], photoPath: data['photoPath']);
       
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(description: Text('Check out berhasil!')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Check out berhasil!')),
         );
         _fetchDashboard();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: ${e.toString()}')),
         );
       }
     } finally {
@@ -177,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (result == null || result['base64'] == null) {
-      if (mounted) ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Pendaftaran wajah dibatalkan.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pendaftaran wajah dibatalkan.')));
       return;
     }
 
@@ -186,16 +179,18 @@ class _HomeScreenState extends State<HomeScreen> {
       await _apiService.registerFace(result['base64']);
 
       if (mounted) {
-        // Update user state locally or refresh
-        await Provider.of<AuthProvider>(context, listen: false).checkAuthStatus();
-        ShadToaster.of(context).show(
-          const ShadToast(description: Text('Wajah berhasil didaftarkan!')),
-        );
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        await auth.checkAuthStatus();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Wajah berhasil didaftarkan!')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal mendaftarkan wajah: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mendaftarkan wajah: ${e.toString()}')),
         );
       }
     } finally {
@@ -203,26 +198,119 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildStatCard(BuildContext context, String title, String value, Color color, String emoji) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              TwemojiText(text: emoji, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
-              Expanded(child: Text(title, style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 12))),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(value, style: ShadTheme.of(context).textTheme.h3.copyWith(color: color)),
-        ],
+  Widget _buildStreakChart() {
+    final chartData = _dashboardData?['chart_7_days'] as List<dynamic>?;
+    if (chartData == null || chartData.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Streak Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: chartData.map((dayData) {
+            final dateStr = dayData['date'].toString();
+            final status = dayData['status'].toString();
+            
+            DateTime parsedDate;
+            try {
+              parsedDate = DateTime.parse(dateStr);
+            } catch (e) {
+              parsedDate = DateTime.now();
+            }
+            
+            final isToday = parsedDate.year == DateTime.now().year && parsedDate.month == DateTime.now().month && parsedDate.day == DateTime.now().day;
+            final isFuture = parsedDate.isAfter(DateTime.now());
+            
+            final dayName = _getDayName(parsedDate.weekday);
+            
+            Color circleColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+            IconData icon = Icons.circle;
+            Color iconColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+
+            if (status == 'hadir') {
+              circleColor = Colors.green;
+              icon = Icons.check;
+              iconColor = Colors.white;
+            } else if (status == 'absen' || status == 'alpha') {
+              circleColor = Colors.red.withValues(alpha: 0.1);
+              icon = Icons.close;
+              iconColor = Colors.red;
+            } else if (status == 'izin' || status == 'sakit') {
+              circleColor = Colors.orange.withValues(alpha: 0.1);
+              icon = Icons.assignment_outlined;
+              iconColor = Colors.orange;
+            } else if (isFuture) {
+              circleColor = Colors.transparent;
+              icon = Icons.circle_outlined;
+              iconColor = Theme.of(context).colorScheme.outline;
+            }
+
+            return Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: circleColor,
+                    border: isFuture ? Border.all(color: Theme.of(context).colorScheme.outline) : null,
+                  ),
+                  child: Center(
+                    child: Icon(icon, color: iconColor, size: 20),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  dayName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                    color: isToday ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1: return 'Sen';
+      case 2: return 'Sel';
+      case 3: return 'Rab';
+      case 4: return 'Kam';
+      case 5: return 'Jum';
+      case 6: return 'Sab';
+      case 7: return 'Min';
+      default: return '';
+    }
+  }
+
+  Widget _buildStatCard(String title, String value, Color color, IconData icon) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(title, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant))),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: color, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
@@ -233,39 +321,39 @@ class _HomeScreenState extends State<HomeScreen> {
     Color bgColor;
     Color textColor;
     String message;
-    String emoji;
+    IconData icon;
 
     if (status == 'hadir') {
       bgColor = Colors.green.withValues(alpha: 0.1);
       textColor = Colors.green[700]!;
       message = 'Anda sudah absen hari ini';
-      emoji = '✅';
+      icon = Icons.check_circle_outline;
     } else if (status == 'izin' || status == 'sakit') {
       bgColor = Colors.orange.withValues(alpha: 0.1);
       textColor = Colors.orange[800]!;
       message = 'Anda sedang $status hari ini';
-      emoji = '📝';
+      icon = Icons.assignment_late_outlined;
     } else {
-      bgColor = Colors.blue.withValues(alpha: 0.1);
-      textColor = Colors.blue[700]!;
+      bgColor = Theme.of(context).colorScheme.primaryContainer;
+      textColor = Theme.of(context).colorScheme.onPrimaryContainer;
       message = 'Anda belum absen hari ini';
-      emoji = '👋';
+      icon = Icons.waving_hand_outlined;
     }
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          TwemojiText(text: emoji, style: const TextStyle(fontSize: 24)),
+          Icon(icon, color: textColor, size: 28),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
             ),
           ),
         ],
@@ -275,19 +363,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final settings = Provider.of<AppSettingsProvider>(context);
-    final user = auth.user;
-
-    final requireLoc = settings.requireLocation;
-    final attendanceMode = settings.attendanceMode;
-    
-    // Camera opens if mode is selfie or recognition
-    final needCameraForCheckIn = attendanceMode == 'selfie' || attendanceMode == 'recognition';
-
-    final hasFaceBiometric = user != null && user['face_biometric'] != null && user['face_biometric'].toString().trim().isNotEmpty && user['face_biometric'].toString().trim() != 'null';
-
-    final todayStatus = _dashboardData?['today_status'] ?? 'belum_absen';
+      final auth = Provider.of<AuthProvider>(context);
+      final settings = Provider.of<AppSettingsProvider>(context);
+      final user = auth.user;
+  
+      final latestSettings = _dashboardData?['settings'];
+      final requireLoc = latestSettings?['require_location']?.toString() == '1' || latestSettings?['require_location']?.toString().toLowerCase() == 'true' || settings.requireLocation;
+      final attendanceMode = latestSettings?['attendance_mode']?.toString() ?? settings.attendanceMode;
+      
+      final latestUser = _dashboardData?['user'] ?? user;
+      final needCameraForCheckIn = attendanceMode == 'selfie' || attendanceMode == 'recognition';
+      final hasFaceBiometric = latestUser != null && latestUser['face_biometric'] != null && latestUser['face_biometric'].toString().trim().isNotEmpty && latestUser['face_biometric'].toString().trim() != 'null';
+  
+      final todayStatus = _dashboardData?['today_status'] ?? 'belum_absen';
     final todayData = _dashboardData?['today_data'];
     
     final bool canCheckIn = todayStatus == 'belum_absen';
@@ -316,17 +404,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator())
               : _error != null
                   ? ListView(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.all(16.0),
                       children: [
                         Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Gagal memuat data', style: ShadTheme.of(context).textTheme.large),
+                              Text('Gagal memuat data', style: Theme.of(context).textTheme.titleLarge),
                               const SizedBox(height: 8),
                               Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
                               const SizedBox(height: 16),
-                              ShadButton(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
+                              FilledButton.tonal(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
                             ],
                           ),
                         )
@@ -335,301 +423,286 @@ class _HomeScreenState extends State<HomeScreen> {
                   : ListView(
                       padding: EdgeInsets.zero,
                       children: [
-                        SizedBox(
-                          height: 160,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                width: double.infinity,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: ShadTheme.of(context).colorScheme.primary,
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(20),
-                                    bottomRight: Radius.circular(20),
+                        // Header Section
+                        LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isMobile = constraints.maxWidth < 600;
+                              final avatarWidget = CircleAvatar(
+                                radius: 36,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                child: Text(
+                                  (user?['name'] ?? 'U')[0].toUpperCase(),
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 32,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.1),
-                                      offset: const Offset(0, 2),
-                                      blurRadius: 0,
+                                ),
+                              );
+
+                              final nameWidget = Text(
+                                user?['name'] ?? 'User',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: isMobile ? TextAlign.center : TextAlign.start,
+                              );
+
+                              final usernameWidget = Text(
+                                user?['username'] ?? 'username',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                textAlign: isMobile ? TextAlign.center : TextAlign.start,
+                              );
+
+                              if (isMobile) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      avatarWidget,
+                                      const SizedBox(height: 16),
+                                      nameWidget,
+                                      const SizedBox(height: 4),
+                                      usernameWidget,
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                                child: Row(
+                                  children: [
+                                    avatarWidget,
+                                    const SizedBox(width: 24),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          nameWidget,
+                                          const SizedBox(height: 4),
+                                          usernameWidget,
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              Positioned(
-                                top: 64,
-                                left: 24,
-                                right: 24,
-                                child: Container(
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: ShadTheme.of(context).colorScheme.background,
-                                          shape: BoxShape.circle,
+                              );
+                            },
+                          ),
+                        
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildStatusBanner(),
+                              const SizedBox(height: 32),
+
+                              _buildStreakChart(),
+                              const SizedBox(height: 32),
+
+                              if (requireLoc) ...[
+                                Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                Card(
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: LiveLocationMap(
+                                    officeLat: targetLat,
+                                    officeLng: targetLng,
+                                    locationName: targetLocationName,
+                                    officeRadius: targetRadius,
+                                    isFlexible: isLocationFlexible,
+                                    onLocationUpdate: (isInside, pos) {
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isInsideArea = isInside;
+                                            _currentPos = pos;
+                                          });
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                              ],
+
+                              Text('Aksi', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 16),
+                              if (user?['can_attend'] == true) ...[
+                                if (attendanceMode == 'recognition' && !hasFaceBiometric) ...[
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.errorContainer,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.face_retouching_natural, size: 32, color: Theme.of(context).colorScheme.error),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Wajah Anda belum terdaftar!',
+                                          style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer, fontWeight: FontWeight.bold),
                                         ),
-                                        child: CircleAvatar(
-                                          radius: 36,
-                                          backgroundColor: ShadTheme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                                          child: Text(
-                                            (user?['name'] ?? 'U')[0].toUpperCase(),
-                                            style: TextStyle(
-                                              color: ShadTheme.of(context).colorScheme.primary,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 28,
-                                            ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Harap daftarkan wajah Anda terlebih dahulu sebelum dapat melakukan absensi.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.8)),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        FilledButton.icon(
+                                          onPressed: _isLoadingAction ? null : _handleRegisterFace,
+                                          icon: _isLoadingAction 
+                                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                            : const Icon(Icons.camera_alt),
+                                          label: const Text('Daftarkan Wajah'),
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                            foregroundColor: Theme.of(context).colorScheme.onError,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 32),
+                                ] else ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: FilledButton.icon(
+                                          onPressed: (_isLoadingAction || !canCheckIn) ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
+                                          icon: _isLoadingAction 
+                                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                            : const Icon(Icons.login),
+                                          label: const Text('Masuk'),
+                                          style: FilledButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            backgroundColor: Colors.green,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 16),
                                       Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(top: 24),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                user?['name'] ?? 'User',
-                                                style: ShadTheme.of(context).textTheme.h4,
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                user?['username'] ?? 'username',
-                                                style: ShadTheme.of(context).textTheme.muted.copyWith(
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
+                                        child: FilledButton.icon(
+                                          onPressed: (_isLoadingAction || !canCheckOut) ? null : () => _handleCheckOut(requireLoc),
+                                          icon: _isLoadingAction 
+                                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                            : const Icon(Icons.logout),
+                                          label: const Text('Pulang'),
+                                          style: FilledButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildStatusBanner(),
-                              const SizedBox(height: 24),
+                                  const SizedBox(height: 32),
+                                ],
+                              ],
 
-                        if (requireLoc) ...[
-                          LiveLocationMap(
-                            officeLat: targetLat,
-                            officeLng: targetLng,
-                            locationName: targetLocationName,
-                            officeRadius: targetRadius,
-                            isFlexible: isLocationFlexible,
-                            onLocationUpdate: (isInside, pos) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (mounted) {
-                                  setState(() {
-                                    _isInsideArea = isInside;
-                                    _currentPos = pos;
-                                  });
-                                }
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-
-                        if (user?['can_attend'] == true) ...[
-                          if (attendanceMode == 'recognition' && !hasFaceBiometric) ...[
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withValues(alpha: 0.1),
-                                border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
+                              Text('Statistik (${_dashboardData?['month'] ?? '-'})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 16),
+                              Row(
                                 children: [
-                                  const TwemojiText(text: '📸', style: TextStyle(fontSize: 24)),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Wajah Anda belum terdaftar!',
-                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Total Hadir', 
+                                      '${_dashboardData?['total_attendances'] ?? 0}', 
+                                      Colors.green, 
+                                      Icons.check_circle
+                                    ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Harap daftarkan wajah Anda terlebih dahulu sebelum dapat melakukan absensi.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ShadButton(
-                                    onPressed: _isLoadingAction ? null : _handleRegisterFace,
-                                    child: _isLoadingAction 
-                                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                      : const Text('Daftarkan Wajah'),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Total Izin', 
+                                      '${_dashboardData?['total_permits'] ?? 0}', 
+                                      Colors.orange, 
+                                      Icons.assignment
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 32),
-                          ] else ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: (_isLoadingAction || !canCheckIn) ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      decoration: BoxDecoration(
-                                        color: canCheckIn ? const Color(0xFF10B981).withValues(alpha: _isLoadingAction ? 0.5 : 1.0) : Colors.grey.shade300,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: _isLoadingAction 
-                                        ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
-                                        : Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              TwemojiText(text: '📥', style: TextStyle(fontSize: 18, color: canCheckIn ? Colors.white : Colors.grey)),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Absen Masuk', 
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w700, 
-                                                  color: canCheckIn ? Colors.white : Colors.grey.shade600
-                                                )
-                                              ),
-                                            ],
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: (_isLoadingAction || !canCheckOut) ? null : () => _handleCheckOut(requireLoc),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      decoration: BoxDecoration(
-                                        color: canCheckOut ? const Color(0xFFEF4444).withValues(alpha: _isLoadingAction ? 0.5 : 1.0) : Colors.grey.shade300,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: _isLoadingAction 
-                                        ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
-                                        : Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              TwemojiText(text: '📤', style: TextStyle(fontSize: 18, color: canCheckOut ? Colors.white : Colors.grey)),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Absen Pulang', 
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  color: canCheckOut ? Colors.white : Colors.grey.shade600
-                                                )
-                                              ),
-                                            ],
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                          ),
-                          const SizedBox(height: 32),
-                        ],
-                        ],
-                        Text('Statistik (${_dashboardData?['month'] ?? '-'})', style: ShadTheme.of(context).textTheme.large),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                context, 
-                                'Total Hadir', 
-                                '${_dashboardData?['total_attendances'] ?? 0}', 
-                                Colors.green, 
-                                '✅'
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                context, 
-                                'Total Izin', 
-                                '${_dashboardData?['total_permits'] ?? 0}', 
-                                Colors.orange, 
-                                '📝'
-                              ),
-                            ),
-                          ],
-                        ),
 
-                        const SizedBox(height: 32),
-                        Text('Riwayat Terbaru', style: ShadTheme.of(context).textTheme.large),
-                        const SizedBox(height: 16),
-                        if (_dashboardData != null && _dashboardData!['recent_history'] != null)
-                          ...List.generate(
-                            (_dashboardData!['recent_history'] as List).length,
-                            (index) {
-                              final history = _dashboardData!['recent_history'][index];
-                              final rawDate = history['date']?.toString() ?? '-';
-                              final dateStr = rawDate;
-                              final checkIn = history['check_in'] ?? '--:--';
-                              final checkOut = history['check_out'] ?? '--:--';
-                              final status = history['status'] ?? '-';
+                              const SizedBox(height: 32),
+                              Text('Riwayat Terbaru', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 16),
                               
-                              Color badgeColor = ShadTheme.of(context).colorScheme.primary;
-                              if (status == 'hadir') badgeColor = Colors.green;
-                              if (status == 'sakit' || status == 'izin') badgeColor = Colors.orange;
-                              if (status == 'alpha') badgeColor = Colors.red;
-                              
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: ShadTheme.of(context).colorScheme.border),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.only(top: 2.0),
-                                      child: TwemojiText(text: '🕒', style: TextStyle(fontSize: 20)),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          const SizedBox(height: 4),
-                                          Text('Masuk: $checkIn  •  Pulang: $checkOut', style: ShadTheme.of(context).textTheme.muted),
-                                        ],
+                              if (_dashboardData != null && _dashboardData!['recent_history'] != null)
+                                ...List.generate(
+                                  (_dashboardData!['recent_history'] as List).length,
+                                  (index) {
+                                    final history = _dashboardData!['recent_history'][index];
+                                    final rawDate = history['date']?.toString() ?? '-';
+                                    final checkIn = history['check_in'] ?? '--:--';
+                                    final checkOut = history['check_out'] ?? '--:--';
+                                    final status = history['status'] ?? '-';
+                                    
+                                    Color badgeBg = Theme.of(context).colorScheme.primaryContainer;
+                                    Color badgeText = Theme.of(context).colorScheme.onPrimaryContainer;
+                                    if (status == 'hadir') { badgeBg = Colors.green.withValues(alpha: 0.1); badgeText = Colors.green[800]!; }
+                                    if (status == 'sakit' || status == 'izin') { badgeBg = Colors.orange.withValues(alpha: 0.1); badgeText = Colors.orange[800]!; }
+                                    if (status == 'alpha') { badgeBg = Colors.red.withValues(alpha: 0.1); badgeText = Colors.red[800]!; }
+                                    
+                                    return Card(
+                                      elevation: 0,
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      color: Theme.of(context).colorScheme.surface,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 1)
                                       ),
-                                    ),
-                                    ShadBadge(
-                                      backgroundColor: badgeColor,
-                                      child: Text(status.toString().toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
-                                    ),
-                                  ],
+                                      child: ListTile(
+                                        contentPadding: const EdgeInsets.all(16),
+                                        leading: CircleAvatar(
+                                          backgroundColor: badgeBg,
+                                          child: Icon(Icons.history, color: badgeText),
+                                        ),
+                                        title: Text(rawDate, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        subtitle: Text('Masuk: $checkIn  •  Pulang: $checkOut', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                        trailing: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: badgeBg,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Text(
+                                            status.toString().toUpperCase(),
+                                            style: TextStyle(color: badgeText, fontSize: 12, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                )
+                              else
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(32.0),
+                                    child: Text('Belum ada riwayat', style: TextStyle(color: Colors.grey)),
+                                  )
                                 ),
-                              );
-                            }
-                          )
-                        else
-                          const Center(child: Text('Belum ada riwayat')),
-
+                              const SizedBox(height: 32),
                             ],
                           ),
-                        ), const SizedBox(height: 24),
+                        ), 
                       ],
                     ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../test/color_test_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,9 +29,9 @@ import '../parent/parent_dashboard_screen.dart';
 import '../notifications/notifications_screen.dart';
 
 class CustomNavItem {
-  final String emoji;
+  final IconData icon;
   final String label;
-  CustomNavItem(this.emoji, this.label);
+  CustomNavItem(this.icon, this.label);
 }
 
 class MainScreen extends StatefulWidget {
@@ -100,10 +101,10 @@ class _MainScreenState extends State<MainScreen> {
     final secondaryColor = ShadTheme.of(context).colorScheme.secondary;
 
     final List<CustomNavItem> absenItems = [
-      CustomNavItem('🏠', 'Beranda'),
-      CustomNavItem('🕰️', 'History'),
-      CustomNavItem('📝', 'Izin'),
-      CustomNavItem('⚙️', 'Setting'),
+      CustomNavItem(Icons.home, 'Beranda'),
+      CustomNavItem(Icons.history, 'History'),
+      CustomNavItem(Icons.assignment, 'Izin'),
+      CustomNavItem(Icons.settings, 'Setting'),
     ];
 
     // Tabs for Admin Mode
@@ -115,10 +116,10 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     final List<CustomNavItem> adminItems = [
-      CustomNavItem('📊', 'Dasbor'),
-      CustomNavItem('🗂️', 'Manajemen'),
-      CustomNavItem('🛠️', 'Konfigurasi'),
-      CustomNavItem('⚙️', 'Setting'),
+      CustomNavItem(Icons.dashboard, 'Dasbor'),
+      CustomNavItem(Icons.folder, 'Manajemen'),
+      CustomNavItem(Icons.build, 'Konfigurasi'),
+      CustomNavItem(Icons.settings, 'Setting'),
     ];
 
     // Tabs for Parent Mode
@@ -128,8 +129,8 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     final List<CustomNavItem> parentItems = [
-      CustomNavItem('👶', 'Anak Saya'),
-      CustomNavItem('⚙️', 'Setting'),
+      CustomNavItem(Icons.child_care, 'Anak Saya'),
+      CustomNavItem(Icons.settings, 'Setting'),
     ];
 
     final String name = user?['name'] ?? 'User';
@@ -170,34 +171,55 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
 
-    return Scaffold(
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isDesktop = screenWidth >= 600;
+
+    final scaffold = Scaffold(
       appBar: AppBar(
-        title: Text(settings.appName, style: ShadTheme.of(context).textTheme.h4),
-        backgroundColor: ShadTheme.of(context).colorScheme.background,
-        scrolledUnderElevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: ShadTheme.of(context).colorScheme.border,
-            height: 1.0,
-          ),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          settings.appName, 
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: const TwemojiText(text: '🔔', style: TextStyle(fontSize: 20)),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                );
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              );
+            },
+          ),
+          Builder(
+            builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+                child: InkWell(
+                  onTap: () {
+                    Scaffold.of(context).openEndDrawer();
+                  },
+                  borderRadius: BorderRadius.circular(24),
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    child: Text(
+                      initial,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
           ),
         ],
       ),
-      drawer: Drawer(
+      endDrawer: Drawer(
         backgroundColor: ShadTheme.of(context).colorScheme.background,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -269,6 +291,22 @@ class _MainScreenState extends State<MainScreen> {
               ),
               Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
             ],
+            ListTile(
+              leading: const Icon(Icons.color_lens),
+              title: const Text('Test Warna Material 3'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ColorTestScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Keluar (Logout)', style: TextStyle(color: Colors.red)),
+              onTap: () async {
+                Navigator.pop(context); // Close drawer
+                await Provider.of<AuthProvider>(context, listen: false).logout();
+              },
+            ),
             // More menu items could go here
           ],
         ),
@@ -277,51 +315,68 @@ class _MainScreenState extends State<MainScreen> {
         index: _currentIndex,
         children: activeScreens,
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: ShadTheme.of(context).colorScheme.background,
-            border: Border(top: BorderSide(color: ShadTheme.of(context).colorScheme.border)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(activeItems.length, (index) {
-              final item = activeItems[index];
-              final isActive = index == _currentIndex;
-              return GestureDetector(
-                onTap: () => setState(() => _currentIndex = index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isActive ? secondaryColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TwemojiText(text: item.emoji, style: const TextStyle(fontSize: 20)),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label, 
-                        style: TextStyle(
-                          fontFamily: 'Pliant',
-                          fontWeight: FontWeight.w700, 
-                          fontSize: 10,
-                          color: isActive 
-                            ? ShadTheme.of(context).colorScheme.primary 
-                            : ShadTheme.of(context).colorScheme.mutedForeground,
+      bottomNavigationBar: isDesktop 
+          ? null 
+          : NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) => setState(() => _currentIndex = index),
+              destinations: activeItems.map((item) {
+                return NavigationDestination(
+                  icon: Icon(item.icon),
+                  label: item.label,
+                );
+              }).toList(),
+            ),
+    );
+
+    if (isDesktop) {
+      return Row(
+        children: [
+          Container(
+            width: 80,
+            color: Theme.of(context).navigationBarTheme.backgroundColor ?? 
+                   Theme.of(context).colorScheme.surface,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: activeItems.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final isSelected = index == _currentIndex;
+                
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => setState(() => _currentIndex = index),
+                      customBorder: const CircleBorder(),
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: isSelected 
+                              ? Theme.of(context).colorScheme.secondaryContainer 
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          item.icon,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onSecondaryContainer
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }).toList(),
+            ),
           ),
-        ),
-      ),
-    );
+          Expanded(child: scaffold),
+        ],
+      );
+    }
+
+    return scaffold;
   }
 }

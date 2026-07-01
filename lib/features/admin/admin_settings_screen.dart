@@ -299,6 +299,27 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     }
   }
 
+  IconData? _getGroupIcon(String groupName) {
+    switch (groupName.toLowerCase()) {
+      case 'umum':
+        return Icons.settings;
+      case 'personalisasi':
+        return Icons.palette;
+      case 'absensi':
+        return Icons.how_to_reg;
+      case 'profil':
+        return Icons.person;
+      case 'alamat':
+        return Icons.location_on;
+      case 'berkas':
+        return Icons.folder;
+      case 'keamanan':
+        return Icons.security;
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<AppSettingsProvider>(context);
@@ -333,42 +354,52 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       ),
       body: groups.isEmpty
           ? const Center(child: Text('Tidak ada pengaturan tersedia.'))
-          : Column(
-              children: [
-                const SizedBox(height: 16),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: ShadTabs<String>(
-                        scrollable: true,
-                        key: ValueKey(groups.join('-')),
-                        value: groups.first,
-                        tabs: groups.map((g) {
-                          final items = groupedSettings[g]!;
-                          return ShadTab(
-                            value: g,
-                            child: Text(g),
-                            content: ListView(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(vertical: 24.0),
-                              children: [
-                                Text('Pengaturan $g', style: ShadTheme.of(context).textTheme.h4),
-                                const SizedBox(height: 24),
-                                ...items.map(_buildField),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
+          : DefaultTabController(
+              length: groups.length,
+              child: Column(
+                children: [
+                  TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    dividerColor: Colors.transparent,
+                    indicatorColor: ShadTheme.of(context).colorScheme.primary,
+                    labelColor: ShadTheme.of(context).colorScheme.primary,
+                    unselectedLabelColor: ShadTheme.of(context).colorScheme.mutedForeground,
+                    tabs: groups.map((g) {
+                      final iconData = _getGroupIcon(g);
+                      return Tab(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (iconData != null) ...[
+                              Icon(iconData, size: 20),
+                              const SizedBox(width: 8),
+                            ],
+                            Text(g),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: groups.map((g) {
+                        final items = groupedSettings[g]!;
+                        return ListView(
+                          padding: const EdgeInsets.all(24.0),
+                          children: [
+                            Text('Pengaturan $g', style: ShadTheme.of(context).textTheme.h4),
+                            const SizedBox(height: 24),
+                            ...items.map(_buildField),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }
+
 }
-
-
