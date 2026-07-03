@@ -6,10 +6,10 @@ class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  HistoryScreenState createState() => HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class HistoryScreenState extends State<HistoryScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = true;
   String? _error;
@@ -18,10 +18,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchHistory();
+    fetchHistory();
   }
 
-  Future<void> _fetchHistory() async {
+  Future<void> fetchHistory() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -48,18 +48,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Riwayat Absensi'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw),
-            onPressed: _fetchHistory,
-          ),
-        ],
-      ),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _fetchHistory,
+          onRefresh: fetchHistory,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _error != null
@@ -73,99 +64,89 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               Text('Gagal memuat riwayat', style: ShadTheme.of(context).textTheme.large),
                               Text(_error!, style: const TextStyle(color: Colors.red)),
                               const SizedBox(height: 16),
-                              ShadButton(onPressed: _fetchHistory, child: const Text('Coba Lagi')),
+                              ShadButton(onPressed: fetchHistory, child: const Text('Coba Lagi')),
                             ],
                           ),
                         ),
                       ],
                     )
+                  
                   : _attendances.isEmpty
                       ? ListView(
                           padding: const EdgeInsets.all(24),
                           children: [
                             Center(
-                              child: Text('Belum ada data riwayat', style: ShadTheme.of(context).textTheme.large),
+                              child: Text('Belum ada data riwayat', style: Theme.of(context).textTheme.titleLarge),
                             ),
                           ],
                         )
                       : ListView(
                           padding: const EdgeInsets.all(24),
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: ShadTheme.of(context).colorScheme.border),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              clipBehavior: Clip.hardEdge,
-                              child: Material(
-                                color: Colors.transparent,
-                                child: Column(
-                                  children: List.generate(
+                            Card(
+                              elevation: 0,
+                              color: Theme.of(context).colorScheme.surface,
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    child: Row(
+                                      children: [
+                                        Expanded(flex: 2, child: Text('Tanggal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                                        Expanded(flex: 2, child: Text('Masuk', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                                        Expanded(flex: 2, child: Text('Pulang', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                                        Expanded(flex: 2, child: Text('Status', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                                      ]
+                                    )
+                                  ),
+                                  const Divider(height: 1),
+                                  ...List.generate(
                                     _attendances.length,
                                     (index) {
                                       final att = _attendances[index];
                                       final rawDate = att['date']?.toString() ?? '-';
-                                      final date = rawDate;
                                       final checkIn = att['check_in'] ?? '--:--';
                                       final checkOut = att['check_out'] ?? '--:--';
                                       final status = att['status'] ?? '-';
-                                      final isLate = att['is_late'] == 1 || att['is_late'] == true;
-                                      final lateMinutes = att['late_minutes'] ?? 0;
-
-                                      Color badgeColor = ShadTheme.of(context).colorScheme.primary;
-                                      if (status == 'hadir') badgeColor = Colors.green;
-                                      if (status == 'sakit' || status == 'izin') badgeColor = Colors.orange;
-                                      if (status == 'alpa' || status == 'alpha') badgeColor = Colors.red;
-
+                                      
+                                      Color badgeBg = Theme.of(context).colorScheme.primaryContainer;
+                                      Color badgeText = Theme.of(context).colorScheme.onPrimaryContainer;
+                                      if (status == 'hadir') { badgeBg = Colors.green.withValues(alpha: 0.1); badgeText = Colors.green[800]!; }
+                                      if (status == 'sakit' || status == 'izin') { badgeBg = Colors.orange.withValues(alpha: 0.1); badgeText = Colors.orange[800]!; }
+                                      if (status == 'alpa' || status == 'alpha') { badgeBg = Colors.red.withValues(alpha: 0.1); badgeText = Colors.red[800]!; }
+                                      
                                       return Column(
                                         children: [
-                                          InkWell(
-                                            onTap: () {},
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  if (att['photo_url'] != null)
-                                                    CircleAvatar(
-                                                      backgroundImage: NetworkImage(att['photo_url']),
-                                                      backgroundColor: Colors.grey.shade200,
-                                                    )
-                                                  else
-                                                    CircleAvatar(
-                                                      backgroundColor: Colors.blue.withOpacity(0.1),
-                                                      child: const Icon(LucideIcons.calendarClock, color: Colors.blue),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            child: Row(
+                                              children: [
+                                                Expanded(flex: 2, child: Text(rawDate, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                                                Expanded(flex: 2, child: Text(checkIn, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13))),
+                                                Expanded(flex: 2, child: Text(checkOut, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13))),
+                                                Expanded(
+                                                  flex: 2,
+                                                  child: Align(
+                                                    alignment: Alignment.centerRight,
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                      decoration: BoxDecoration(color: badgeBg, borderRadius: BorderRadius.circular(12)),
+                                                      child: Text(status.toString().toUpperCase(), style: TextStyle(color: badgeText, fontSize: 10, fontWeight: FontWeight.bold)),
                                                     ),
-                                                  const SizedBox(width: 16),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(date, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                                        const SizedBox(height: 4),
-                                                        Text('Masuk: $checkIn  •  Pulang: $checkOut', style: ShadTheme.of(context).textTheme.muted),
-                                                        if (isLate) ...[
-                                                          const SizedBox(height: 4),
-                                                          Text('Terlambat $lateMinutes menit', style: const TextStyle(color: Colors.red, fontSize: 12)),
-                                                        ],
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  ShadBadge(
-                                                    backgroundColor: badgeColor,
-                                                    child: Text(status.toString().toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
-                                                  ),
-                                                ],
-                                              ),
+                                                  )
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           if (index < _attendances.length - 1)
-                                            Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                                            const Divider(height: 1),
                                         ],
                                       );
                                     },
                                   ),
-                                ),
+                                ],
                               ),
                             ),
                           ],
@@ -175,3 +156,4 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
+

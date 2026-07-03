@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+with open('lib/features/admin/admin_dashboard_screen.dart', 'w', encoding='utf-8') as f:
+    f.write("""import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../data/services/api_service.dart';
@@ -78,50 +79,41 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildStatisticsBlock(bool isDesktop) {
+  Widget _buildStatisticsBlock() {
     final stats = _data?['statistics'];
     if (stats == null) return const SizedBox.shrink();
 
     final roles = stats['roles_breakdown'] as List<dynamic>? ?? [];
     final groups = stats['groups_breakdown'] as List<dynamic>? ?? [];
 
-    final roleColors = [Colors.purple, Colors.indigo, Colors.teal, Colors.cyan, Colors.deepOrange];
-    final groupColors = [Colors.amber, Colors.brown, Colors.pink, Colors.lime, Colors.blueGrey];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Role Pengguna', style: ShadTheme.of(context).textTheme.large),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: isDesktop ? 4 : 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: isDesktop ? 2.5 : 2.0,
-          children: roles.asMap().entries.map((entry) {
-            final int index = entry.key;
-            final r = entry.value;
-            final color = roleColors[index % roleColors.length];
-            return _buildDailyCard(context, r['name'], '${r['count']}', Icons.person, color);
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: roles.map((r) {
+            return Chip(
+              label: Text('${r['name']}: ${r['count']}'),
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+              side: BorderSide.none,
+            );
           }).toList(),
         ),
-        const SizedBox(height: 32),
-        Text('Group', style: ShadTheme.of(context).textTheme.large),
         const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: isDesktop ? 4 : 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: isDesktop ? 2.5 : 2.0,
-          children: groups.asMap().entries.map((entry) {
-            final int index = entry.key;
-            final g = entry.value;
-            final color = groupColors[index % groupColors.length];
-            return _buildDailyCard(context, g['name'], '${g['count']}', Icons.people, color);
+        Text('Group', style: ShadTheme.of(context).textTheme.large),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: groups.map((g) {
+            return Chip(
+              label: Text('${g['name']}: ${g['count']}'),
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+              side: BorderSide.none,
+            );
           }).toList(),
         ),
       ],
@@ -136,10 +128,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final totalUser = stats?['total_can_attend'] ?? daily['total_users'] ?? 0;
 
     final cards = [
-      _buildDailyCard(context, 'User', '$totalUser', Icons.group, Colors.blue),
-      _buildDailyCard(context, 'Sudah Absen', '${daily['total_present'] ?? 0}', Icons.check_circle, Colors.green),
-      _buildDailyCard(context, 'Izin', '${daily['total_permits'] ?? 0}', Icons.description, Colors.orange),
-      _buildDailyCard(context, 'Belum Absen', '${daily['total_absent'] ?? 0}', Icons.cancel, Colors.red),
+      _buildDailyCard(context, 'User', '$totalUser', LucideIcons.users, Colors.blue),
+      _buildDailyCard(context, 'Sudah Absen', '${daily['total_present'] ?? 0}', LucideIcons.checkCircle, Colors.green),
+      _buildDailyCard(context, 'Izin', '${daily['total_permits'] ?? 0}', LucideIcons.fileText, Colors.orange),
+      _buildDailyCard(context, 'Belum Absen', '${daily['total_absent'] ?? 0}', LucideIcons.xCircle, Colors.red),
     ];
 
     return GridView.count(
@@ -286,7 +278,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const SizedBox(height: 16),
                         
                         // 1. Statistics
-                        _buildStatisticsBlock(isDesktop),
+                        _buildStatisticsBlock(),
                         const SizedBox(height: 16),
                         
                         // 2. Daily Grid
@@ -305,3 +297,4 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 }
+""")

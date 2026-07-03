@@ -25,6 +25,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscurePasswordConfirm = true;
 
+  void _showAlertDialog(String title, String message, {bool isSuccess = false, VoidCallback? onOk}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title, style: TextStyle(color: isSuccess ? Colors.green : Colors.red)),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (onOk != null) onOk();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _register() async {
     setState(() {
       _apiError = null;
@@ -53,20 +72,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
     }
 
-    if (success && mounted) {
-      TextInput.finishAutofillContext();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Registrasi berhasil! Silakan login.'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-      context.pop();
-    } else if (mounted) {
-      setState(() {
-        _apiError = authProvider.errorMessage ?? 'Registrasi Gagal';
-      });
-    }
+      if (success && mounted) {
+        TextInput.finishAutofillContext();
+        _showAlertDialog('Berhasil', 'Registrasi berhasil! Silakan login menggunakan akun baru Anda.', isSuccess: true, onOk: () => context.pop());
+      } else if (mounted) {
+        _showAlertDialog('Gagal', authProvider.errorMessage ?? 'Registrasi gagal, silakan periksa data Anda dan coba lagi.');
+      }
   }
 
   @override
@@ -96,7 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Center(
                             child: Image.network(
                               settings.getSettingImageUrl('logo')!, 
-                              height: 80, 
+                              height: 60, 
                               errorBuilder: (c,e,s) => const Column(children: [
                                 Icon(Icons.broken_image, size: 50, color: Colors.red),
                                 Text('Error: ', style: TextStyle(color: Colors.red, fontSize: 10), textAlign: TextAlign.center)
@@ -107,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
                         Text(
                           settings.appName,
-                          style: textTheme.headlineMedium?.copyWith(
+                          style: textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurface,
                           ),
@@ -131,7 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 32),
                         Text(
                           'Daftar',
-                          style: textTheme.headlineSmall?.copyWith(
+                          style: textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurface,
                           ),

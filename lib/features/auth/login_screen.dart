@@ -20,6 +20,22 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  void _showAlertDialog(String title, String message, {bool isSuccess = false}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title, style: TextStyle(color: isSuccess ? Colors.green : Colors.red)),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _login() async {
     setState(() {
       _apiError = null;
@@ -50,9 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       TextInput.finishAutofillContext();
       context.go('/home');
     } else if (mounted) {
-      setState(() {
-        _apiError = authProvider.errorMessage ?? 'Login Failed';
-      });
+      _showAlertDialog('Gagal', authProvider.errorMessage ?? 'Login gagal, periksa kembali username dan password Anda.');
     }
   }
 
@@ -83,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Center(
                             child: Image.network(
                               settings.getSettingImageUrl('logo')!, 
-                              height: 80, 
+                              height: 60, 
                               errorBuilder: (c,e,s) => const Column(children: [
                                 Icon(Icons.broken_image, size: 50, color: Colors.red),
                                 Text('Error: ', style: TextStyle(color: Colors.red, fontSize: 10), textAlign: TextAlign.center)
@@ -94,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 16),
                         Text(
                           settings.appName,
-                          style: textTheme.headlineMedium?.copyWith(
+                          style: textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurface,
                           ),
@@ -118,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 32),
                         Text(
                           'Masuk',
-                          style: textTheme.headlineSmall?.copyWith(
+                          style: textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurface,
                           ),

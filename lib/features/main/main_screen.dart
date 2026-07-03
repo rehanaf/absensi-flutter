@@ -25,6 +25,7 @@ import '../admin/admin_settings_screen.dart';
 
 // Parent Mode Screens (Placeholders)
 import '../parent/parent_dashboard_screen.dart';
+import '../parent/parent_history_screen.dart';
 
 import '../notifications/notifications_screen.dart';
 
@@ -42,20 +43,23 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final GlobalKey<HistoryScreenState> _historyKey = GlobalKey<HistoryScreenState>();
+  late final PageController _pageController;
   int _currentIndex = 0;
   int _previousIndex = 0;
 
   // Tabs for Absensi Mode
-  final List<Widget> _absenScreens = const [
-    HomeScreen(),
-    HistoryScreen(),
-    SubmissionScreen(),
-    SettingsScreen(),
+  late final List<Widget> _absenScreens = [
+    const HomeScreen(),
+    HistoryScreen(key: _historyKey),
+    const SubmissionScreen(),
+    const SettingsScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
     // Auto-select initial mode based on availability after widget mounts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -89,6 +93,13 @@ class _MainScreenState extends State<MainScreen> {
         );
       }
     });
+  }
+
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -125,11 +136,13 @@ class _MainScreenState extends State<MainScreen> {
     // Tabs for Parent Mode
     final List<Widget> _parentScreens = const [
       ParentDashboardScreen(),
+      ParentHistoryScreen(),
       SettingsScreen(),
     ];
 
     final List<CustomNavItem> parentItems = [
-      CustomNavItem(Icons.child_care, 'Anak Saya'),
+      CustomNavItem(Icons.home, 'Anak Saya'),
+      CustomNavItem(Icons.history, 'Riwayat'),
       CustomNavItem(Icons.settings, 'Setting'),
     ];
 
@@ -171,6 +184,22 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
 
+    String appBarTitle = settings.appName;
+    bool isPageTitle = false;
+
+    if (workspace.activeMode == 'absen') {
+      if (_currentIndex == 1) { appBarTitle = 'Riwayat Absensi'; isPageTitle = true; }
+      if (_currentIndex == 2) { appBarTitle = 'Pengajuan Izin'; isPageTitle = true; }
+      if (_currentIndex == 3) { appBarTitle = 'Pengaturan'; isPageTitle = true; }
+    } else if (workspace.activeMode == 'admin') {
+      if (_currentIndex == 1) { appBarTitle = 'Manajemen'; isPageTitle = true; }
+      if (_currentIndex == 2) { appBarTitle = 'Konfigurasi'; isPageTitle = true; }
+      if (_currentIndex == 3) { appBarTitle = 'Pengaturan'; isPageTitle = true; }
+    } else if (workspace.activeMode == 'parent') {
+      if (_currentIndex == 1) { appBarTitle = 'Riwayat Anak'; isPageTitle = true; }
+      if (_currentIndex == 2) { appBarTitle = 'Pengaturan'; isPageTitle = true; }
+    }
+
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isDesktop = screenWidth >= 600;
 
@@ -179,10 +208,19 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          settings.appName, 
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
+          appBarTitle, 
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: isPageTitle ? FontWeight.normal : FontWeight.bold
+          )
         ),
         actions: [
+          if (workspace.activeMode == 'absen' && _currentIndex == 1)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                _historyKey.currentState?.fetchHistory();
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
@@ -311,15 +349,21 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: activeScreens,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+        },
+        children: activeScreens.map((s) => KeepAliveWrapper(child: s)).toList(),
       ),
       bottomNavigationBar: isDesktop 
           ? null 
           : NavigationBar(
               selectedIndex: _currentIndex,
-              onDestinationSelected: (index) => setState(() => _currentIndex = index),
+              onDestinationSelected: (index) {
+                  setState(() => _currentIndex = index);
+                  _pageController.jumpToPage(index);
+                },
               destinations: activeItems.map((item) {
                 return NavigationDestination(
                   icon: Icon(item.icon),
@@ -348,7 +392,10 @@ class _MainScreenState extends State<MainScreen> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () => setState(() => _currentIndex = index),
+                      onTap: () {
+                        setState(() => _currentIndex = index);
+                        _pageController.jumpToPage(index);
+                      },
                       customBorder: const CircleBorder(),
                       child: Container(
                         width: 56,
@@ -378,5 +425,25 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     return scaffold;
+  }
+}
+
+class KeepAliveWrapper extends StatefulWidget {
+  final Widget child;
+  const KeepAliveWrapper({super.key, required this.child});
+
+  @override
+  State<KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<KeepAliveWrapper> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

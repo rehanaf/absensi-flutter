@@ -23,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isFetching = true;
   Map<String, dynamic>? _dashboardData;
   String? _error;
+  int _selectedMonth = DateTime.now().month;
+  int _selectedYear = DateTime.now().year;
 
   @override
   void initState() {
@@ -202,14 +204,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final chartData = _dashboardData?['chart_7_days'] as List<dynamic>?;
     if (chartData == null || chartData.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Streak Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: chartData.map((dayData) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16)
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: chartData.map((dayData) {
             final dateStr = dayData['date'].toString();
             final status = dayData['status'].toString();
             
@@ -274,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }).toList(),
         ),
       ],
-    );
+    )));
   }
 
   String _getDayName(int weekday) {
@@ -297,18 +306,26 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(width: 8),
-                Expanded(child: Text(title, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant))),
-              ],
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: color, size: 32),
             ),
-            const SizedBox(height: 12),
-            Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: color, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  const SizedBox(height: 4),
+                  Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: color, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -396,317 +413,409 @@ class _HomeScreenState extends State<HomeScreen> {
       targetRadius = double.tryParse(userLocation['radius']?.toString() ?? '') ?? targetRadius;
     }
 
-    return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _fetchDashboard,
-          child: _isFetching
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-                  ? ListView(
-                      padding: const EdgeInsets.all(16.0),
-                      children: [
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Gagal memuat data', style: Theme.of(context).textTheme.titleLarge),
-                              const SizedBox(height: 8),
-                              Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-                              const SizedBox(height: 16),
-                              FilledButton.tonal(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
-                            ],
-                          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        
+        // --- Helper for Stat Cards ---
+        Widget buildStatCards() {
+          final cards = [
+            _buildStatCard('Hadir', '${_dashboardData?['total_attendances'] ?? 0}', Colors.green, Icons.check_circle),
+            _buildStatCard('Izin', '${_dashboardData?['total_permits'] ?? 0}', Colors.orange, Icons.assignment),
+            _buildStatCard('Telat', '0', Colors.redAccent, Icons.timer_off),
+            _buildStatCard('Alpa', '0', Colors.red, Icons.cancel),
+          ];
+          
+          if (isMobile) {
+            return Column(
+              children: [
+                Row(children: [Expanded(child: cards[0]), const SizedBox(width: 16), Expanded(child: cards[1])]),
+                const SizedBox(height: 16),
+                Row(children: [Expanded(child: cards[2]), const SizedBox(width: 16), Expanded(child: cards[3])]),
+              ]
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(child: cards[0]), const SizedBox(width: 16),
+                Expanded(child: cards[1]), const SizedBox(width: 16),
+                Expanded(child: cards[2]), const SizedBox(width: 16),
+                Expanded(child: cards[3]),
+              ]
+            );
+          }
+        }
+        
+        // --- Helper for History ---
+        Widget buildHistory() {
+          final historyList = (_dashboardData?['recent_history'] as List?) ?? [];
+          final listWidget = historyList.isEmpty
+              ? const Center(child: Padding(padding: EdgeInsets.all(32.0), child: Text('Belum ada riwayat', style: TextStyle(color: Colors.grey))))
+              : Card(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: [
+                      Container(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 2, child: Text('Tanggal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                            Expanded(flex: 2, child: Text('Masuk', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                            Expanded(flex: 2, child: Text('Pulang', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                            Expanded(flex: 2, child: Text('Status', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+                          ]
                         )
-                      ]
-                    )
-                  : ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        // Header Section
-                        LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isMobile = constraints.maxWidth < 600;
-                              final avatarWidget = CircleAvatar(
-                                radius: 36,
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                child: Text(
-                                  (user?['name'] ?? 'U')[0].toUpperCase(),
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 32,
-                                  ),
-                                ),
-                              );
-
-                              final nameWidget = Text(
-                                user?['name'] ?? 'User',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: isMobile ? TextAlign.center : TextAlign.start,
-                              );
-
-                              final usernameWidget = Text(
-                                user?['username'] ?? 'username',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                                textAlign: isMobile ? TextAlign.center : TextAlign.start,
-                              );
-
-                              if (isMobile) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      avatarWidget,
-                                      const SizedBox(height: 16),
-                                      nameWidget,
-                                      const SizedBox(height: 4),
-                                      usernameWidget,
-                                    ],
-                                  ),
-                                );
-                              }
-
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                                child: Row(
-                                  children: [
-                                    avatarWidget,
-                                    const SizedBox(width: 24),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          nameWidget,
-                                          const SizedBox(height: 4),
-                                          usernameWidget,
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                      ),
+                      const Divider(height: 1),
+                      ...historyList.asMap().entries.map((entry) {
+                        final int idx = entry.key;
+                        final h = entry.value;
+                        final rawDate = h['date']?.toString() ?? '-';
+                        final checkIn = h['check_in'] ?? '--:--';
+                        final checkOut = h['check_out'] ?? '--:--';
+                        final status = h['status'] ?? '-';
                         
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildStatusBanner(),
-                              const SizedBox(height: 32),
-
-                              _buildStreakChart(),
-                              const SizedBox(height: 32),
-
-                              if (requireLoc) ...[
-                                Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 16),
-                                Card(
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: LiveLocationMap(
-                                    officeLat: targetLat,
-                                    officeLng: targetLng,
-                                    locationName: targetLocationName,
-                                    officeRadius: targetRadius,
-                                    isFlexible: isLocationFlexible,
-                                    onLocationUpdate: (isInside, pos) {
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        if (mounted) {
-                                          setState(() {
-                                            _isInsideArea = isInside;
-                                            _currentPos = pos;
-                                          });
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 32),
-                              ],
-
-                              Text('Aksi', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 16),
-                              if (user?['can_attend'] == true) ...[
-                                if (attendanceMode == 'recognition' && !hasFaceBiometric) ...[
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.errorContainer,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(Icons.face_retouching_natural, size: 32, color: Theme.of(context).colorScheme.error),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Wajah Anda belum terdaftar!',
-                                          style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer, fontWeight: FontWeight.bold),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Harap daftarkan wajah Anda terlebih dahulu sebelum dapat melakukan absensi.',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.8)),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        FilledButton.icon(
-                                          onPressed: _isLoadingAction ? null : _handleRegisterFace,
-                                          icon: _isLoadingAction 
-                                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                            : const Icon(Icons.camera_alt),
-                                          label: const Text('Daftarkan Wajah'),
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor: Theme.of(context).colorScheme.error,
-                                            foregroundColor: Theme.of(context).colorScheme.onError,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 32),
-                                ] else ...[
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: FilledButton.icon(
-                                          onPressed: (_isLoadingAction || !canCheckIn) ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
-                                          icon: _isLoadingAction 
-                                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                            : const Icon(Icons.login),
-                                          label: const Text('Masuk'),
-                                          style: FilledButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(vertical: 16),
-                                            backgroundColor: Colors.green,
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: FilledButton.icon(
-                                          onPressed: (_isLoadingAction || !canCheckOut) ? null : () => _handleCheckOut(requireLoc),
-                                          icon: _isLoadingAction 
-                                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                            : const Icon(Icons.logout),
-                                          label: const Text('Pulang'),
-                                          style: FilledButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(vertical: 16),
-                                            backgroundColor: Colors.red,
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 32),
-                                ],
-                              ],
-
-                              Text('Statistik (${_dashboardData?['month'] ?? '-'})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 16),
-                              Row(
+                        Color badgeBg = Theme.of(context).colorScheme.primaryContainer;
+                        Color badgeText = Theme.of(context).colorScheme.onPrimaryContainer;
+                        if (status == 'hadir') { badgeBg = Colors.green.withValues(alpha: 0.1); badgeText = Colors.green[800]!; }
+                        if (status == 'sakit' || status == 'izin') { badgeBg = Colors.orange.withValues(alpha: 0.1); badgeText = Colors.orange[800]!; }
+                        if (status == 'alpha') { badgeBg = Colors.red.withValues(alpha: 0.1); badgeText = Colors.red[800]!; }
+                        
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
                                 children: [
+                                  Expanded(flex: 2, child: Text(rawDate, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                                  Expanded(flex: 2, child: Text(checkIn, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13))),
+                                  Expanded(flex: 2, child: Text(checkOut, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13))),
                                   Expanded(
-                                    child: _buildStatCard(
-                                      'Total Hadir', 
-                                      '${_dashboardData?['total_attendances'] ?? 0}', 
-                                      Colors.green, 
-                                      Icons.check_circle
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: _buildStatCard(
-                                      'Total Izin', 
-                                      '${_dashboardData?['total_permits'] ?? 0}', 
-                                      Colors.orange, 
-                                      Icons.assignment
-                                    ),
+                                    flex: 2,
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(color: badgeBg, borderRadius: BorderRadius.circular(12)),
+                                        child: Text(status.toString().toUpperCase(), style: TextStyle(color: badgeText, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      ),
+                                    )
                                   ),
                                 ],
                               ),
+                            ),
+                            if (idx < historyList.length - 1)
+                              const Divider(height: 1),
+                          ]
+                        );
+                      }),
+                    ],
+                  ),
+                );
 
-                              const SizedBox(height: 32),
-                              Text('Riwayat Terbaru', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 16),
-                              
-                              if (_dashboardData != null && _dashboardData!['recent_history'] != null)
-                                ...List.generate(
-                                  (_dashboardData!['recent_history'] as List).length,
-                                  (index) {
-                                    final history = _dashboardData!['recent_history'][index];
-                                    final rawDate = history['date']?.toString() ?? '-';
-                                    final checkIn = history['check_in'] ?? '--:--';
-                                    final checkOut = history['check_out'] ?? '--:--';
-                                    final status = history['status'] ?? '-';
-                                    
-                                    Color badgeBg = Theme.of(context).colorScheme.primaryContainer;
-                                    Color badgeText = Theme.of(context).colorScheme.onPrimaryContainer;
-                                    if (status == 'hadir') { badgeBg = Colors.green.withValues(alpha: 0.1); badgeText = Colors.green[800]!; }
-                                    if (status == 'sakit' || status == 'izin') { badgeBg = Colors.orange.withValues(alpha: 0.1); badgeText = Colors.orange[800]!; }
-                                    if (status == 'alpha') { badgeBg = Colors.red.withValues(alpha: 0.1); badgeText = Colors.red[800]!; }
-                                    
-                                    return Card(
-                                      elevation: 0,
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      color: Theme.of(context).colorScheme.surface,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 1)
-                                      ),
-                                      child: ListTile(
-                                        contentPadding: const EdgeInsets.all(16),
-                                        leading: CircleAvatar(
-                                          backgroundColor: badgeBg,
-                                          child: Icon(Icons.history, color: badgeText),
-                                        ),
-                                        title: Text(rawDate, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        subtitle: Text('Masuk: $checkIn  •  Pulang: $checkOut', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                                        trailing: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                          decoration: BoxDecoration(
-                                            color: badgeBg,
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                          child: Text(
-                                            status.toString().toUpperCase(),
-                                            style: TextStyle(color: badgeText, fontSize: 12, fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    );
+          if (isMobile) {
+            return listWidget;
+          } else {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: listWidget),
+                const SizedBox(width: 16),
+                const Expanded(child: SizedBox()),
+              ]
+            );
+          }
+        }        // --- Helper for Locations & Kehadiran (Responsive) ---
+        Widget buildLokasiKehadiran() {
+          if (isMobile) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (requireLoc) ...[
+                  Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  Card(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: LiveLocationMap(
+                      officeLat: targetLat,
+                      officeLng: targetLng,
+                      locationName: targetLocationName,
+                      officeRadius: targetRadius,
+                      isFlexible: isLocationFlexible,
+                      onLocationUpdate: (isInside, pos) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() { _isInsideArea = isInside; _currentPos = pos; });
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+                Text('Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                _buildStreakChart(),
+              ]
+            );
+          } else {
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (requireLoc) Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: Card(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: LiveLocationMap(
+                              officeLat: targetLat,
+                              officeLng: targetLng,
+                              locationName: targetLocationName,
+                              officeRadius: targetRadius,
+                              isFlexible: isLocationFlexible,
+                              onLocationUpdate: (isInside, pos) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (mounted) {
+                                    setState(() { _isInsideArea = isInside; _currentPos = pos; });
                                   }
-                                )
-                              else
-                                const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: Text('Belum ada riwayat', style: TextStyle(color: Colors.grey)),
-                                  )
-                                ),
-                              const SizedBox(height: 32),
-                            ],
+                                });
+                              },
+                            ),
                           ),
-                        ), 
+                        ),
                       ],
                     ),
-        ),
-      ),
+                  ),
+                  if (requireLoc) const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: _buildStreakChart(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]
+              )
+            );
+          }
+        }
+
+        // --- Layout Start ---
+        return Scaffold(
+          body: SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _fetchDashboard,
+              child: _isFetching
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? ListView(
+                          padding: const EdgeInsets.all(16.0),
+                          children: [
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Gagal memuat data', style: Theme.of(context).textTheme.titleLarge),
+                                  const SizedBox(height: 8),
+                                  Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                                  const SizedBox(height: 16),
+                                  FilledButton.tonal(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
+                                ],
+                              ),
+                            )
+                          ]
+                        )
+                      : ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            // Header Section
+                            LayoutBuilder(
+                              builder: (context, headerConstraints) {
+                                final avatarWidget = CircleAvatar(
+                                  radius: 36,
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  child: Text(
+                                    (user?['name'] ?? 'U')[0].toUpperCase(),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 32),
+                                  ),
+                                );
+                                final nameWidget = Text(
+                                  user?['name'] ?? 'User',
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
+                                  textAlign: isMobile ? TextAlign.center : TextAlign.start,
+                                );
+                                final usernameWidget = Text(
+                                  user?['username'] ?? 'username',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                  textAlign: isMobile ? TextAlign.center : TextAlign.start,
+                                );
+
+                                if (isMobile) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [avatarWidget, const SizedBox(height: 16), nameWidget, const SizedBox(height: 4), usernameWidget],
+                                    ),
+                                  );
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                                  child: Row(
+                                    children: [
+                                      avatarWidget, const SizedBox(width: 24),
+                                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [nameWidget, const SizedBox(height: 4), usernameWidget])),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // 2. Status Banner
+                                  _buildStatusBanner(),
+                                  const SizedBox(height: 32),
+
+                                  // 1. Aksi (Tanpa Judul)
+                                  if (user?['can_attend'] == true) ...[
+                                    if (attendanceMode == 'recognition' && !hasFaceBiometric) ...[
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.errorContainer, borderRadius: BorderRadius.circular(16)),
+                                        child: Column(
+                                          children: [
+                                            Icon(Icons.face_retouching_natural, size: 32, color: Theme.of(context).colorScheme.error),
+                                            const SizedBox(height: 8),
+                                            Text('Wajah Anda belum terdaftar!', style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer, fontWeight: FontWeight.bold)),
+                                            const SizedBox(height: 8),
+                                            Text('Harap daftarkan wajah Anda terlebih dahulu sebelum dapat melakukan absensi.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.8))),
+                                            const SizedBox(height: 16),
+                                            FilledButton.icon(
+                                              onPressed: _isLoadingAction ? null : _handleRegisterFace,
+                                              icon: _isLoadingAction ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.camera_alt),
+                                              label: const Text('Daftarkan Wajah'),
+                                              style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ] else ...[
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: FilledButton.icon(
+                                              onPressed: (_isLoadingAction || !canCheckIn) ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
+                                              icon: _isLoadingAction ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.login),
+                                              label: const Text('Masuk'),
+                                              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), backgroundColor: Colors.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: FilledButton.icon(
+                                              onPressed: (_isLoadingAction || !canCheckOut) ? null : () => _handleCheckOut(requireLoc),
+                                              icon: _isLoadingAction ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.logout),
+                                              label: const Text('Pulang'),
+                                              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), backgroundColor: Colors.red, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
+                                  ],
+
+                                  // 3. Lokasi & Kehadiran
+                                  buildLokasiKehadiran(),
+                                  const SizedBox(height: 32),
+
+                                  // 4. Statistik dengan Dropdown
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Statistik', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                      Row(
+                                          children: [
+                                            DropdownButton<int>(
+                                              value: _selectedMonth,
+                                              underline: const SizedBox(),
+                                              borderRadius: BorderRadius.circular(8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              items: List.generate(12, (i) {
+                                                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                                                return DropdownMenuItem(value: i + 1, child: Text(months[i]));
+                                              }),
+                                              onChanged: (val) {
+                                                if (val != null) setState(() => _selectedMonth = val);
+                                              },
+                                            ),
+                                            const SizedBox(width: 8),
+                                            DropdownButton<int>(
+                                              value: _selectedYear,
+                                              underline: const SizedBox(),
+                                              borderRadius: BorderRadius.circular(8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              items: List.generate(5, (i) {
+                                                final y = DateTime.now().year - i;
+                                                return DropdownMenuItem(value: y, child: Text(y.toString()));
+                                              }),
+                                              onChanged: (val) {
+                                                if (val != null) setState(() => _selectedYear = val);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  buildStatCards(),
+                                  const SizedBox(height: 32),
+
+                                  // 5. Riwayat Terbaru
+                                  Text('Riwayat Terbaru', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 16),
+                                  buildHistory(),
+                                  const SizedBox(height: 32),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

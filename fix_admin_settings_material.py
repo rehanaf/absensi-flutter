@@ -1,4 +1,5 @@
-import 'dart:io';
+with open('lib/features/admin/admin_settings_screen.dart', 'w', encoding='utf-8') as f:
+    f.write("""import 'dart:io';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -193,13 +194,13 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               hint: const Text('Pilih Warna Tema'),
               value: _formValues[key] as String?,
               items: const [
-                DropdownMenuItem(value: 'blue', child: Text('🔵 Blue')),
-                DropdownMenuItem(value: 'zinc', child: Text('🔘 Zinc')),
-                DropdownMenuItem(value: 'rose', child: Text('🌹 Rose')),
-                DropdownMenuItem(value: 'violet', child: Text('🟣 Violet')),
-                DropdownMenuItem(value: 'red', child: Text('🔴 Red')),
-                DropdownMenuItem(value: 'green', child: Text('🟢 Green')),
-                DropdownMenuItem(value: 'orange', child: Text('🟠 Orange')),
+                DropdownMenuItem(value: 'blue', child: Text('\uD83D\uDD35 Blue')),
+                DropdownMenuItem(value: 'zinc', child: Text('\uD83D\uDD18 Zinc')),
+                DropdownMenuItem(value: 'rose', child: Text('\uD83C\uDF39 Rose')),
+                DropdownMenuItem(value: 'violet', child: Text('\uD83D\uDFE3 Violet')),
+                DropdownMenuItem(value: 'red', child: Text('\uD83D\uDD34 Red')),
+                DropdownMenuItem(value: 'green', child: Text('\uD83D\uDFE2 Green')),
+                DropdownMenuItem(value: 'orange', child: Text('\uD83D\uDFE0 Orange')),
               ],
               onChanged: (val) {
                 if (val != null) {
@@ -377,3 +378,4 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     );
   }
 }
+""")

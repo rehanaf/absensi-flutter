@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+with open('lib/features/admin/admin_management_screen.dart', 'w', encoding='utf-8') as f:
+    f.write("""import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'users/admin_users_screen.dart';
 import 'schedules/admin_schedules_screen.dart';
@@ -55,9 +56,9 @@ class AdminManagementScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: isDesktop ? 2 : 1,
-            crossAxisSpacing: 0,
-            mainAxisSpacing: 0,
-            mainAxisExtent: 56,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            mainAxisExtent: 72,
           ),
           itemCount: menus.length,
           itemBuilder: (context, index) {
@@ -68,7 +69,11 @@ class AdminManagementScreen extends StatelessWidget {
               },
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -97,3 +102,4 @@ class AdminManagementScreen extends StatelessWidget {
     );
   }
 }
+""")

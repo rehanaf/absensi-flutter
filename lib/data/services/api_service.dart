@@ -176,6 +176,15 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getParentHistory() async {
+    try {
+      final response = await _apiClient.dio.get('/parent/children/attendances');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> updateAdminSettings(Map<String, dynamic> settings) async {
     try {
       FormData formData = FormData();

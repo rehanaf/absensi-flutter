@@ -74,7 +74,7 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
 
       // Get initial position first to center map quickly
       final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       _updatePosition(pos);
 
