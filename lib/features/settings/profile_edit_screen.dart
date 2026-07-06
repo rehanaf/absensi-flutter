@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../data/services/api_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
@@ -61,11 +60,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         _isLoadingFields = false;
       });
     } catch (e) {
-      // If fetching fields fails (e.g., 403 Forbidden for non-admins),
-      // we just skip rendering dynamic fields or render them from meta_data.
       if (mounted) {
         setState(() => _isLoadingFields = false);
-        // Fallback: create controllers from existing meta_data if schema fails
         final auth = Provider.of<AuthProvider>(context, listen: false);
         final userProfile = auth.user?['profile']?['meta_data'] ?? {};
         if (userProfile is Map) {
@@ -75,7 +71,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               'field_name': key,
               'field_label': key,
               'field_type': 'text',
-              'is_editable': true, // Assume editable if we can't fetch schema
+              'is_editable': true,
               'is_required': false,
             });
           });
@@ -117,7 +113,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       data['phone_number'] = _phoneController.text;
     }
 
-    // Append custom fields
     if (_formFieldsConfig.isNotEmpty) {
       final customFields = <String, dynamic>{};
       for (var field in _formFieldsConfig) {
@@ -135,18 +130,49 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     try {
       await _apiService.updateMyProfile(data);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Profil berhasil diperbarui')));
-        // Refresh global user state
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profil berhasil diperbarui')),
+        );
         Provider.of<AuthProvider>(context, listen: false).checkAuthStatus();
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller, {bool enabled = true, bool isRequired = false, TextInputType? keyboardType}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        enabled: enabled,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label + (isRequired && enabled ? ' *' : ''),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: enabled 
+              ? Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80) 
+              : Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(40),
+        ),
+        validator: isRequired && enabled
+            ? (v) => v == null || v.isEmpty ? '$label tidak boleh kosong' : null
+            : null,
+      ),
+    );
   }
 
   @override
@@ -171,40 +197,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Informasi Dasar', style: ShadTheme.of(context).textTheme.large),
+                    Text('Informasi Dasar', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Nama Lengkap'),
-                      controller: _nameController,
-                      enabled: canEditName,
-                      validator: canEditName ? (v) => v.isEmpty ? 'Nama tidak boleh kosong' : null : null,
-                    ),
+                    _buildTextField('Nama Lengkap', _nameController, enabled: canEditName, isRequired: true),
+                    _buildTextField('Email', _emailController, enabled: canEditEmail, isRequired: true, keyboardType: TextInputType.emailAddress),
+                    _buildTextField(settings.getSetting('username_label') ?? 'Username', _usernameController, enabled: canEditUsername, isRequired: true),
+                    _buildTextField('No. HP / WhatsApp', _phoneController, enabled: canEditPhone, keyboardType: TextInputType.phone),
+                    
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Email'),
-                      controller: _emailController,
-                      enabled: canEditEmail,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: canEditEmail ? (v) => v.isEmpty ? 'Email tidak boleh kosong' : null : null,
-                    ),
-                    const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: Text(settings.getSetting('username_label') ?? 'Username'),
-                      controller: _usernameController,
-                      readOnly: !canEditUsername,
-                      validator: (v) => v.isEmpty ? 'Tidak boleh kosong' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('No. HP / WhatsApp'),
-                      controller: _phoneController,
-                      enabled: canEditPhone,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 32),
                     
                     if (_formFieldsConfig.isNotEmpty) ...[
-                      Text('Data Tambahan', style: ShadTheme.of(context).textTheme.large),
+                      Text('Data Tambahan', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
                       ..._formFieldsConfig.map((field) {
                         final label = field['field_label'] ?? field['field_name'];
@@ -217,25 +220,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         if (type == 'email') keyboardType = TextInputType.emailAddress;
                         if (type == 'phone') keyboardType = TextInputType.phone;
 
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: ShadInputFormField(
-                            label: Text(label + (isRequired && isEditable ? ' *' : '')),
-                            controller: _customFieldControllers[field['field_name']],
-                            keyboardType: keyboardType,
-                            enabled: isEditable,
-                            validator: isRequired && isEditable
-                                ? (v) => v.isEmpty ? '$label wajib diisi' : null
-                                : null,
-                          ),
+                        return _buildTextField(
+                          label,
+                          _customFieldControllers[field['field_name']]!,
+                          enabled: isEditable,
+                          isRequired: isRequired,
+                          keyboardType: keyboardType,
                         );
                       }),
                       const SizedBox(height: 16),
                     ],
 
-                    ShadButton(
+                    FilledButton.icon(
                       onPressed: _submit,
-                      child: const Text('Simpan Perubahan'),
+                      icon: const Icon(Icons.save),
+                      label: const Text('Simpan Perubahan'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                     ),
                   ],
                 ),

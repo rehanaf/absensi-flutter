@@ -47,7 +47,52 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateMyProfile(Map<String, dynamic> data) async {
     try {
-      final response = await _apiClient.dio.put('/user/profile', data: data);
+      final response = await _apiClient.dio.put('/profile', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // --- Attendance Activities (Lembur / Tugas Luar) ---
+  Future<Map<String, dynamic>> getMyAttendanceActivities() async {
+    try {
+      final response = await _apiClient.dio.get('/attendance-activities');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> submitMyAttendanceActivity(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/attendance-activities', data: data);
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // --- Permits (Izin / Sakit / Cuti) ---
+  Future<Map<String, dynamic>> getMyPermits() async {
+    try {
+      final response = await _apiClient.dio.get('/permits');
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> submitMyPermit(Map<String, dynamic> data, {String? attachmentPath}) async {
+    try {
+      FormData formData = FormData.fromMap(data);
+      if (attachmentPath != null) {
+        formData.files.add(
+          MapEntry('attachment', await MultipartFile.fromFile(attachmentPath)),
+        );
+      }
+      
+      final response = await _apiClient.dio.post('/permits', data: formData);
       return response.data;
     } catch (e) {
       rethrow;
