@@ -12,7 +12,7 @@ enum AppColorPreference {
 
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
-  AppColorPreference _colorPreference = AppColorPreference.monochrome;
+  AppColorPreference _colorPreference = AppColorPreference.blue;
 
   ThemeMode get themeMode => _themeMode;
   AppColorPreference get colorPreference => _colorPreference;
@@ -33,8 +33,8 @@ class ThemeProvider with ChangeNotifier {
     if (colorIndex != null && colorIndex >= 0 && colorIndex < AppColorPreference.values.length) {
       _colorPreference = AppColorPreference.values[colorIndex];
     } else {
-      // Default to monochrome
-      _colorPreference = AppColorPreference.monochrome;
+      // Default to blue
+      _colorPreference = AppColorPreference.blue;
     }
     
     notifyListeners();

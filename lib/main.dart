@@ -10,6 +10,7 @@ import 'providers/workspace_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui' as ui;
 
 TextStyle _appFont({
@@ -33,8 +34,7 @@ TextStyle _appFont({
   TextStyle? textStyle,
   double? wordSpacing,
 }) {
-  return TextStyle(
-    fontFamily: 'Pliant',
+  return GoogleFonts.albertSans(
     background: background,
     backgroundColor: backgroundColor,
     color: color,
@@ -52,8 +52,9 @@ TextStyle _appFont({
     locale: locale,
     shadows: shadows,
     textBaseline: textBaseline,
+    textStyle: textStyle,
     wordSpacing: wordSpacing,
-  ).merge(textStyle);
+  );
 }
 
 void main() async {
@@ -76,15 +77,6 @@ void main() async {
   );
 }
 
-Color _getSeedColor(AppColorPreference pref) {
-  switch (pref) {
-    case AppColorPreference.blue: return const Color(0xFF4285F4);
-    case AppColorPreference.red: return Colors.red;
-    case AppColorPreference.green: return Colors.green;
-    case AppColorPreference.purple: return Colors.purple;
-    default: return const Color(0xFF4285F4); 
-  }
-}
 
 ShadColorScheme _getShadColorScheme(AppColorPreference pref, bool isDarkMode) {
   switch (pref) {
@@ -112,19 +104,16 @@ class MyApp extends StatelessWidget {
             if (pref == AppColorPreference.dynamic && lightDynamic != null && darkDynamic != null) {
               lightColorScheme = lightDynamic.harmonized();
               darkColorScheme = darkDynamic.harmonized();
-            } else if (pref == AppColorPreference.monochrome) {
-              lightColorScheme = ColorScheme.fromSeed(
-                seedColor: const Color(0xFF4285F4),
-                brightness: Brightness.light,
-              ).copyWith(primary: Colors.black, onPrimary: Colors.white);
-              darkColorScheme = ColorScheme.fromSeed(
-                seedColor: const Color(0xFF4285F4),
-                brightness: Brightness.dark,
-              ).copyWith(primary: Colors.white, onPrimary: Colors.black);
             } else {
-              final seed = _getSeedColor(pref);
-              lightColorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light).copyWith(primary: Colors.black, onPrimary: Colors.white);
-              darkColorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark).copyWith(primary: Colors.white, onPrimary: Colors.black);
+              const googleBlue = Color(0xFF4285F4);
+              lightColorScheme = ColorScheme.fromSeed(
+                seedColor: googleBlue,
+                brightness: Brightness.light,
+              ).copyWith(primary: googleBlue, onPrimary: Colors.white);
+              darkColorScheme = ColorScheme.fromSeed(
+                seedColor: googleBlue,
+                brightness: Brightness.dark,
+              ).copyWith(primary: googleBlue, onPrimary: Colors.white);
             }
 
             return MaterialApp.router(
@@ -133,13 +122,13 @@ class MyApp extends StatelessWidget {
               theme: ThemeData(
                 colorScheme: lightColorScheme,
                 useMaterial3: true,
-                fontFamily: 'Pliant',
+                fontFamily: GoogleFonts.albertSans().fontFamily,
                 navigationBarTheme: NavigationBarThemeData(
                   labelTextStyle: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                      return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontFamily: 'Pliant');
+                      return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
                     }
-                    return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontFamily: 'Pliant');
+                    return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
                   }),
                   iconTheme: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
@@ -154,13 +143,13 @@ class MyApp extends StatelessWidget {
               darkTheme: ThemeData(
                 colorScheme: darkColorScheme,
                 useMaterial3: true,
-                fontFamily: 'Pliant',
+                fontFamily: GoogleFonts.albertSans().fontFamily,
                 navigationBarTheme: NavigationBarThemeData(
                   labelTextStyle: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                      return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontFamily: 'Pliant');
+                      return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
                     }
-                    return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontFamily: 'Pliant');
+                    return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
                   }),
                   iconTheme: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
