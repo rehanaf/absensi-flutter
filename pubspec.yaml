@@ -40,7 +40,7 @@ dependencies:
   google_fonts: ^8.1.0
   go_router: ^17.3.0
   image_picker: ^1.2.2
-  geolocator: ^14.0.3
+  geolocator: ^13.0.1
   shadcn_ui: ^0.54.0
   lucide_icons: ^0.257.0
   twemoji: ^0.1.0
@@ -55,7 +55,7 @@ dependencies:
   firebase_messaging: ^16.4.1
   dynamic_color: ^1.8.1
   fl_chart: ^1.2.0
-  file_picker: ^3.0.4
+  file_picker: ^8.1.2
   intl: ^0.20.2
 
 dev_dependencies:
