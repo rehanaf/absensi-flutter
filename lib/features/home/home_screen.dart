@@ -429,9 +429,13 @@ class _HomeScreenState extends State<HomeScreen> {
           if (isMobile) {
             return Column(
               children: [
-                Row(children: [Expanded(child: cards[0]), const SizedBox(width: 16), Expanded(child: cards[1])]),
-                const SizedBox(height: 16),
-                Row(children: [Expanded(child: cards[2]), const SizedBox(width: 16), Expanded(child: cards[3])]),
+                cards[0],
+                const SizedBox(height: 12),
+                cards[1],
+                const SizedBox(height: 12),
+                cards[2],
+                const SizedBox(height: 12),
+                cards[3],
               ]
             );
           } else {

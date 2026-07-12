@@ -3,6 +3,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../core/api_client.dart';
 
+
+class AppException implements Exception {
+  final String message;
+  AppException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class ApiService {
   final ApiClient _apiClient = ApiClient();
 
@@ -11,7 +20,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/settings');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -20,7 +29,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/register', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -32,7 +41,7 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -41,16 +50,16 @@ class ApiService {
       final response = await _apiClient.dio.get('/user');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
   Future<Map<String, dynamic>> updateMyProfile(Map<String, dynamic> data) async {
     try {
-      final response = await _apiClient.dio.put('/profile', data: data);
+      final response = await _apiClient.dio.put('/user/profile', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -60,7 +69,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/attendance-activities');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -69,17 +78,17 @@ class ApiService {
       final response = await _apiClient.dio.post('/attendance-activities', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
   // --- Permits (Izin / Sakit / Cuti) ---
-  Future<Map<String, dynamic>> getMyPermits() async {
+  Future<dynamic> getMyPermits() async {
     try {
       final response = await _apiClient.dio.get('/permits');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -95,7 +104,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/permits', data: formData);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -104,7 +113,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/form-fields');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -115,7 +124,7 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -148,7 +157,7 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -181,7 +190,7 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -190,7 +199,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/attendance/history');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -199,7 +208,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/dashboard/admin');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -208,7 +217,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/dashboard/user');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -217,7 +226,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/dashboard/parent');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -226,7 +235,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/parent/children/attendances');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -250,7 +259,7 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -261,7 +270,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/admin/users', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -270,7 +279,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/admin/users', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -279,7 +288,7 @@ class ApiService {
       final response = await _apiClient.dio.put('/admin/users/$id', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -288,7 +297,7 @@ class ApiService {
       final response = await _apiClient.dio.delete('/admin/users/$id');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -299,7 +308,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/admin/schedules', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -308,7 +317,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/admin/schedules', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -317,7 +326,7 @@ class ApiService {
       final response = await _apiClient.dio.put('/admin/schedules/$id', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -326,7 +335,7 @@ class ApiService {
       final response = await _apiClient.dio.delete('/admin/schedules/$id');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -337,7 +346,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/admin/groups', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -346,7 +355,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/admin/groups', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -355,7 +364,7 @@ class ApiService {
       final response = await _apiClient.dio.put('/admin/groups/$id', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -364,7 +373,7 @@ class ApiService {
       final response = await _apiClient.dio.delete('/admin/groups/$id');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -375,7 +384,7 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -386,7 +395,7 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -397,7 +406,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/admin/form-fields');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -406,7 +415,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/admin/form-fields', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -415,7 +424,7 @@ class ApiService {
       final response = await _apiClient.dio.put('/admin/form-fields/$id', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -423,7 +432,7 @@ class ApiService {
     try {
       await _apiClient.dio.delete('/admin/form-fields/$id');
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -434,7 +443,7 @@ class ApiService {
       final response = await _apiClient.dio.get('/admin/attendances', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -443,7 +452,7 @@ class ApiService {
       final response = await _apiClient.dio.post('/admin/attendances', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -452,7 +461,7 @@ class ApiService {
       final response = await _apiClient.dio.put('/admin/attendances/$id', data: data);
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -460,7 +469,7 @@ class ApiService {
     try {
       await _apiClient.dio.delete('/admin/attendances/$id');
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -469,16 +478,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/locations', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createLocation(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/locations', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/locations', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updateLocation(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/locations/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/locations/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deleteLocation(int id) async {
-    try { await _apiClient.dio.delete('/admin/locations/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/locations/$id'); } catch (e) { throw _handleException(e); }
   }
 
   // --- Admin: Roles ---
@@ -486,16 +495,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/roles', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createRole(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/roles', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/roles', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updateRole(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/roles/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/roles/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deleteRole(int id) async {
-    try { await _apiClient.dio.delete('/admin/roles/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/roles/$id'); } catch (e) { throw _handleException(e); }
   }
 
   // --- Admin: Permits ---
@@ -503,16 +512,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/permits', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createPermit(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/permits', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/permits', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updatePermit(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/permits/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/permits/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deletePermit(int id) async {
-    try { await _apiClient.dio.delete('/admin/permits/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/permits/$id'); } catch (e) { throw _handleException(e); }
   }
 
   // --- Admin: Holidays ---
@@ -520,16 +529,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/holidays', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createHoliday(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/holidays', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/holidays', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updateHoliday(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/holidays/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/holidays/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deleteHoliday(int id) async {
-    try { await _apiClient.dio.delete('/admin/holidays/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/holidays/$id'); } catch (e) { throw _handleException(e); }
   }
 
   // --- Admin: Shifts ---
@@ -537,16 +546,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/shifts', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createShift(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/shifts', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/shifts', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updateShift(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/shifts/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/shifts/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deleteShift(int id) async {
-    try { await _apiClient.dio.delete('/admin/shifts/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/shifts/$id'); } catch (e) { throw _handleException(e); }
   }
 
   // --- Admin: Rosters ---
@@ -554,16 +563,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/rosters', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createRoster(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/rosters', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/rosters', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updateRoster(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/rosters/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/rosters/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deleteRoster(int id) async {
-    try { await _apiClient.dio.delete('/admin/rosters/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/rosters/$id'); } catch (e) { throw _handleException(e); }
   }
 
   // --- Admin: Announcements ---
@@ -571,16 +580,16 @@ class ApiService {
     try {
       final response = await _apiClient.dio.get('/admin/announcements', queryParameters: {'page': page, if (search != null && search.isNotEmpty) 'search': search});
       return response.data;
-    } catch (e) { rethrow; }
+    } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> createAnnouncement(Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.post('/admin/announcements', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.post('/admin/announcements', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<Map<String, dynamic>> updateAnnouncement(int id, Map<String, dynamic> data) async {
-    try { final response = await _apiClient.dio.put('/admin/announcements/', data: data); return response.data; } catch (e) { rethrow; }
+    try { final response = await _apiClient.dio.put('/admin/announcements/$id', data: data); return response.data; } catch (e) { throw _handleException(e); }
   }
   Future<void> deleteAnnouncement(int id) async {
-    try { await _apiClient.dio.delete('/admin/announcements/'); } catch (e) { rethrow; }
+    try { await _apiClient.dio.delete('/admin/announcements/$id'); } catch (e) { throw _handleException(e); }
   }
 
 
@@ -598,7 +607,7 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -607,16 +616,16 @@ class ApiService {
       final response = await _apiClient.dio.get('/notifications');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
   Future<Map<String, dynamic>> markNotificationAsRead(int id) async {
     try {
-      final response = await _apiClient.dio.put('/notifications//read');
+      final response = await _apiClient.dio.put('/notifications/$id/read');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -625,7 +634,73 @@ class ApiService {
       final response = await _apiClient.dio.post('/notifications/read-all');
       return response.data;
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
+    }
+  }
+
+
+  Exception _handleException(dynamic e) {
+    if (e is DioException) {
+      return AppException(_getFriendlyErrorMessage(e));
+    }
+    if (e is Exception) {
+      return e;
+    }
+    return AppException(e.toString());
+  }
+
+  String _getFriendlyErrorMessage(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'Koneksi waktu habis. Silakan periksa koneksi internet Anda.';
+      case DioExceptionType.connectionError:
+        return 'Tidak dapat terhubung ke server. Pastikan server aktif dan internet Anda tersambung.';
+      case DioExceptionType.cancel:
+        return 'Permintaan dibatalkan.';
+      case DioExceptionType.badResponse:
+        final status = e.response?.statusCode;
+        if (e.response?.data is Map) {
+          final data = e.response!.data as Map;
+          
+          // Handle Laravel validation errors
+          if (status == 422 && data.containsKey('errors') && data['errors'] is Map) {
+            final errors = data['errors'] as Map;
+            final List<String> messages = [];
+            for (var entry in errors.entries) {
+              if (entry.value is List) {
+                messages.addAll((entry.value as List).map((v) => v.toString()));
+              } else {
+                messages.add(entry.value.toString());
+              }
+            }
+            if (messages.isNotEmpty) {
+              return messages.join('\n');
+            }
+          }
+          
+          if (data.containsKey('message')) {
+            return data['message'].toString();
+          }
+        }
+        
+        switch (status) {
+          case 400:
+            return 'Permintaan tidak valid.';
+          case 401:
+            return 'Sesi masuk telah berakhir. Silakan masuk kembali.';
+          case 403:
+            return 'Anda tidak memiliki akses untuk tindakan ini.';
+          case 404:
+            return 'Layanan atau data tidak ditemukan.';
+          case 500:
+            return 'Terjadi kesalahan internal pada server. Silakan hubungi admin.';
+          default:
+            return 'Terjadi kesalahan dengan kode status: $status';
+        }
+      default:
+        return e.message ?? 'Terjadi kesalahan yang tidak diketahui.';
     }
   }
 

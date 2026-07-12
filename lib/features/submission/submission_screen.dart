@@ -32,9 +32,13 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
       final response = await _apiService.getMyPermits();
       if (mounted) {
         setState(() {
-          // Assuming response['data'] contains the list based on standard Laravel pagination/resource collection
-          _permits = response['data'] ?? response;
-          if (_permits is Map) _permits = []; // Fallback if structure is unknown
+          if (response is List) {
+            _permits = response;
+          } else if (response is Map) {
+            _permits = response['data'] ?? [];
+          } else {
+            _permits = [];
+          }
         });
       }
     } catch (e) {

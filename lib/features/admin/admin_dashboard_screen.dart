@@ -94,12 +94,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         Text('Role Pengguna', style: ShadTheme.of(context).textTheme.large),
         const SizedBox(height: 16),
         GridView.count(
-          crossAxisCount: isDesktop ? 4 : 2,
+          crossAxisCount: isDesktop ? 4 : 1,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: isDesktop ? 2.5 : 2.0,
+          childAspectRatio: isDesktop ? 2.5 : 4.0,
           children: roles.asMap().entries.map((entry) {
             final int index = entry.key;
             final r = entry.value;
@@ -111,12 +111,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         Text('Group', style: ShadTheme.of(context).textTheme.large),
         const SizedBox(height: 16),
         GridView.count(
-          crossAxisCount: isDesktop ? 4 : 2,
+          crossAxisCount: isDesktop ? 4 : 1,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: isDesktop ? 2.5 : 2.0,
+          childAspectRatio: isDesktop ? 2.5 : 4.0,
           children: groups.asMap().entries.map((entry) {
             final int index = entry.key;
             final g = entry.value;
@@ -143,12 +143,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ];
 
     return GridView.count(
-      crossAxisCount: isDesktop ? 4 : 2,
+      crossAxisCount: isDesktop ? 4 : 1,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: isDesktop ? 2.5 : 2.0,
+      childAspectRatio: isDesktop ? 2.5 : 4.0,
       children: cards,
     );
   }
