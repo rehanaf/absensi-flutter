@@ -10,6 +10,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../providers/workspace_provider.dart';
+import '../../data/services/api_service.dart';
 
 // Absen Mode Screens
 import '../home/home_screen.dart';
@@ -47,6 +48,44 @@ class _MainScreenState extends State<MainScreen> {
   late final PageController _pageController;
   int _currentIndex = 0;
   int _previousIndex = 0;
+  int _unreadNotificationsCount = 0;
+
+  Future<void> _fetchUnreadCount() async {
+    try {
+      final apiService = ApiService();
+      final response = await apiService.getNotifications();
+      List<dynamic> list = [];
+      if (response is Map) {
+        if (response.containsKey('data') && response['data'] is List) {
+          list = response['data'];
+        } else if (response.containsKey('notifications') && response['notifications'] is List) {
+          list = response['notifications'];
+        }
+      } else if (response is List) {
+        list = response;
+      }
+      
+      int count = 0;
+      for (var item in list) {
+        if (item is Map) {
+          bool isRead = false;
+          if (item.containsKey('is_read')) {
+            isRead = item['is_read'] == 1 || item['is_read'] == true;
+          } else if (item.containsKey('read_at')) {
+            isRead = item['read_at'] != null;
+          }
+          if (!isRead) count++;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _unreadNotificationsCount = count;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch notifications unread count: $e');
+    }
+  }
 
   // Tabs for Absensi Mode
   late final List<Widget> _absenScreens = [
@@ -60,6 +99,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+    _fetchUnreadCount();
     // Auto-select initial mode based on availability after widget mounts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -74,6 +114,7 @@ class _MainScreenState extends State<MainScreen> {
 
     // Dengarkan notifikasi saat aplikasi sedang aktif (foreground)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      _fetchUnreadCount();
       if (mounted && message.notification != null) {
         ShadToaster.of(context).show(
           ShadToast(
@@ -86,7 +127,7 @@ class _MainScreenState extends State<MainScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                );
+                ).then((_) => _fetchUnreadCount());
               },
             ),
           ),
@@ -221,14 +262,18 @@ class _MainScreenState extends State<MainScreen> {
                 _historyKey.currentState?.fetchHistory();
               },
             ),
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-              );
-            },
+          Badge(
+            label: _unreadNotificationsCount > 0 ? Text('$_unreadNotificationsCount') : null,
+            isLabelVisible: _unreadNotificationsCount > 0,
+            child: IconButton(
+              icon: const Icon(Icons.notifications),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                ).then((_) => _fetchUnreadCount());
+              },
+            ),
           ),
           Builder(
             builder: (context) {
