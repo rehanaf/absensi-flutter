@@ -41,7 +41,7 @@ dependencies:
   go_router: ^17.3.0
   image_picker: ^1.2.2
   geolocator: ^13.0.1
-  lucide_icons: ^0.257.0
+  lucide_icons_flutter: ^3.0.0
   twemoji: ^0.1.0
   camera: ^0.12.0+1
   google_mlkit_face_detection: ^0.13.2
