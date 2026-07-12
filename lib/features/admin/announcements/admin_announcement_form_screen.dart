@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../data/services/api_service.dart';
 
 class AdminAnnouncementFormScreen extends StatefulWidget {
@@ -18,21 +17,18 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
   late TextEditingController _titleController;
   late TextEditingController _contentController;
 
-
   @override
   void initState() {
     super.initState();
     final item = widget.item;
     _titleController = TextEditingController(text: item?['title']?.toString() ?? '');
     _contentController = TextEditingController(text: item?['content']?.toString() ?? '');
-
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
-
     super.dispose();
   }
 
@@ -43,21 +39,34 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
     final data = {
       'title': _titleController.text,
       'content': _contentController.text,
-
+      'is_active': true, // default active to trigger broadcast on creation/edit
     };
 
     try {
       if (widget.item == null) {
         await _apiService.createAnnouncement(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil ditambahkan')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pengumuman berhasil ditambahkan dan dikirim!')),
+          );
+        }
       } else {
         await _apiService.updateAnnouncement(widget.item!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil diperbarui')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pengumuman berhasil diperbarui!')),
+          );
+        }
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -81,23 +90,51 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadInputFormField(
-                      label: const Text('Judul'),
+                    Text(
+                      'Informasi Pengumuman',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
                       controller: _titleController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
+                      decoration: InputDecoration(
+                        labelText: 'Judul *',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Judul wajib diisi' : null,
                     ),
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Isi Pengumuman'),
+                    TextFormField(
                       controller: _contentController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        labelText: 'Isi Pengumuman *',
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Isi pengumuman wajib diisi' : null,
                     ),
-                    const SizedBox(height: 16),
-
-                    const SizedBox(height: 24),
-                    ShadButton(
+                    const SizedBox(height: 32),
+                    FilledButton.icon(
                       onPressed: _submit,
-                      child: const Text('Simpan'),
+                      icon: const Icon(Icons.send),
+                      label: Text(isEditing ? 'Simpan Perubahan' : 'Kirim Pengumuman'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -97,12 +97,19 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
     try {
       await _apiService.deleteAnnouncement(id);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil dihapus')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Berhasil dihapus')),
+        );
         _fetchItems();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
   }
@@ -190,8 +197,8 @@ class _AdminAnnouncementsScreenState extends State<AdminAnnouncementsScreen> {
                                               backgroundColor: Colors.orange.withOpacity(0.1),
                                               child: const Icon(LucideIcons.megaphone, color: Colors.orange),
                                             ),
-                                            title: Text(item['name'] ?? item['title'] ?? item['id']?.toString() ?? 'ID: ${item["id"]}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            subtitle: const SizedBox.shrink(),
+                                            title: Text(item['title'] ?? item['name'] ?? 'ID: ${item["id"]}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                            subtitle: Text(item['content']?.toString() ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [

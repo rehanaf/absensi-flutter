@@ -27,6 +27,8 @@ class AuthProvider with ChangeNotifier {
       try {
         final userData = await _apiService.getUser();
         _user = userData;
+        // Selalu daftarkan/perbarui FCM token saat aplikasi baru dibuka
+        await _registerFcmToken();
       } catch (e) {
         // Token might be invalid
         await logout();
