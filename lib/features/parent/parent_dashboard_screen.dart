@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/services/api_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../core/widgets/app_toast.dart';
 
 class ParentDashboardScreen extends StatefulWidget {
   const ParentDashboardScreen({super.key});
@@ -15,6 +16,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<dynamic> _children = [];
+  List<dynamic> _requests = [];
 
   @override
   void initState() {
@@ -30,9 +32,11 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
 
     try {
       final response = await _apiService.getParentDashboard();
+      final reqResponse = await _apiService.getParentChildrenRequests();
       if (mounted) {
         setState(() {
           _children = response['children_status'] ?? [];
+          _requests = reqResponse['requests'] ?? [];
           _isLoading = false;
         });
       }
@@ -66,6 +70,60 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       case 'terlambat': return Icons.watch_later;
       default: return Icons.help_outline;
     }
+  }
+
+  void _showConnectChildDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hubungkan Anak'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Masukkan NIS / Username Anak yang ingin dihubungkan:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'NIS / Username',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.text,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final username = controller.text.trim();
+              if (username.isEmpty) return;
+              Navigator.pop(context);
+              
+              setState(() => _isLoading = true);
+              try {
+                final result = await _apiService.connectParentChild(username);
+                if (mounted) {
+                  AppToast.showSuccess(context, message: result['message'] ?? 'Permintaan berhasil dikirim!');
+                  _fetchDashboard();
+                }
+              } catch (e) {
+                if (mounted) {
+                  AppToast.showError(context, message: e.toString());
+                  setState(() => _isLoading = false);
+                }
+              }
+            },
+            child: const Text('Hubungkan'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -104,7 +162,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 const SizedBox(height: 16), 
                 nameWidget, 
                 const SizedBox(height: 4), 
-                usernameWidget
+                usernameWidget,
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _showConnectChildDialog,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Hubungkan Anak'),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
               ],
             ),
           );
@@ -124,6 +191,14 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                     usernameWidget
                   ]
                 )
+              ),
+              ElevatedButton.icon(
+                onPressed: _showConnectChildDialog,
+                icon: const Icon(Icons.add),
+                label: const Text('Hubungkan Anak'),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ],
           ),
@@ -257,6 +332,53 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     );
   }
 
+  Widget _buildRequestItem(Map<String, dynamic> request) {
+    final child = request['child'] ?? {};
+    final childName = child['name'] ?? 'Nama Tidak Diketahui';
+    final childUsername = child['username'] ?? '-';
+    final status = request['status'] ?? 'pending';
+    
+    Color statusColor = Colors.orange;
+    if (status == 'approved') statusColor = Colors.green;
+    if (status == 'rejected') statusColor = Colors.red;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withAlpha(50))),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(Icons.person_search, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(childName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('NIS / ID: $childUsername', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withAlpha(26),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              status.toUpperCase(),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -294,6 +416,32 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: _buildHeader(context),
+              ),
+              if (_requests.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 16.0, bottom: 8.0),
+                    child: Text(
+                      'Status Pengajuan Hubungan',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildRequestItem(_requests[index]),
+                    childCount: _requests.length,
+                  ),
+                ),
+              ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 16.0, bottom: 8.0),
+                  child: Text(
+                    'Daftar Anak Terhubung',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
               if (_children.isEmpty)
                 SliverFillRemaining(

@@ -239,6 +239,26 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getParentChildrenRequests() async {
+    try {
+      final response = await _apiClient.dio.get('/parent/children/requests');
+      return response.data;
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> connectParentChild(String username) async {
+    try {
+      final response = await _apiClient.dio.post('/parent/children/connect', data: {
+        'username': username,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
   Future<Map<String, dynamic>> updateAdminSettings(Map<String, dynamic> settings) async {
     try {
       FormData formData = FormData();
@@ -295,6 +315,36 @@ class ApiService {
   Future<Map<String, dynamic>> deleteUser(int id) async {
     try {
       final response = await _apiClient.dio.delete('/admin/users/$id');
+      return response.data;
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getAdminParentChildRequests({int page = 1, String? status}) async {
+    try {
+      final response = await _apiClient.dio.get('/admin/parent-child-requests', queryParameters: {
+        'page': page,
+        if (status != null && status.isNotEmpty) 'status': status,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> approveParentChildRequest(int id) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/parent-child-requests/$id/approve');
+      return response.data;
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> rejectParentChildRequest(int id) async {
+    try {
+      final response = await _apiClient.dio.put('/admin/parent-child-requests/$id/reject');
       return response.data;
     } catch (e) {
       throw _handleException(e);

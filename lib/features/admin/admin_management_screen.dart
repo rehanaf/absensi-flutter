@@ -11,6 +11,7 @@ import 'announcements/admin_announcements_screen.dart';
 import 'permits/admin_permits_screen.dart';
 import 'locations/admin_locations_screen.dart';
 import 'roles/admin_roles_screen.dart';
+import 'parent_child_requests/admin_parent_child_requests_screen.dart';
 
 class _MenuData {
   final String title;
@@ -46,6 +47,7 @@ class AdminManagementScreen extends StatelessWidget {
       const _MenuData(title: 'Izin & Cuti', icon: Icons.description, color: Colors.amber, screen: AdminPermitsScreen()),
       const _MenuData(title: 'Cabang / Lokasi', icon: Icons.location_on, color: Colors.pink, screen: AdminLocationsScreen()),
       const _MenuData(title: 'Role & Akses', icon: Icons.security, color: Colors.blueGrey, screen: AdminRolesScreen()),
+      const _MenuData(title: 'Persetujuan Wali Murid', icon: Icons.family_restroom, color: Colors.indigoAccent, screen: AdminParentChildRequestsScreen()),
     ];
 
     return Scaffold(
