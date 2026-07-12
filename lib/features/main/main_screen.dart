@@ -12,6 +12,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../providers/workspace_provider.dart';
 import '../../data/services/api_service.dart';
+import '../../core/widgets/app_toast.dart';
 
 // Absen Mode Screens
 import '../home/home_screen.dart';
@@ -88,27 +89,17 @@ class _MainScreenState extends State<MainScreen> {
           final title = newNotif['title'] ?? 'Notifikasi Baru';
           final message = newNotif['message'] ?? newNotif['body'] ?? '';
           
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text(message),
-                ],
-              ),
-              action: SnackBarAction(
-                label: 'Lihat',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                  ).then((_) => _fetchUnreadCount(triggerAlert: false));
-                },
-              ),
-            ),
+          AppToast.showSuccess(
+            context,
+            title: title,
+            message: message,
+            duration: const Duration(seconds: 4),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              ).then((_) => _fetchUnreadCount(triggerAlert: false));
+            },
           );
         }
 

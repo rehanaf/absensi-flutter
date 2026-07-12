@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../core/widgets/app_toast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -66,7 +67,11 @@ class _LoginScreenState extends State<LoginScreen> {
       TextInput.finishAutofillContext();
       context.go('/home');
     } else if (mounted) {
-      _showAlertDialog('Gagal', authProvider.errorMessage ?? 'Login gagal, periksa kembali username dan password Anda.');
+      AppToast.showError(
+        context,
+        title: 'Login Gagal',
+        message: authProvider.errorMessage ?? 'Login gagal, periksa kembali username dan password Anda.',
+      );
     }
   }
 

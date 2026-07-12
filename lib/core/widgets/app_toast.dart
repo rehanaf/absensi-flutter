@@ -8,8 +8,9 @@ class AppToast {
     required String message,
     String? title,
     Duration duration = const Duration(seconds: 3),
+    VoidCallback? onTap,
   }) {
-    _show(context, title: title, message: message, isError: false, duration: duration);
+    _show(context, title: title, message: message, isError: false, duration: duration, onTap: onTap);
   }
 
   static void showError(
@@ -17,8 +18,9 @@ class AppToast {
     required String message,
     String? title,
     Duration duration = const Duration(seconds: 3),
+    VoidCallback? onTap,
   }) {
-    _show(context, title: title, message: message, isError: true, duration: duration);
+    _show(context, title: title, message: message, isError: true, duration: duration, onTap: onTap);
   }
 
   static void _show(
@@ -27,6 +29,7 @@ class AppToast {
     required String message,
     required bool isError,
     required Duration duration,
+    VoidCallback? onTap,
   }) {
     final overlayState = Overlay.of(context);
     late OverlayEntry overlayEntry;
@@ -38,6 +41,7 @@ class AppToast {
         isError: isError,
         onDismiss: () => overlayEntry.remove(),
         duration: duration,
+        onTap: onTap,
       ),
     );
 
@@ -51,6 +55,7 @@ class _ToastWidget extends StatefulWidget {
   final bool isError;
   final VoidCallback onDismiss;
   final Duration duration;
+  final VoidCallback? onTap;
 
   const _ToastWidget({
     super.key,
@@ -59,6 +64,7 @@ class _ToastWidget extends StatefulWidget {
     required this.isError,
     required this.onDismiss,
     required this.duration,
+    this.onTap,
   });
 
   @override
@@ -131,6 +137,12 @@ class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderSta
               child: Material(
                 color: Colors.transparent,
                 child: GestureDetector(
+                  onTap: () {
+                    if (widget.onTap != null) {
+                      widget.onTap!();
+                    }
+                    _dismiss();
+                  },
                   onVerticalDragEnd: (details) {
                     if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
                       _dismiss(); // dismiss on swipe up
