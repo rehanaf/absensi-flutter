@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'admin_attendance_form_screen.dart';
 import 'dart:async';
@@ -72,20 +72,10 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
   Future<void> _deleteAttendance(int id) async {
     final bool? confirm = await showDialog(
       context: context,
-      builder: (context) => ShadDialog(
-        title: const Text('Hapus Absensi'),
-        description: const Text('Apakah Anda yakin ingin menghapus data absensi ini?'),
-        actions: [
-          ShadButton.outline(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          ShadButton.destructive(
-            child: const Text('Hapus'),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
+      builder: (context) => AlertDialog(title: const Text('Hapus Absensi'), content: const Text('Apakah Anda yakin ingin menghapus data absensi ini?'), actions: [
+          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError), onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+        ]),
     );
 
     if (confirm != true) return;
@@ -93,12 +83,12 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
     try {
       await _apiService.deleteAttendance(id);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Data absensi berhasil dihapus')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data absensi berhasil dihapus'), backgroundColor: Colors.green));
         _fetchAttendances();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menghapus absensi: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus absensi: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -132,10 +122,7 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ShadInput(
-              placeholder: const Text('Cari pengguna atau status...'),
-              onChanged: _onSearchChanged,
-            ),
+            child: TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari pengguna atau status...'), onChanged: _onSearchChanged),
           ),
           Expanded(
             child: _isLoading
@@ -145,10 +132,10 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Gagal memuat', style: ShadTheme.of(context).textTheme.large),
+                            Text('Gagal memuat', style: Theme.of(context).textTheme.titleMedium),
                             Text(_error!, style: const TextStyle(color: Colors.red)),
                             const SizedBox(height: 16),
-                            ShadButton(onPressed: _fetchAttendances, child: const Text('Coba Lagi')),
+                            ElevatedButton(onPressed: _fetchAttendances, child: const Text('Coba Lagi')),
                           ],
                         ),
                       )
@@ -159,9 +146,9 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  color: ShadTheme.of(context).colorScheme.background,
+                                  color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                                  border: Border.all(color: Theme.of(context).dividerColor),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.05),
@@ -238,7 +225,7 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 IconButton(
-                                                  icon: Icon(LucideIcons.edit2, size: 18, color: ShadTheme.of(context).colorScheme.primary),
+                                                  icon: Icon(LucideIcons.edit2, size: 18, color: Theme.of(context).colorScheme.primary),
                                                   onPressed: () => _navigateToForm(att),
                                                 ),
                                                 IconButton(
@@ -248,7 +235,7 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                                               ],
                                             ),
                                           ),
-                                          if (!isLast) Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                                          if (!isLast) Divider(height: 1, color: Theme.of(context).dividerColor),
                                         ],
                                       );
                                     }).toList(),
@@ -260,35 +247,27 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ShadButton.outline(
-                                    enabled: _currentPage > 1,
-                                    onPressed: () {
+                                  OutlinedButton(onPressed: (_currentPage > 1) ? () {
                                       setState(() => _currentPage--);
                                       _fetchAttendances();
-                                    },
-                                    child: const Row(
+                                    } : null, child: const Row(
                                       children: [
                                         Icon(LucideIcons.chevronLeft, size: 16),
                                         SizedBox(width: 4),
                                         Text('Prev'),
                                       ],
-                                    ),
-                                  ),
-                                  Text('Page $_currentPage of $_lastPage', style: ShadTheme.of(context).textTheme.muted),
-                                  ShadButton.outline(
-                                    enabled: _currentPage < _lastPage,
-                                    onPressed: () {
+                                    )),
+                                  Text('Page $_currentPage of $_lastPage', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                  OutlinedButton(onPressed: (_currentPage < _lastPage) ? () {
                                       setState(() => _currentPage++);
                                       _fetchAttendances();
-                                    },
-                                    child: const Row(
+                                    } : null, child: const Row(
                                       children: [
                                         Text('Next'),
                                         SizedBox(width: 4),
                                         Icon(LucideIcons.chevronRight, size: 16),
                                       ],
-                                    ),
-                                  ),
+                                    )),
                                 ],
                               ),
                               const SizedBox(height: 32),
@@ -299,8 +278,8 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToForm(),
-        backgroundColor: ShadTheme.of(context).colorScheme.primary,
-        foregroundColor: ShadTheme.of(context).colorScheme.primaryForeground,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         child: const Icon(LucideIcons.plus),
       ),
     );

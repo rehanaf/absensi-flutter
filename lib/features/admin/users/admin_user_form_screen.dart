@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../data/services/api_service.dart';
 
 class AdminUserFormScreen extends StatefulWidget {
@@ -79,7 +78,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoadingFields = false);
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal memuat data: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -100,7 +99,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedRoleId == null) {
-      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Silakan pilih Role')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Silakan pilih Role'), backgroundColor: Colors.red));
       return;
     }
 
@@ -128,7 +127,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     if (_passwordController.text.isNotEmpty) {
       data['password'] = _passwordController.text;
     } else if (widget.user == null) {
-      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Password wajib diisi untuk pengguna baru')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password wajib diisi untuk pengguna baru'), backgroundColor: Colors.red));
       setState(() => _isLoading = false);
       return;
     }
@@ -136,15 +135,15 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     try {
       if (widget.user == null) {
         await _apiService.createUser(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Pengguna berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengguna berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateUser(widget.user!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Data pengguna berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data pengguna berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -169,58 +168,37 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Informasi Dasar', style: ShadTheme.of(context).textTheme.large),
+                    Text('Informasi Dasar', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: const Text('Nama Lengkap'),
-                      controller: _nameController,
-                      validator: (v) => v.isEmpty ? 'Nama tidak boleh kosong' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Lengkap')), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Nama tidak boleh kosong' : null),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: const Text('Email'),
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) => v.isEmpty ? 'Email tidak boleh kosong' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Email')), controller: _emailController, validator: (v) => (v == null || v.isEmpty) ? 'Email tidak boleh kosong' : null, keyboardType: TextInputType.emailAddress),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: const Text('Username'),
-                      controller: _usernameController,
-                      validator: (v) => v.isEmpty ? 'Username tidak boleh kosong' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Username')), controller: _usernameController, validator: (v) => (v == null || v.isEmpty) ? 'Username tidak boleh kosong' : null),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: const Text('No. HP / WhatsApp'),
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('No. HP / WhatsApp')), controller: _phoneController, keyboardType: TextInputType.phone),
                     const SizedBox(height: 24),
                     
-                    Text('Keamanan & Akses', style: ShadTheme.of(context).textTheme.large),
+                    Text('Keamanan & Akses', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: Text(isEditing ? 'Password Baru (Biarkan kosong jika tidak diubah)' : 'Password'),
-                      controller: _passwordController,
-                      obscureText: true,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text(isEditing ? 'Password Baru (Biarkan kosong jika tidak diubah)' : 'Password')), controller: _passwordController, obscureText: true),
                     const SizedBox(height: 16),
                     
                     if (roles.isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Role / Peran', style: ShadTheme.of(context).textTheme.small),
+                          Text('Role / Peran', style: Theme.of(context).textTheme.bodySmall),
                           const SizedBox(height: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
-                              border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                              border: Border.all(color: Theme.of(context).dividerColor),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: DropdownButtonHideUnderline(
@@ -250,18 +228,15 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Izinkan Melakukan Absensi?'),
-                        ShadSwitch(
-                          value: _canAttend,
-                          onChanged: (val) {
+                        Switch(value: _canAttend, onChanged: (val) {
                             setState(() => _canAttend = val);
-                          },
-                        ),
+                          }),
                       ],
                     ),
                     const SizedBox(height: 32),
 
                     if (_formFieldsConfig.isNotEmpty) ...[
-                      Text('Data Tambahan', style: ShadTheme.of(context).textTheme.large),
+                      Text('Data Tambahan', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 16),
                       ..._formFieldsConfig.map((field) {
                         final label = field['field_label'];
@@ -275,23 +250,15 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
                         
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16.0),
-                          child: ShadInputFormField(
-                            label: Text(label + (isRequired ? ' *' : '')),
-                            controller: _customFieldControllers[field['field_name']],
-                            keyboardType: keyboardType,
-                            validator: isRequired 
-                                ? (v) => v.isEmpty ? '$label wajib diisi' : null 
-                                : null,
-                          ),
+                          child: TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text(label + (isRequired ? ' *' : ''))), controller: _customFieldControllers[field['field_name']], validator: isRequired 
+                                ? (v) => (v == null || v.isEmpty) ? '$label wajib diisi' : null 
+                                : null, keyboardType: keyboardType),
                         );
                       }),
                       const SizedBox(height: 16),
                     ],
                     
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan Data Pengguna'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Data Pengguna')),
                   ],
                 ),
               ),

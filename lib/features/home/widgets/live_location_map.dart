@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
-
 class LiveLocationMap extends StatefulWidget {
   final double officeLat;
   final double officeLng;
@@ -128,7 +126,7 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
       return Container(
         height: 200,
         decoration: BoxDecoration(
-          color: ShadTheme.of(context).colorScheme.muted,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(child: CircularProgressIndicator()),
@@ -152,16 +150,13 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
               const SizedBox(height: 8),
               Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              ShadButton.outline(
-                onPressed: () {
+              OutlinedButton(onPressed: () {
                   setState(() {
                     _isLoading = true;
                     _error = null;
                   });
                   _initLocation();
-                },
-                child: const Text('Coba Lagi'),
-              ),
+                }, child: const Text('Coba Lagi')),
             ],
           ),
         ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../data/services/api_service.dart';
 import 'admin_user_form_screen.dart';
 import 'dart:async';
@@ -72,20 +72,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Future<void> _deleteUser(int id) async {
     final bool? confirm = await showDialog(
       context: context,
-      builder: (context) => ShadDialog(
-        title: const Text('Hapus Pengguna'),
-        description: const Text('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.'),
-        actions: [
-          ShadButton.outline(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          ShadButton.destructive(
-            child: const Text('Hapus'),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
+      builder: (context) => AlertDialog(title: const Text('Hapus Pengguna'), content: const Text('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.'), actions: [
+          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError), onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+        ]),
     );
 
     if (confirm != true) return;
@@ -93,12 +83,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     try {
       await _apiService.deleteUser(id);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Pengguna berhasil dihapus')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengguna berhasil dihapus'), backgroundColor: Colors.green));
         _fetchUsers();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menghapus pengguna: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus pengguna: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -132,10 +122,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ShadInput(
-              placeholder: const Text('Cari pengguna...'),
-              onChanged: _onSearchChanged,
-            ),
+            child: TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari pengguna...'), onChanged: _onSearchChanged),
           ),
           Expanded(
             child: _isLoading
@@ -145,10 +132,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Gagal memuat', style: ShadTheme.of(context).textTheme.large),
+                            Text('Gagal memuat', style: Theme.of(context).textTheme.titleMedium),
                             Text(_error!, style: const TextStyle(color: Colors.red)),
                             const SizedBox(height: 16),
-                            ShadButton(onPressed: _fetchUsers, child: const Text('Coba Lagi')),
+                            ElevatedButton(onPressed: _fetchUsers, child: const Text('Coba Lagi')),
                           ],
                         ),
                       )
@@ -159,9 +146,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  color: ShadTheme.of(context).colorScheme.background,
+                                  color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                                  border: Border.all(color: Theme.of(context).dividerColor),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.05),
@@ -187,8 +174,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                           ListTile(
                                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                             leading: CircleAvatar(
-                                              backgroundColor: ShadTheme.of(context).colorScheme.primary.withOpacity(0.1),
-                                              child: Text(initial, style: TextStyle(color: ShadTheme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                                              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                              child: Text(initial, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
                                             ),
                                             title: Text(user['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
                                             subtitle: Column(
@@ -197,9 +184,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                                 const SizedBox(height: 4),
                                                 Text(user['email'] ?? '', style: const TextStyle(fontSize: 12)),
                                                 const SizedBox(height: 4),
-                                                ShadBadge(
-                                                  child: Text(roleName.toUpperCase(), style: const TextStyle(fontSize: 10)),
-                                                ),
+                                                Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(roleName.toUpperCase(), style: const TextStyle(fontSize: 10)),
+        ),
                                               ],
                                             ),
                                             isThreeLine: true,
@@ -207,7 +199,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 IconButton(
-                                                  icon: Icon(LucideIcons.edit2, size: 18, color: ShadTheme.of(context).colorScheme.primary),
+                                                  icon: Icon(LucideIcons.edit2, size: 18, color: Theme.of(context).colorScheme.primary),
                                                   onPressed: () => _navigateToForm(user),
                                                 ),
                                                 IconButton(
@@ -217,7 +209,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                               ],
                                             ),
                                           ),
-                                          if (!isLast) Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                                          if (!isLast) Divider(height: 1, color: Theme.of(context).dividerColor),
                                         ],
                                       );
                                     }).toList(),
@@ -229,35 +221,27 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ShadButton.outline(
-                                    enabled: _currentPage > 1,
-                                    onPressed: () {
+                                  OutlinedButton(onPressed: (_currentPage > 1) ? () {
                                       setState(() => _currentPage--);
                                       _fetchUsers();
-                                    },
-                                    child: const Row(
+                                    } : null, child: const Row(
                                       children: [
                                         Icon(LucideIcons.chevronLeft, size: 16),
                                         SizedBox(width: 4),
                                         Text('Prev'),
                                       ],
-                                    ),
-                                  ),
-                                  Text('Page $_currentPage of $_lastPage', style: ShadTheme.of(context).textTheme.muted),
-                                  ShadButton.outline(
-                                    enabled: _currentPage < _lastPage,
-                                    onPressed: () {
+                                    )),
+                                  Text('Page $_currentPage of $_lastPage', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                  OutlinedButton(onPressed: (_currentPage < _lastPage) ? () {
                                       setState(() => _currentPage++);
                                       _fetchUsers();
-                                    },
-                                    child: const Row(
+                                    } : null, child: const Row(
                                       children: [
                                         Text('Next'),
                                         SizedBox(width: 4),
                                         Icon(LucideIcons.chevronRight, size: 16),
                                       ],
-                                    ),
-                                  ),
+                                    )),
                                 ],
                               ),
                               const SizedBox(height: 32),
@@ -268,8 +252,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToForm(),
-        backgroundColor: ShadTheme.of(context).colorScheme.primary,
-        foregroundColor: ShadTheme.of(context).colorScheme.primaryForeground,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         child: const Icon(LucideIcons.plus),
       ),
     );

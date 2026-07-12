@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../../data/services/api_service.dart';
 
 class AdminGroupFormScreen extends StatefulWidget {
@@ -49,15 +48,15 @@ class _AdminGroupFormScreenState extends State<AdminGroupFormScreen> {
     try {
       if (widget.group == null) {
         await _apiService.createGroup(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Kelompok berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kelompok berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateGroup(widget.group!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Kelompok berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kelompok berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -81,26 +80,13 @@ class _AdminGroupFormScreenState extends State<AdminGroupFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadInputFormField(
-                      label: const Text('Nama Kelompok / Kelas'),
-                      placeholder: const Text('Contoh: Kelas X RPL 1'),
-                      controller: _nameController,
-                      validator: (v) => v.isEmpty ? 'Nama kelompok tidak boleh kosong' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Kelompok / Kelas'), hintText: 'Contoh: Kelas X RPL 1'), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Nama kelompok tidak boleh kosong' : null),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: const Text('Tipe'),
-                      placeholder: const Text('Contoh: Kelas, Departemen, Shift'),
-                      controller: _typeController,
-                      validator: (v) => v.isEmpty ? 'Tipe tidak boleh kosong' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tipe'), hintText: 'Contoh: Kelas, Departemen, Shift'), controller: _typeController, validator: (v) => (v == null || v.isEmpty) ? 'Tipe tidak boleh kosong' : null),
                     const SizedBox(height: 32),
                     
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan Kelompok'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Kelompok')),
                   ],
                 ),
               ),

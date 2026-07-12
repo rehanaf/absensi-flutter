@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../data/services/api_service.dart';
 
 class AdminRoleFormScreen extends StatefulWidget {
@@ -49,15 +48,15 @@ class _AdminRoleFormScreenState extends State<AdminRoleFormScreen> {
     try {
       if (widget.item == null) {
         await _apiService.createRole(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateRole(widget.item!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -81,24 +80,13 @@ class _AdminRoleFormScreenState extends State<AdminRoleFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadInputFormField(
-                      label: const Text('Kode Role'),
-                      controller: _nameController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Kode Role')), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Nama Role'),
-                      controller: _displayNameController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Role')), controller: _displayNameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
                   ],
                 ),
               ),

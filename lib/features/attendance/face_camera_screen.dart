@@ -5,7 +5,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import '../../data/services/face_recognition_service.dart';
@@ -112,9 +111,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
     } catch (e) {
       print('Load Registered Face Error: $e');
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal memuat wajah terdaftar. Hubungi Admin.')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat wajah terdaftar. Hubungi Admin.'), backgroundColor: Colors.red));
       }
     }
   }
@@ -148,9 +145,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal inisialisasi kamera: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal inisialisasi kamera: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -395,26 +390,17 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                 children: [
                   if (_cameraState == CameraState.captured) ...[
                     Expanded(
-                      child: ShadButton.outline(
-                        onPressed: _resetCamera,
-                        child: const Text('Scan Ulang', style: TextStyle(color: Colors.white)),
-                      ),
+                      child: OutlinedButton(onPressed: _resetCamera, child: const Text('Scan Ulang', style: TextStyle(color: Colors.white))),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: ShadButton(
-                        onPressed: _saveAndReturn,
-                        child: const Text('Simpan', style: TextStyle(color: Colors.black)),
-                      ),
+                      child: ElevatedButton(onPressed: _saveAndReturn, child: const Text('Simpan', style: TextStyle(color: Colors.black))),
                     ),
                   ] else ...[
                     Expanded(
-                      child: ShadButton(
-                        onPressed: null,
-                        child: (_cameraState == CameraState.capturing || _cameraState == CameraState.verifying || _cameraState == CameraState.loadingRegisteredFace)
+                      child: ElevatedButton(onPressed: null, child: (_cameraState == CameraState.capturing || _cameraState == CameraState.verifying || _cameraState == CameraState.loadingRegisteredFace)
                             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : const Text('Mendeteksi Wajah...', style: TextStyle(color: Colors.white54)),
-                      ),
+                            : const Text('Mendeteksi Wajah...', style: TextStyle(color: Colors.white54))),
                     ),
                   ],
                 ],

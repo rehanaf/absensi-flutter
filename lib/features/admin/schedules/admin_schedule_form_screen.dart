@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'dart:async';
 
@@ -101,7 +101,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_startTime == null || _endTime == null) {
-      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Jam masuk dan pulang wajib diisi')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jam masuk dan pulang wajib diisi'), backgroundColor: Colors.red));
       return;
     }
 
@@ -121,15 +121,15 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     try {
       if (widget.schedule == null) {
         await _apiService.createSchedule(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Jadwal berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jadwal berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateSchedule(widget.schedule!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Jadwal berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jadwal berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -153,14 +153,14 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Grup', style: ShadTheme.of(context).textTheme.small),
+                    Text('Grup', style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _showGroupPicker,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                          border: Border.all(color: Theme.of(context).dividerColor),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -174,12 +174,12 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    Text('Hari', style: ShadTheme.of(context).textTheme.small),
+                    Text('Hari', style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -206,14 +206,14 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Masuk', style: ShadTheme.of(context).textTheme.small),
+                              Text('Jam Masuk', style: Theme.of(context).textTheme.bodySmall),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(true),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                                    border: Border.all(color: Theme.of(context).dividerColor),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
@@ -233,14 +233,14 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Pulang', style: ShadTheme.of(context).textTheme.small),
+                              Text('Jam Pulang', style: Theme.of(context).textTheme.bodySmall),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(false),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                                    border: Border.all(color: Theme.of(context).dividerColor),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
@@ -271,20 +271,14 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                             ],
                           ),
                         ),
-                        ShadSwitch(
-                          value: _isFlexible,
-                          onChanged: (val) {
+                        Switch(value: _isFlexible, onChanged: (val) {
                             setState(() => _isFlexible = val);
-                          },
-                        ),
+                          }),
                       ],
                     ),
                     const SizedBox(height: 32),
                     
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan Jadwal'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Jadwal')),
                   ],
                 ),
               ),
@@ -356,12 +350,9 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Pilih Kelompok', style: ShadTheme.of(context).textTheme.h4),
+            Text('Pilih Kelompok', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            ShadInput(
-              placeholder: const Text('Cari kelompok...'),
-              onChanged: _onSearchChanged,
-            ),
+            TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari kelompok...'), onChanged: _onSearchChanged),
             const SizedBox(height: 16),
             
             // Option for default (All)
@@ -379,7 +370,7 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
                 child: Center(
                   child: Text(
                     _searchQuery.isEmpty ? 'Tidak ada kelompok tersedia.' : 'Kelompok tidak ditemukan.',
-                    style: ShadTheme.of(context).textTheme.muted,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               )
@@ -401,10 +392,7 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: ShadButton.outline(
-                child: const Text('Batal'),
-                onPressed: () => Navigator.pop(context), // returns null
-              ),
+              child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
             )
           ],
         ),

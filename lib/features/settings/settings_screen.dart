@@ -18,6 +18,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _notificationStatus = 'Memeriksa...';
   bool _isPermissionGranted = false;
+  bool _isSendingTest = false;
 
   @override
   void initState() {
@@ -120,6 +121,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _sendTestNotification() async {
+    setState(() => _isSendingTest = true);
+    try {
+      final apiService = ApiService();
+      final result = await apiService.sendTestNotification();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Notifikasi tes berhasil dikirim!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengirim notifikasi tes: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSendingTest = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -209,6 +233,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               trailing: OutlinedButton(
                 onPressed: _requestNotificationPermission,
                 child: Text(_isPermissionGranted ? 'Perbarui' : 'Aktifkan'),
+              ),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Kirim Notifikasi Tes'),
+              subtitle: const Text('Uji coba kirim notifikasi ke HP Anda'),
+              leading: const Icon(Icons.send_to_mobile, color: Colors.blue),
+              trailing: ElevatedButton(
+                onPressed: _isSendingTest ? null : _sendTestNotification,
+                child: _isSendingTest 
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Tes Kirim'),
               ),
             ),
             const SizedBox(height: 48),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'core/router.dart';
 import 'providers/app_settings_provider.dart';
@@ -78,14 +78,7 @@ void main() async {
 }
 
 
-ShadColorScheme _getShadColorScheme(AppColorPreference pref, bool isDarkMode) {
-  switch (pref) {
-    case AppColorPreference.blue: return isDarkMode ? const ShadBlueColorScheme.dark() : const ShadBlueColorScheme.light();
-    case AppColorPreference.red: return isDarkMode ? const ShadRoseColorScheme.dark() : const ShadRoseColorScheme.light();
-    case AppColorPreference.purple: return isDarkMode ? const ShadVioletColorScheme.dark() : const ShadVioletColorScheme.light();
-    default: return isDarkMode ? const ShadBlueColorScheme.dark() : const ShadBlueColorScheme.light();
-  }
-}
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -105,15 +98,35 @@ class MyApp extends StatelessWidget {
               lightColorScheme = lightDynamic.harmonized();
               darkColorScheme = darkDynamic.harmonized();
             } else {
-              const googleBlue = Color(0xFF4285F4);
+              Color seedColor;
+              switch (pref) {
+                case AppColorPreference.blue:
+                  seedColor = const Color(0xFF4285F4);
+                  break;
+                case AppColorPreference.red:
+                  seedColor = Colors.red;
+                  break;
+                case AppColorPreference.green:
+                  seedColor = Colors.green;
+                  break;
+                case AppColorPreference.purple:
+                  seedColor = Colors.purple;
+                  break;
+                case AppColorPreference.monochrome:
+                  seedColor = Colors.grey;
+                  break;
+                default:
+                  seedColor = const Color(0xFF4285F4);
+              }
+              
               lightColorScheme = ColorScheme.fromSeed(
-                seedColor: googleBlue,
+                seedColor: seedColor,
                 brightness: Brightness.light,
-              ).copyWith(primary: googleBlue, onPrimary: Colors.white);
+              );
               darkColorScheme = ColorScheme.fromSeed(
-                seedColor: googleBlue,
+                seedColor: seedColor,
                 brightness: Brightness.dark,
-              ).copyWith(primary: googleBlue, onPrimary: Colors.white);
+              );
             }
 
             return MaterialApp.router(
@@ -163,19 +176,9 @@ class MyApp extends StatelessWidget {
               ),
               routerConfig: router,
               builder: (context, child) {
-                return ShadTheme(
-                  data: ShadThemeData(
-                    brightness: Theme.of(context).brightness,
-                    colorScheme: _getShadColorScheme(pref, Theme.of(context).brightness == Brightness.dark),
-                    textTheme: ShadTextTheme.fromGoogleFont(_appFont),
-                    radius: BorderRadius.circular(12),
-                    primaryToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
-                    destructiveToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
-                  ),
-                  child: GestureDetector(
-                    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                    child: child,
-                  ),
+                return GestureDetector(
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: child,
                 );
               },
             );

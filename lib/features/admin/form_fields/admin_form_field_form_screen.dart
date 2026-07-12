@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../../data/services/api_service.dart';
 
 class AdminFormFieldFormScreen extends StatefulWidget {
@@ -70,10 +69,10 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
     try {
       if (widget.formField == null) {
         await _apiService.createFormField(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Kolom profil berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kolom profil berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateFormField(widget.formField!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Kolom profil berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kolom profil berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -83,7 +82,7 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
         if (errMsg.contains('unique') || errMsg.contains('Duplicate')) {
           errMsg = 'Nama Variabel (field_name) sudah digunakan.';
         }
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $errMsg')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $errMsg'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -107,35 +106,25 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadInputFormField(
-                      label: const Text('Label Kolom (Yang Tampil ke Pengguna)'),
-                      placeholder: const Text('Contoh: NIP Karyawan'),
-                      controller: _labelController,
-                      validator: (v) => v.isEmpty ? 'Label kolom tidak boleh kosong' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Label Kolom (Yang Tampil ke Pengguna)'), hintText: 'Contoh: NIP Karyawan'), controller: _labelController, validator: (v) => (v == null || v.isEmpty) ? 'Label kolom tidak boleh kosong' : null),
                     const SizedBox(height: 16),
                     
-                    ShadInputFormField(
-                      label: const Text('Nama Variabel (Format Database)'),
-                      placeholder: const Text('Contoh: nip_karyawan'),
-                      controller: _nameController,
-                      validator: (v) {
-                        if (v.isEmpty) return 'Nama variabel tidak boleh kosong';
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Variabel (Format Database)'), hintText: 'Contoh: nip_karyawan'), controller: _nameController, validator: (v) {
+                        if ((v == null || v.isEmpty)) return 'Nama variabel tidak boleh kosong';
                         if (v.contains(' ')) return 'Tidak boleh mengandung spasi, gunakan underscore (_)';
                         return null;
-                      },
-                    ),
+                      }),
                     const SizedBox(height: 16),
                     
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Tipe Data', style: ShadTheme.of(context).textTheme.small),
+                        Text('Tipe Data', style: Theme.of(context).textTheme.bodySmall),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -170,12 +159,9 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                             ],
                           ),
                         ),
-                        ShadSwitch(
-                          value: _isRequired,
-                          onChanged: (val) {
+                        Switch(value: _isRequired, onChanged: (val) {
                             setState(() => _isRequired = val);
-                          },
-                        ),
+                          }),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -192,20 +178,14 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                             ],
                           ),
                         ),
-                        ShadSwitch(
-                          value: _isEditable,
-                          onChanged: (val) {
+                        Switch(value: _isEditable, onChanged: (val) {
                             setState(() => _isEditable = val);
-                          },
-                        ),
+                          }),
                       ],
                     ),
                     const SizedBox(height: 32),
                     
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan Kolom'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Kolom')),
                   ],
                 ),
               ),

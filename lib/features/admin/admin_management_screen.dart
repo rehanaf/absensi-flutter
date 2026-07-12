@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'users/admin_users_screen.dart';
 import 'schedules/admin_schedules_screen.dart';
 import 'groups/admin_groups_screen.dart';
@@ -83,10 +82,10 @@ class AdminManagementScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         menu.title, 
-                        style: ShadTheme.of(context).textTheme.p.copyWith(fontWeight: FontWeight.normal),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.normal),
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: ShadTheme.of(context).colorScheme.muted),
+                    Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.surfaceContainerHighest),
                   ],
                 ),
               ),

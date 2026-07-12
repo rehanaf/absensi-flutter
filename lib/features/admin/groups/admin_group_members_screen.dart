@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'dart:async';
 
@@ -39,7 +39,7 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
         _members = List.from(updatedGroup['users'] ?? []);
       });
     } catch (e) {
-      if (mounted) ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal merefresh: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal merefresh: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -48,20 +48,10 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
   Future<void> _detachUser(int userId) async {
     final bool? confirm = await showDialog(
       context: context,
-      builder: (context) => ShadDialog(
-        title: const Text('Keluarkan Anggota'),
-        description: const Text('Apakah Anda yakin ingin mengeluarkan pengguna ini dari kelompok?'),
-        actions: [
-          ShadButton.outline(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          ShadButton.destructive(
-            child: const Text('Keluarkan'),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
+      builder: (context) => AlertDialog(title: const Text('Keluarkan Anggota'), content: const Text('Apakah Anda yakin ingin mengeluarkan pengguna ini dari kelompok?'), actions: [
+          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError), onPressed: () => Navigator.pop(context, true), child: const Text('Keluarkan')),
+        ]),
     );
 
     if (confirm != true) return;
@@ -70,12 +60,12 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
     try {
       await _apiService.detachUserFromGroup(widget.group['id'], userId);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Anggota berhasil dikeluarkan')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Anggota berhasil dikeluarkan'), backgroundColor: Colors.green));
         await _fetchGroupMembers();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red));
         setState(() => _isLoading = false);
       }
     }
@@ -100,12 +90,12 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
     try {
       await _apiService.attachUserToGroup(widget.group['id'], userId);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Anggota berhasil ditambahkan')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Anggota berhasil ditambahkan'), backgroundColor: Colors.green));
         await _fetchGroupMembers();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menambahkan anggota: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menambahkan anggota: $e'), backgroundColor: Colors.red));
         setState(() => _isLoading = false);
       }
     }
@@ -126,12 +116,9 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
                     children: [
                       const Icon(LucideIcons.users, size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
-                      Text('Belum ada anggota', style: ShadTheme.of(context).textTheme.large),
+                      Text('Belum ada anggota', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 16),
-                      ShadButton(
-                        onPressed: _showAddMemberDialog,
-                        child: const Text('Tambah Anggota'),
-                      )
+                      ElevatedButton(onPressed: _showAddMemberDialog, child: const Text('Tambah Anggota'))
                     ],
                   ),
                 )
@@ -140,9 +127,9 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: ShadTheme.of(context).colorScheme.background,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.05),
@@ -170,7 +157,7 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
                                     onPressed: () => _detachUser(member['id']),
                                   ),
                                 ),
-                                if (!isLast) Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+                                if (!isLast) Divider(height: 1, color: Theme.of(context).dividerColor),
                               ],
                             );
                           }).toList(),
@@ -183,8 +170,8 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
         onPressed: _showAddMemberDialog,
         icon: const Icon(LucideIcons.userPlus),
         label: const Text('Tambah Anggota'),
-        backgroundColor: ShadTheme.of(context).colorScheme.primary,
-        foregroundColor: ShadTheme.of(context).colorScheme.primaryForeground,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
     );
   }
@@ -258,12 +245,9 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tambah Anggota', style: ShadTheme.of(context).textTheme.h4),
+            Text('Tambah Anggota', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            ShadInput(
-              placeholder: const Text('Cari pengguna...'),
-              onChanged: _onSearchChanged,
-            ),
+            TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari pengguna...'), onChanged: _onSearchChanged),
             const SizedBox(height: 16),
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -272,7 +256,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
                 child: Center(
                   child: Text(
                     _searchQuery.isEmpty ? 'Tidak ada pengguna tersedia.' : 'Pengguna tidak ditemukan.',
-                    style: ShadTheme.of(context).textTheme.muted,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               )
@@ -294,10 +278,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: ShadButton.outline(
-                child: const Text('Batal'),
-                onPressed: () => Navigator.pop(context),
-              ),
+              child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
             )
           ],
         ),

@@ -596,6 +596,15 @@ class ApiService {
 
   // --- Notifications & FCM ---
 
+  Future<Map<String, dynamic>> sendTestNotification() async {
+    try {
+      final response = await _apiClient.dio.post('/user/test-notification');
+      return response.data;
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
   Future<Map<String, dynamic>> registerFcmToken(String fcmToken, {String? deviceName}) async {
     try {
       final response = await _apiClient.dio.post(

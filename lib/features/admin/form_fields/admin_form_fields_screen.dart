@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'admin_form_field_form_screen.dart';
 
@@ -45,20 +45,10 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
   Future<void> _deleteField(int id) async {
     final bool? confirm = await showDialog(
       context: context,
-      builder: (context) => ShadDialog(
-        title: const Text('Hapus Kolom'),
-        description: const Text('Apakah Anda yakin ingin menghapus kolom profil ini? Data terkait pengguna mungkin akan hilang.'),
-        actions: [
-          ShadButton.outline(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          ShadButton.destructive(
-            child: const Text('Hapus'),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
+      builder: (context) => AlertDialog(title: const Text('Hapus Kolom'), content: const Text('Apakah Anda yakin ingin menghapus kolom profil ini? Data terkait pengguna mungkin akan hilang.'), actions: [
+          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError), onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+        ]),
     );
 
     if (confirm != true) return;
@@ -66,12 +56,12 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
     try {
       await _apiService.deleteFormField(id);
       if (mounted) {
-        ShadToaster.of(context).show(const ShadToast(description: Text('Kolom berhasil dihapus')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kolom berhasil dihapus'), backgroundColor: Colors.green));
         _fetchFields();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menghapus kolom: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus kolom: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -108,10 +98,10 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Gagal memuat kolom profil', style: ShadTheme.of(context).textTheme.large),
+                      Text('Gagal memuat kolom profil', style: Theme.of(context).textTheme.titleMedium),
                       Text(_error!, style: const TextStyle(color: Colors.red)),
                       const SizedBox(height: 16),
-                      ShadButton(onPressed: _fetchFields, child: const Text('Coba Lagi')),
+                      ElevatedButton(onPressed: _fetchFields, child: const Text('Coba Lagi')),
                     ],
                   ),
                 )
@@ -126,7 +116,7 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
 
                     return Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(

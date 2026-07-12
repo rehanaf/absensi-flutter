@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../data/services/api_service.dart';
 
@@ -66,9 +65,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 14)),
+                  Text(title, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant).copyWith(fontSize: 14)),
                   const SizedBox(height: 4),
-                  Text(value, style: ShadTheme.of(context).textTheme.h3.copyWith(fontWeight: FontWeight.bold)),
+                  Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -91,7 +90,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Role Pengguna', style: ShadTheme.of(context).textTheme.large),
+        Text('Role Pengguna', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: isDesktop ? 4 : 1,
@@ -108,7 +107,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           }).toList(),
         ),
         const SizedBox(height: 32),
-        Text('Group', style: ShadTheme.of(context).textTheme.large),
+        Text('Group', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: isDesktop ? 4 : 1,
@@ -239,7 +238,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tren 7 Hari Terakhir', style: ShadTheme.of(context).textTheme.large),
+        Text('Tren 7 Hari Terakhir', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         if (isDesktop)
           Row(
@@ -267,11 +266,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Gagal memuat data', style: ShadTheme.of(context).textTheme.large),
+                        Text('Gagal memuat data', style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
                         const SizedBox(height: 16),
-                        ShadButton(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
+                        ElevatedButton(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
                       ],
                     ),
                   )
@@ -280,9 +279,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: ListView(
                       padding: const EdgeInsets.all(16.0),
                       children: [
-                        Text('Dashboard Admin', style: ShadTheme.of(context).textTheme.h3),
+                        Text('Dashboard Admin', style: Theme.of(context).textTheme.headlineSmall),
                         const SizedBox(height: 4),
-                        Text('Data per: ${_data?['date'] ?? '-'}', style: ShadTheme.of(context).textTheme.muted),
+                        Text('Data per: ${_data?['date'] ?? '-'}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         const SizedBox(height: 16),
                         
                         // 1. Statistics
@@ -290,7 +289,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const SizedBox(height: 16),
                         
                         // 2. Daily Grid
-                        Text('Kehadiran Hari Ini', style: ShadTheme.of(context).textTheme.large),
+                        Text('Kehadiran Hari Ini', style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 16),
                         _buildDailyGrid(isDesktop),
                         const SizedBox(height: 16),

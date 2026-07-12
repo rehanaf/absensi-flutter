@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../data/services/api_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -47,12 +47,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Memuat Notifikasi'),
-            description: Text(e.toString()),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -83,12 +78,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Menandai Dibaca'),
-            description: Text(e.toString()),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
       }
     }
   }
@@ -100,12 +90,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _fetchNotifications();
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Menandai Semua Dibaca'),
-            description: Text(e.toString()),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
       }
     }
   }
@@ -157,11 +142,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.bellOff, size: 48, color: ShadTheme.of(context).colorScheme.mutedForeground),
+                      Icon(LucideIcons.bellOff, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       const SizedBox(height: 16),
                       Text(
                         'Tidak ada notifikasi',
-                        style: ShadTheme.of(context).textTheme.large,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ],
                   ),
@@ -179,16 +164,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                       return ListTile(
                         onTap: () => _markAsRead(notification),
-                        tileColor: isRead ? null : ShadTheme.of(context).colorScheme.muted.withOpacity(0.3),
+                        tileColor: isRead ? null : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         leading: CircleAvatar(
                           backgroundColor: isRead 
-                              ? ShadTheme.of(context).colorScheme.muted 
-                              : ShadTheme.of(context).colorScheme.primary,
+                              ? Theme.of(context).colorScheme.surfaceContainerHighest 
+                              : Theme.of(context).colorScheme.primary,
                           child: Icon(
                             LucideIcons.bell,
                             color: isRead 
-                                ? ShadTheme.of(context).colorScheme.mutedForeground 
-                                : ShadTheme.of(context).colorScheme.primaryForeground,
+                                ? Theme.of(context).colorScheme.onSurfaceVariant 
+                                : Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                         title: Text(
@@ -208,7 +193,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 notification['created_at'].toString().split('T')[0],
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ]
@@ -220,7 +205,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 height: 8,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: ShadTheme.of(context).colorScheme.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                               )
                             : null,

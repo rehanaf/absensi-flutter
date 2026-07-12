@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 import '../test/color_test_screen.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/widgets/twemoji_text.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -88,14 +88,20 @@ class _MainScreenState extends State<MainScreen> {
           final title = newNotif['title'] ?? 'Notifikasi Baru';
           final message = newNotif['message'] ?? newNotif['body'] ?? '';
           
-          ShadToaster.of(context).show(
-            ShadToast(
-              title: Text(title),
-              description: Text(message),
-              action: ShadButton.outline(
-                child: const Text('Lihat'),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(message),
+                ],
+              ),
+              action: SnackBarAction(
+                label: 'Lihat',
                 onPressed: () {
-                  ShadToaster.of(context).hide();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const NotificationsScreen()),
@@ -168,7 +174,7 @@ class _MainScreenState extends State<MainScreen> {
     final settings = Provider.of<AppSettingsProvider>(context);
     final user = auth.user;
 
-    final secondaryColor = ShadTheme.of(context).colorScheme.secondary;
+    
 
     final List<CustomNavItem> absenItems = [
       CustomNavItem(Icons.home, 'Beranda'),
@@ -321,26 +327,26 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       endDrawer: Drawer(
-        backgroundColor: ShadTheme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
               decoration: BoxDecoration(
-                color: ShadTheme.of(context).colorScheme.primary.withOpacity(0.05),
-                border: Border(bottom: BorderSide(color: ShadTheme.of(context).colorScheme.border)),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor: ShadTheme.of(context).colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     child: Text(
                       initial,
                       style: TextStyle(
-                        color: ShadTheme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
                       ),
@@ -349,12 +355,12 @@ class _MainScreenState extends State<MainScreen> {
                   const SizedBox(height: 16),
                   Text(
                     name,
-                    style: ShadTheme.of(context).textTheme.h4,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     user?['username'] ?? 'username',
-                    style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 14),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant).copyWith(fontSize: 14),
                   ),
                 ],
               ),
@@ -365,13 +371,16 @@ class _MainScreenState extends State<MainScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Ganti Mode', style: ShadTheme.of(context).textTheme.large),
+                    Text('Ganti Mode', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 12),
-                    ShadSelect<String>(
-                      placeholder: Text('Mode: ${getModeDisplayName(workspace.activeMode)}'),
-                      initialValue: workspace.activeMode,
-                      options: availableModes.map((mode) {
-                        return ShadOption(
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      value: workspace.activeMode,
+                      items: availableModes.map((mode) {
+                        return DropdownMenuItem<String>(
                           value: mode,
                           child: Text('Mode: ${getModeDisplayName(mode)}'),
                         );
@@ -383,14 +392,11 @@ class _MainScreenState extends State<MainScreen> {
                           Navigator.pop(context); // Close drawer after selection
                         }
                       },
-                      selectedOptionBuilder: (context, value) {
-                        return Text(getModeDisplayName(value));
-                      },
                     ),
                   ],
                 ),
               ),
-              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border),
+              Divider(height: 1, color: Theme.of(context).dividerColor),
             ],
             ListTile(
               leading: const Icon(Icons.color_lens),

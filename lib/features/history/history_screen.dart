@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../data/services/api_service.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -61,10 +60,10 @@ class HistoryScreenState extends State<HistoryScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Gagal memuat riwayat', style: ShadTheme.of(context).textTheme.large),
+                              Text('Gagal memuat riwayat', style: Theme.of(context).textTheme.titleMedium),
                               Text(_error!, style: const TextStyle(color: Colors.red)),
                               const SizedBox(height: 16),
-                              ShadButton(onPressed: fetchHistory, child: const Text('Coba Lagi')),
+                              ElevatedButton(onPressed: fetchHistory, child: const Text('Coba Lagi')),
                             ],
                           ),
                         ),

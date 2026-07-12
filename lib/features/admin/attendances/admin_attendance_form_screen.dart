@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'dart:async';
 
@@ -125,7 +125,7 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedUserId == null || _selectedDate == null) {
-      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Pengguna dan Tanggal wajib diisi')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengguna dan Tanggal wajib diisi'), backgroundColor: Colors.red));
       return;
     }
 
@@ -149,15 +149,15 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     try {
       if (widget.attendance == null) {
         await _apiService.createAttendance(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Absensi berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Absensi berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateAttendance(widget.attendance!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Data absensi berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data absensi berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -181,14 +181,14 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Pengguna', style: ShadTheme.of(context).textTheme.small),
+                    Text('Pengguna', style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _showUserPicker,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                          border: Border.all(color: Theme.of(context).dividerColor),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -205,14 +205,14 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Tanggal', style: ShadTheme.of(context).textTheme.small),
+                        Text('Tanggal', style: Theme.of(context).textTheme.bodySmall),
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: _pickDate,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
-                              border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                              border: Border.all(color: Theme.of(context).dividerColor),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -234,14 +234,14 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Masuk', style: ShadTheme.of(context).textTheme.small),
+                              Text('Jam Masuk', style: Theme.of(context).textTheme.bodySmall),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(true),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                                    border: Border.all(color: Theme.of(context).dividerColor),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
@@ -261,14 +261,14 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Keluar', style: ShadTheme.of(context).textTheme.small),
+                              Text('Jam Keluar', style: Theme.of(context).textTheme.bodySmall),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(false),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: ShadTheme.of(context).colorScheme.border),
+                                    border: Border.all(color: Theme.of(context).dividerColor),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
@@ -287,12 +287,7 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    ShadInputFormField(
-                      label: const Text('Status (Teks Bebas)'),
-                      placeholder: const Text('Contoh: hadir, sakit, izin...'),
-                      controller: _statusController,
-                      validator: (v) => v.isEmpty ? 'Status wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Status (Teks Bebas)'), hintText: 'Contoh: hadir, sakit, izin...'), controller: _statusController, validator: (v) => (v == null || v.isEmpty) ? 'Status wajib diisi' : null),
                     const SizedBox(height: 24),
                     
                     Row(
@@ -307,30 +302,19 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                             ],
                           ),
                         ),
-                        ShadSwitch(
-                          value: _isLate,
-                          onChanged: (val) {
+                        Switch(value: _isLate, onChanged: (val) {
                             setState(() => _isLate = val);
-                          },
-                        ),
+                          }),
                       ],
                     ),
                     const SizedBox(height: 16),
 
                     if (_isLate)
-                      ShadInputFormField(
-                        label: const Text('Jumlah Keterlambatan (Menit)'),
-                        controller: _lateMinutesController,
-                        keyboardType: TextInputType.number,
-                        validator: (v) => v.isEmpty ? 'Isi dengan 0 jika tidak pasti' : null,
-                      ),
+                      TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Jumlah Keterlambatan (Menit)')), controller: _lateMinutesController, validator: (v) => (v == null || v.isEmpty) ? 'Isi dengan 0 jika tidak pasti' : null, keyboardType: TextInputType.number),
                     
                     const SizedBox(height: 32),
                     
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan Absensi'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Absensi')),
                   ],
                 ),
               ),
@@ -402,12 +386,9 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Pilih Pengguna', style: ShadTheme.of(context).textTheme.h4),
+            Text('Pilih Pengguna', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            ShadInput(
-              placeholder: const Text('Cari pengguna...'),
-              onChanged: _onSearchChanged,
-            ),
+            TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari pengguna...'), onChanged: _onSearchChanged),
             const SizedBox(height: 16),
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -416,7 +397,7 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
                 child: Center(
                   child: Text(
                     _searchQuery.isEmpty ? 'Tidak ada pengguna tersedia.' : 'Pengguna tidak ditemukan.',
-                    style: ShadTheme.of(context).textTheme.muted,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               )
@@ -438,10 +419,7 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: ShadButton.outline(
-                child: const Text('Batal'),
-                onPressed: () => Navigator.pop(context),
-              ),
+              child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
             )
           ],
         ),

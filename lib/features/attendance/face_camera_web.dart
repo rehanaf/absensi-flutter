@@ -7,8 +7,6 @@ import 'dart:js' as js;
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
-
 class FaceCameraScreen extends StatefulWidget {
   final String title;
   final String? registeredFaceBase64;
@@ -140,11 +138,11 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
           _statusMessage = 'Wajah berhasil ditangkap';
         });
       } else {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text(result['error'] ?? 'Gagal')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['error'] ?? 'Gagal'), backgroundColor: Colors.red));
         setState(() => _statusMessage = result['error'] ?? 'Gagal memindai');
       }
     } catch (e) {
-      ShadToaster.of(context).show(ShadToast.destructive(description: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -249,27 +247,18 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                 children: [
                   if (_capturedBase64 != null) ...[
                     Expanded(
-                      child: ShadButton.outline(
-                        onPressed: _resetCamera,
-                        child: const Text('Scan Ulang', style: TextStyle(color: Colors.white)),
-                      ),
+                      child: OutlinedButton(onPressed: _resetCamera, child: const Text('Scan Ulang', style: TextStyle(color: Colors.white))),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: ShadButton(
-                        onPressed: _saveAndReturn,
-                        child: const Text('Simpan', style: TextStyle(color: Colors.black)),
-                      ),
+                      child: ElevatedButton(onPressed: _saveAndReturn, child: const Text('Simpan', style: TextStyle(color: Colors.black))),
                     ),
                   ] else if (widget.registeredFaceBase64 == null) ...[
                     // Registration Mode: Need manual capture button
                     Expanded(
-                      child: ShadButton(
-                        onPressed: _isCameraReady && !_isProcessing ? _captureForRegistration : null,
-                        child: _isProcessing 
+                      child: ElevatedButton(onPressed: _isCameraReady && !_isProcessing ? _captureForRegistration : null, child: _isProcessing 
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                          : const Text('Ambil Foto', style: TextStyle(color: Colors.black)),
-                      ),
+                          : const Text('Ambil Foto', style: TextStyle(color: Colors.black))),
                     ),
                   ],
                 ],

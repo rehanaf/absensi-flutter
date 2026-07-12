@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../data/services/api_service.dart';
 
 class AdminLocationFormScreen extends StatefulWidget {
@@ -57,15 +56,15 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
     try {
       if (widget.item == null) {
         await _apiService.createLocation(data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil ditambahkan')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil ditambahkan'), backgroundColor: Colors.green));
       } else {
         await _apiService.updateLocation(widget.item!['id'], data);
-        if (mounted) ShadToaster.of(context).show(const ShadToast(description: Text('Berhasil diperbarui')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil diperbarui'), backgroundColor: Colors.green));
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -89,36 +88,17 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadInputFormField(
-                      label: const Text('Nama Cabang'),
-                      controller: _nameController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Cabang')), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Latitude'),
-                      controller: _latitudeController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Latitude')), controller: _latitudeController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Longitude'),
-                      controller: _longitudeController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Longitude')), controller: _longitudeController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
                     const SizedBox(height: 16),
-                    ShadInputFormField(
-                      label: const Text('Radius (m)'),
-                      controller: _radiusController,
-                      validator: (v) => v.isEmpty ? 'Wajib diisi' : null,
-                    ),
+                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Radius (m)')), controller: _radiusController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ShadButton(
-                      onPressed: _submit,
-                      child: const Text('Simpan'),
-                    ),
+                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
                   ],
                 ),
               ),
