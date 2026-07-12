@@ -390,19 +390,14 @@ class _MainScreenState extends State<MainScreen> {
               Divider(height: 1, color: Theme.of(context).dividerColor),
             ],
             ListTile(
-              leading: const Icon(Icons.color_lens),
-              title: const Text('Test Warna Material 3'),
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ColorTestScreen()));
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Keluar (Logout)', style: TextStyle(color: Colors.red)),
               onTap: () async {
                 Navigator.pop(context); // Close drawer
                 await Provider.of<AuthProvider>(context, listen: false).logout();
+                if (context.mounted) {
+                  context.go('/login');
+                }
               },
             ),
             // More menu items could go here
