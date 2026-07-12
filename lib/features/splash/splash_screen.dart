@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:camera/camera.dart';
 import '../../providers/app_settings_provider.dart';
 import '../../providers/auth_provider.dart';
 
@@ -19,6 +22,47 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _initializeApp();
+  }
+
+  Future<void> _requestPermissionsOnStartup() async {
+    // 1. Minta Izin Notifikasi
+    try {
+      final messaging = FirebaseMessaging.instance;
+      await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    } catch (e) {
+      debugPrint('Gagal meminta izin notifikasi: $e');
+    }
+
+    // 2. Minta Izin Lokasi
+    try {
+      final locationPermission = await Geolocator.checkPermission();
+      if (locationPermission == LocationPermission.denied ||
+          locationPermission == LocationPermission.deniedForever) {
+        await Geolocator.requestPermission();
+      }
+    } catch (e) {
+      debugPrint('Gagal meminta izin lokasi: $e');
+    }
+
+    // 3. Minta Izin Kamera (Memicu dialog OS dengan menginisialisasi kamera resolusi rendah secara cepat)
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isNotEmpty) {
+        final controller = CameraController(
+          cameras.first,
+          ResolutionPreset.low,
+          enableAudio: false,
+        );
+        await controller.initialize();
+        await controller.dispose();
+      }
+    } catch (e) {
+      debugPrint('Gagal meminta izin kamera: $e');
+    }
   }
 
   Future<void> _initializeApp() async {
@@ -46,6 +90,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Then check auth status
     await authProvider.checkAuthStatus();
+
+    // Minta seluruh izin (Notifikasi, Lokasi, Kamera) saat aplikasi baru dibuka
+    await _requestPermissionsOnStartup();
 
     if (!mounted) return;
 

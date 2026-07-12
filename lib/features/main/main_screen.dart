@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:provider/provider.dart';
 import '../test/color_test_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -49,8 +50,10 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   int _previousIndex = 0;
   int _unreadNotificationsCount = 0;
+  int _lastTotalCount = -1;
+  Timer? _notificationTimer;
 
-  Future<void> _fetchUnreadCount() async {
+  Future<void> _fetchUnreadCount({bool triggerAlert = false}) async {
     try {
       final apiService = ApiService();
       final response = await apiService.getNotifications();
@@ -77,9 +80,35 @@ class _MainScreenState extends State<MainScreen> {
           if (!isRead) count++;
         }
       }
+      
       if (mounted) {
+        // Tampilkan popup jika ada pengumuman/notifikasi baru masuk di database
+        if (triggerAlert && _lastTotalCount != -1 && list.length > _lastTotalCount) {
+          final newNotif = list.first;
+          final title = newNotif['title'] ?? 'Notifikasi Baru';
+          final message = newNotif['message'] ?? newNotif['body'] ?? '';
+          
+          ShadToaster.of(context).show(
+            ShadToast(
+              title: Text(title),
+              description: Text(message),
+              action: ShadButton.outline(
+                child: const Text('Lihat'),
+                onPressed: () {
+                  ShadToaster.of(context).hide();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                  ).then((_) => _fetchUnreadCount(triggerAlert: false));
+                },
+              ),
+            ),
+          );
+        }
+
         setState(() {
           _unreadNotificationsCount = count;
+          _lastTotalCount = list.length;
         });
       }
     } catch (e) {
@@ -99,7 +128,13 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
-    _fetchUnreadCount();
+    _fetchUnreadCount(triggerAlert: false);
+
+    // Polling notifikasi setiap 10 detik agar terupdate secara real-time meskipun tanpa FCM
+    _notificationTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _fetchUnreadCount(triggerAlert: true);
+    });
+
     // Auto-select initial mode based on availability after widget mounts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -114,25 +149,7 @@ class _MainScreenState extends State<MainScreen> {
 
     // Dengarkan notifikasi saat aplikasi sedang aktif (foreground)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      _fetchUnreadCount();
-      if (mounted && message.notification != null) {
-        ShadToaster.of(context).show(
-          ShadToast(
-            title: Text(message.notification!.title ?? 'Notifikasi Baru'),
-            description: Text(message.notification!.body ?? ''),
-            action: ShadButton.outline(
-              child: const Text('Lihat'),
-              onPressed: () {
-                ShadToaster.of(context).hide();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                ).then((_) => _fetchUnreadCount());
-              },
-            ),
-          ),
-        );
-      }
+      _fetchUnreadCount(triggerAlert: true);
     });
   }
 
@@ -140,6 +157,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _notificationTimer?.cancel();
     super.dispose();
   }
 
@@ -271,7 +289,7 @@ class _MainScreenState extends State<MainScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                ).then((_) => _fetchUnreadCount());
+                ).then((_) => _fetchUnreadCount(triggerAlert: false));
               },
             ),
           ),
