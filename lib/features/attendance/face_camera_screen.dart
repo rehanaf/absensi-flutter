@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:camera/camera.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -111,7 +112,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
     } catch (e) {
       print('Load Registered Face Error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat wajah terdaftar. Hubungi Admin.'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal memuat wajah terdaftar. Hubungi Admin.');
       }
     }
   }
@@ -145,7 +146,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal inisialisasi kamera: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal inisialisasi kamera: $e');
       }
     }
   }

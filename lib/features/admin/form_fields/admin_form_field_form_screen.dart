@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import '../../../../data/services/api_service.dart';
 
 class AdminFormFieldFormScreen extends StatefulWidget {
@@ -69,10 +70,10 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
     try {
       if (widget.formField == null) {
         await _apiService.createFormField(data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kolom profil berhasil ditambahkan'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Kolom profil berhasil ditambahkan');
       } else {
         await _apiService.updateFormField(widget.formField!['id'], data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kolom profil berhasil diperbarui'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Kolom profil berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -82,7 +83,7 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
         if (errMsg.contains('unique') || errMsg.contains('Duplicate')) {
           errMsg = 'Nama Variabel (field_name) sudah digunakan.';
         }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $errMsg'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menyimpan: $errMsg');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

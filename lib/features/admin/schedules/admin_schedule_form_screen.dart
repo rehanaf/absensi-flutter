@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'dart:async';
@@ -101,7 +102,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_startTime == null || _endTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jam masuk dan pulang wajib diisi'), backgroundColor: Colors.red));
+      AppToast.showError(context, message: 'Jam masuk dan pulang wajib diisi');
       return;
     }
 
@@ -121,15 +122,15 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     try {
       if (widget.schedule == null) {
         await _apiService.createSchedule(data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jadwal berhasil ditambahkan'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Jadwal berhasil ditambahkan');
       } else {
         await _apiService.updateSchedule(widget.schedule!['id'], data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jadwal berhasil diperbarui'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Jadwal berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menyimpan: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'admin_schedule_form_screen.dart';
@@ -83,12 +84,12 @@ class _AdminSchedulesScreenState extends State<AdminSchedulesScreen> {
     try {
       await _apiService.deleteSchedule(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Jadwal berhasil dihapus'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Jadwal berhasil dihapus');
         _fetchSchedules();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus jadwal: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menghapus jadwal: $e');
       }
     }
   }

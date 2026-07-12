@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../data/services/api_service.dart';
 import 'admin_user_form_screen.dart';
@@ -83,12 +84,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     try {
       await _apiService.deleteUser(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengguna berhasil dihapus'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Pengguna berhasil dihapus');
         _fetchUsers();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus pengguna: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menghapus pengguna: $e');
       }
     }
   }

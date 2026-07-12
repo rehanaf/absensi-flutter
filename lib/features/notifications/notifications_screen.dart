@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../data/services/api_service.dart';
@@ -47,7 +48,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+        AppToast.showError(context, message: e.toString());
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -78,7 +79,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+        AppToast.showError(context, message: e.toString());
       }
     }
   }
@@ -90,7 +91,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _fetchNotifications();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+        AppToast.showError(context, message: e.toString());
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import '../../../data/services/api_service.dart';
 
 class AdminLocationFormScreen extends StatefulWidget {
@@ -56,15 +57,15 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
     try {
       if (widget.item == null) {
         await _apiService.createLocation(data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil ditambahkan'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
       } else {
         await _apiService.updateLocation(widget.item!['id'], data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil diperbarui'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menyimpan: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

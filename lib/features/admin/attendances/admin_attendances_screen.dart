@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'admin_attendance_form_screen.dart';
@@ -83,12 +84,12 @@ class _AdminAttendancesScreenState extends State<AdminAttendancesScreen> {
     try {
       await _apiService.deleteAttendance(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data absensi berhasil dihapus'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Data absensi berhasil dihapus');
         _fetchAttendances();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus absensi: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menghapus absensi: $e');
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import '../../../data/services/api_service.dart';
 
 class AdminUserFormScreen extends StatefulWidget {
@@ -78,7 +79,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoadingFields = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal memuat data: $e');
       }
     }
   }
@@ -99,7 +100,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedRoleId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Silakan pilih Role'), backgroundColor: Colors.red));
+      AppToast.showError(context, message: 'Silakan pilih Role');
       return;
     }
 
@@ -127,7 +128,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     if (_passwordController.text.isNotEmpty) {
       data['password'] = _passwordController.text;
     } else if (widget.user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password wajib diisi untuk pengguna baru'), backgroundColor: Colors.red));
+      AppToast.showError(context, message: 'Password wajib diisi untuk pengguna baru');
       setState(() => _isLoading = false);
       return;
     }
@@ -135,15 +136,15 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
     try {
       if (widget.user == null) {
         await _apiService.createUser(data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengguna berhasil ditambahkan'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Pengguna berhasil ditambahkan');
       } else {
         await _apiService.updateUser(widget.user!['id'], data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data pengguna berhasil diperbarui'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Data pengguna berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menyimpan: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

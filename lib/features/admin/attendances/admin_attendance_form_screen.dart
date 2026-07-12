@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'dart:async';
@@ -125,7 +126,7 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedUserId == null || _selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengguna dan Tanggal wajib diisi'), backgroundColor: Colors.red));
+      AppToast.showError(context, message: 'Pengguna dan Tanggal wajib diisi');
       return;
     }
 
@@ -149,15 +150,15 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     try {
       if (widget.attendance == null) {
         await _apiService.createAttendance(data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Absensi berhasil ditambahkan'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Absensi berhasil ditambahkan');
       } else {
         await _apiService.updateAttendance(widget.attendance!['id'], data);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data absensi berhasil diperbarui'), backgroundColor: Colors.green));
+        if (mounted) AppToast.showSuccess(context, message: 'Data absensi berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menyimpan: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

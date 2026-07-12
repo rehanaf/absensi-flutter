@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'admin_form_field_form_screen.dart';
@@ -56,12 +57,12 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
     try {
       await _apiService.deleteFormField(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kolom berhasil dihapus'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Kolom berhasil dihapus');
         _fetchFields();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus kolom: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menghapus kolom: $e');
       }
     }
   }

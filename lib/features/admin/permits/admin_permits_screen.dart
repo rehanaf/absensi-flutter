@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../data/services/api_service.dart';
 import 'admin_permit_form_screen.dart';
@@ -87,12 +88,12 @@ class _AdminPermitsScreenState extends State<AdminPermitsScreen> {
     try {
       await _apiService.deletePermit(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Berhasil dihapus'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Berhasil dihapus');
         _fetchItems();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal: $e');
       }
     }
   }

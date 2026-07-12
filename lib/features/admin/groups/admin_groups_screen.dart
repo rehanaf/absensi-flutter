@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'admin_group_form_screen.dart';
@@ -84,12 +85,12 @@ class _AdminGroupsScreenState extends State<AdminGroupsScreen> {
     try {
       await _apiService.deleteGroup(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kelompok berhasil dihapus'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Kelompok berhasil dihapus');
         _fetchGroups();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus kelompok: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menghapus kelompok: $e');
       }
     }
   }

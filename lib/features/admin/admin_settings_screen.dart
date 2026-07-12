@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -71,7 +72,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal memilih gambar: $e');
       }
     }
   }
@@ -115,7 +116,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menyimpan: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

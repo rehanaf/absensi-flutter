@@ -7,6 +7,7 @@ import 'dart:js' as js;
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 class FaceCameraScreen extends StatefulWidget {
   final String title;
   final String? registeredFaceBase64;
@@ -138,11 +139,11 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
           _statusMessage = 'Wajah berhasil ditangkap';
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['error'] ?? 'Gagal'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: result['error'] ?? 'Gagal');
         setState(() => _statusMessage = result['error'] ?? 'Gagal memindai');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      AppToast.showError(context, message: 'Error: $e');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }

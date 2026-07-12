@@ -7,6 +7,7 @@ import '../../providers/theme_provider.dart';
 import '../../core/widgets/twemoji_text.dart';
 import '../../data/services/api_service.dart';
 import 'profile_edit_screen.dart';
+import '../../core/widgets/app_toast.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -87,9 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final apiService = ApiService();
           await apiService.registerFcmToken(fcmToken);
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Notifikasi berhasil diaktifkan!')),
-            );
+            AppToast.showSuccess(context, message: 'Notifikasi berhasil diaktifkan!');
           }
         }
       } else {
@@ -114,9 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal meminta izin: $e')),
-        );
+        AppToast.showError(context, message: 'Gagal meminta izin: $e');
       }
     }
   }
@@ -127,15 +124,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final apiService = ApiService();
       final result = await apiService.sendTestNotification();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Notifikasi tes berhasil dikirim!'), backgroundColor: Colors.green),
-        );
+        AppToast.showSuccess(context, message: result['message'] ?? 'Notifikasi tes berhasil dikirim!');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengirim notifikasi tes: $e'), backgroundColor: Colors.red),
-        );
+        AppToast.showError(context, message: 'Gagal mengirim notifikasi tes: $e');
       }
     } finally {
       if (mounted) {

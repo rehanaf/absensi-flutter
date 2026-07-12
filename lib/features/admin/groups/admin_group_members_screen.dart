@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/services/api_service.dart';
 import 'dart:async';
@@ -39,7 +40,7 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
         _members = List.from(updatedGroup['users'] ?? []);
       });
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal merefresh: $e'), backgroundColor: Colors.red));
+      if (mounted) AppToast.showError(context, message: 'Gagal merefresh: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -60,12 +61,12 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
     try {
       await _apiService.detachUserFromGroup(widget.group['id'], userId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Anggota berhasil dikeluarkan'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Anggota berhasil dikeluarkan');
         await _fetchGroupMembers();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal: $e');
         setState(() => _isLoading = false);
       }
     }
@@ -90,12 +91,12 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
     try {
       await _apiService.attachUserToGroup(widget.group['id'], userId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Anggota berhasil ditambahkan'), backgroundColor: Colors.green));
+        AppToast.showSuccess(context, message: 'Anggota berhasil ditambahkan');
         await _fetchGroupMembers();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menambahkan anggota: $e'), backgroundColor: Colors.red));
+        AppToast.showError(context, message: 'Gagal menambahkan anggota: $e');
         setState(() => _isLoading = false);
       }
     }
