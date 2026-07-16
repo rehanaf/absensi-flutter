@@ -1,3 +1,6 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
@@ -15,6 +18,60 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? _avatarBase64;
+  String? _bgBase64;
+
+  Future<void> _loadCustomAssets() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _avatarBase64 = prefs.getString('custom_avatar_base64');
+        _bgBase64 = prefs.getString('custom_bg_base64');
+      });
+    }
+  }
+
+  Future<void> _pickAvatarImage() async {
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300, maxHeight: 300);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        final base64Str = base64Encode(bytes);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('custom_avatar_base64', base64Str);
+        if (mounted) {
+          setState(() {
+            _avatarBase64 = base64Str;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking avatar: $e');
+    }
+  }
+
+  Future<void> _pickBackgroundImage() async {
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1000, maxHeight: 600);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        final base64Str = base64Encode(bytes);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('custom_bg_base64', base64Str);
+        if (mounted) {
+          setState(() {
+            _bgBase64 = base64Str;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking background: $e');
+    }
+  }
+
+
   final ApiService _apiService = ApiService();
   bool _isLoadingAction = false;
   
@@ -29,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCustomAssets();
     _fetchDashboard();
   }
 
@@ -229,13 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     final String name = user?['name'] ?? 'User';
     final String username = user?['username'] ?? '-';
-    
-    String roleText = 'SISWA / ANGGOTA';
-    if (user?['role'] is Map) {
-      roleText = (user?['role']['display_name'] ?? user?['role']['name'] ?? 'SISWA / ANGGOTA').toString().toUpperCase();
-    } else if (user?['role'] != null) {
-      roleText = user!['role'].toString().toUpperCase();
-    }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Determine status text
     String statusText = 'Belum Absen';
@@ -256,65 +308,115 @@ class _HomeScreenState extends State<HomeScreen> {
       statusBadgeColor = Colors.grey[700]!.withOpacity(0.4);
     }
 
+    // Set background photo or theme gradient
+    DecorationImage? bgImage;
+    if (_bgBase64 != null) {
+      try {
+        bgImage = DecorationImage(
+          image: MemoryImage(base64Decode(_bgBase64!)),
+          fit: BoxFit.cover,
+        );
+      } catch (_) {}
+    }
+
+    final boxDec = BoxDecoration(
+      borderRadius: BorderRadius.circular(24),
+      image: bgImage,
+      gradient: bgImage == null
+          ? LinearGradient(
+              colors: isDark
+                  ? [
+                      Theme.of(context).colorScheme.surfaceContainerHigh,
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ]
+                  : [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+          : null,
+      boxShadow: [
+        BoxShadow(
+          color: Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.05 : 0.2),
+          blurRadius: 16,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    );
+
     return Container(
       margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: boxDec,
       child: Stack(
         children: [
+          // Background decorative circular shapes (only if no custom image)
+          if (bgImage == null) ...[
+            Positioned(
+              right: -24,
+              top: -24,
+              child: CircleAvatar(
+                radius: 64,
+                backgroundColor: Colors.white.withOpacity(0.08),
+              ),
+            ),
+            Positioned(
+              left: -12,
+              bottom: -32,
+              child: CircleAvatar(
+                radius: 48,
+                backgroundColor: Colors.white.withOpacity(0.05),
+              ),
+            ),
+          ],
+          
+          // Image background dark overlay
+          if (bgImage != null)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.black.withOpacity(0.4),
+                ),
+              ),
+            ),
+
+          // Change Background button
           Positioned(
-            right: -24,
-            top: -24,
-            child: CircleAvatar(
-              radius: 64,
-              backgroundColor: Colors.white.withOpacity(0.08),
+            right: 12,
+            top: 12,
+            child: IconButton(
+              icon: Icon(
+                Icons.image,
+                color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70,
+                size: 20,
+              ),
+              onPressed: _pickBackgroundImage,
+              tooltip: 'Ubah Latar Belakang',
             ),
           ),
-          Positioned(
-            left: -12,
-            bottom: -32,
-            child: CircleAvatar(
-              radius: 48,
-              backgroundColor: Colors.white.withOpacity(0.05),
-            ),
-          ),
+
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // User Details Row/Column
-                isMobile
-                    ? SizedBox(
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+                // User Details Row (Avatar on Left, Name & Username on Right)
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _pickAvatarImage,
+                      child: Stack(
+                        children: [
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
+                              border: Border.all(color: Colors.white, width: 2.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withOpacity(0.15),
                                   blurRadius: 8,
                                 ),
                               ],
@@ -322,202 +424,104 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: CircleAvatar(
                               radius: 36,
                               backgroundColor: Colors.white,
-                              child: Text(
-                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 32,
-                                ),
+                              backgroundImage: _avatarBase64 != null
+                                  ? MemoryImage(base64Decode(_avatarBase64!))
+                                  : null,
+                              child: _avatarBase64 == null
+                                  ? Text(
+                                      name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 28,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: CircleAvatar(
+                              radius: 11,
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 12,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Text(
                             name,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
-                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             username,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
+                              color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white.withOpacity(0.85),
                               fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Text(
-                              roleText,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.1,
-                              ),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                    )
-                    : Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 38,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 34,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  username,
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: Text(
-                                    roleText,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.1,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                    ),
+                  ],
+                ),
                 
                 const SizedBox(height: 16),
-                Divider(color: Colors.white.withOpacity(0.2), height: 1),
+                Divider(color: (isDark && bgImage == null) ? Theme.of(context).dividerColor.withOpacity(0.2) : Colors.white.withOpacity(0.2), height: 1),
                 const SizedBox(height: 16),
 
-                // Live Clock Widget
-                Center(
-                  child: StreamBuilder<DateTime>(
-                    stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
-                    initialData: DateTime.now(),
-                    builder: (context, snapshot) {
-                      final time = snapshot.data ?? DateTime.now();
-                      final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}";
-                      final dateStr = "${_getDayName(time.weekday)}, ${time.day} ${_getMonthName(time.month)} ${time.year}";
-                      
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            timeStr,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            dateStr,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                Divider(color: Colors.white.withOpacity(0.2), height: 1),
-                const SizedBox(height: 16),
-
-                // Schedule Hours Row
+                // Official Schedule Hours Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Column(
                       children: [
-                        const Text(
+                        Text(
                           'Jadwal Masuk',
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _dashboardData?['schedule_in'] ?? '--:--',
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     Container(
                       height: 24,
                       width: 1,
-                      color: Colors.white.withOpacity(0.2),
+                      color: (isDark && bgImage == null) ? Theme.of(context).dividerColor.withOpacity(0.2) : Colors.white.withOpacity(0.2),
                     ),
                     Column(
                       children: [
-                        const Text(
+                        Text(
                           'Jadwal Pulang',
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _dashboardData?['schedule_out'] ?? '--:--',
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -525,27 +529,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 const SizedBox(height: 16),
-                Divider(color: Colors.white.withOpacity(0.2), height: 1),
+                Divider(color: (isDark && bgImage == null) ? Theme.of(context).dividerColor.withOpacity(0.2) : Colors.white.withOpacity(0.2), height: 1),
                 const SizedBox(height: 16),
 
                 // Attendance Status Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Status Hari Ini:',
-                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusBadgeColor,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                        border: Border.all(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3) : Colors.white.withOpacity(0.3), width: 1),
                       ),
                       child: Text(
                         statusText,
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -610,10 +614,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : const Icon(Icons.login),
                             label: const Text('Masuk'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: canCheckIn ? Colors.white : Colors.white.withOpacity(0.2),
-                              foregroundColor: canCheckIn ? Theme.of(context).colorScheme.primary : Colors.white.withOpacity(0.4),
-                              disabledBackgroundColor: Colors.white.withOpacity(0.15),
-                              disabledForegroundColor: Colors.white.withOpacity(0.4),
+                              backgroundColor: canCheckIn 
+                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.primary : Colors.white)
+                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.surfaceVariant : Colors.white.withOpacity(0.2)),
+                              foregroundColor: canCheckIn 
+                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary)
+                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5) : Colors.white.withOpacity(0.4)),
+                              disabledBackgroundColor: isDark ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.1) : Colors.white.withOpacity(0.1),
+                              disabledForegroundColor: isDark ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
@@ -630,10 +638,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : const Icon(Icons.logout),
                             label: const Text('Pulang'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: canCheckOut ? Colors.white : Colors.white.withOpacity(0.2),
-                              foregroundColor: canCheckOut ? Theme.of(context).colorScheme.primary : Colors.white.withOpacity(0.4),
-                              disabledBackgroundColor: Colors.white.withOpacity(0.15),
-                              disabledForegroundColor: Colors.white.withOpacity(0.4),
+                              backgroundColor: canCheckOut 
+                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.primary : Colors.white)
+                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.surfaceVariant : Colors.white.withOpacity(0.2)),
+                              foregroundColor: canCheckOut 
+                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary)
+                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5) : Colors.white.withOpacity(0.4)),
+                              disabledBackgroundColor: isDark ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.1) : Colors.white.withOpacity(0.1),
+                              disabledForegroundColor: isDark ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
@@ -650,7 +662,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _buildMonthlyCalendar() {
     try {
       final monthAttendance = _dashboardData?['month_attendance'];
@@ -1019,13 +1030,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (requireLoc) ...[
                   Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
-                  Card(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)
-                    ),
-                    clipBehavior: Clip.antiAlias,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
                     child: LiveLocationMap(
                       officeLat: targetLat,
                       officeLng: targetLng,
@@ -1058,13 +1064,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
-                      Card(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)
-                        ),
-                        clipBehavior: Clip.antiAlias,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
                         child: LiveLocationMap(
                           officeLat: targetLat,
                           officeLng: targetLng,
