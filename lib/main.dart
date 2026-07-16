@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:dynamic_color/dynamic_color.dart';
 import 'core/router.dart';
+import 'core/api_client.dart';
 import 'providers/app_settings_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
@@ -63,6 +64,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Setup global unauthorized redirect
+  ApiClient.onUnauthorized = () {
+    router.go('/login');
+  };
 
   runApp(
     MultiProvider(

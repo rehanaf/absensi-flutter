@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_settings_provider.dart';
+import '../providers/auth_provider.dart';
 import '../features/splash/splash_screen.dart';
 
 import '../features/auth/login_screen.dart';
@@ -23,7 +25,15 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/login',
-      builder: (context, state) => const LoginScreen(),
+      builder: (context, state) {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        if (auth.isAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            auth.logout();
+          });
+        }
+        return const LoginScreen();
+      },
     ),
     GoRoute(
       path: '/register',
