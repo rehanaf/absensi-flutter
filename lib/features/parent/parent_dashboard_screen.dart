@@ -497,6 +497,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    try {
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -609,5 +611,30 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
         );
       }
     );
+    } catch (e, stack) {
+      debugPrint('CRITICAL: Error in ParentDashboardScreen.build: $e\n$stack');
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                const Text('Terjadi kesalahan saat memuat halaman wali.'),
+                const SizedBox(height: 8),
+                Text('$e', style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => _fetchDashboard(),
+                  child: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

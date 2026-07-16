@@ -446,6 +446,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    try {
+
       final auth = Provider.of<AuthProvider>(context);
       final settings = Provider.of<AppSettingsProvider>(context);
       final user = auth.user;
@@ -887,5 +889,30 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+    } catch (e, stack) {
+      debugPrint('CRITICAL: Error in HomeScreen.build: $e\n$stack');
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                const Text('Terjadi kesalahan saat memuat halaman beranda.'),
+                const SizedBox(height: 8),
+                Text('$e', style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => _fetchDashboard(),
+                  child: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 }
