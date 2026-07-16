@@ -24,25 +24,48 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
 
   bool _isLoading = false;
 
-  Future<void> _selectDateRange() async {
+  Future<void> _selectStartDate() async {
     final now = DateTime.now();
-    final initialDate = _startDate ?? now;
     final firstDate = now.subtract(const Duration(days: 30));
     final lastDate = now.add(const Duration(days: 365));
 
-    final picked = await showDateRangePicker(
+    final picked = await showDatePicker(
       context: context,
+      initialDate: _startDate ?? now,
       firstDate: firstDate,
       lastDate: lastDate,
-      initialDateRange: _startDate != null && _endDate != null
-          ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : DateTimeRange(start: initialDate, end: initialDate),
     );
 
     if (picked != null) {
       setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
+        _startDate = picked;
+        if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+          _endDate = null;
+        }
+      });
+    }
+  }
+
+  Future<void> _selectEndDate() async {
+    if (_startDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih Tanggal Mulai terlebih dahulu!')),
+      );
+      return;
+    }
+
+    final lastDate = _startDate!.add(const Duration(days: 365));
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? _startDate!,
+      firstDate: _startDate!,
+      lastDate: lastDate,
+    );
+
+    if (picked != null) {
+      setState(() {
+        _endDate = picked;
       });
     }
   }
@@ -62,18 +85,20 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_startDate == null || _endDate == null) {
+    if (_startDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Pilih rentang tanggal izin!'), backgroundColor: Theme.of(context).colorScheme.error),
+        SnackBar(content: const Text('Pilih Tanggal Mulai izin!'), backgroundColor: Theme.of(context).colorScheme.error),
       );
       return;
     }
 
     setState(() => _isLoading = true);
 
+    final actualEndDate = _endDate ?? _startDate!;
+
     final data = {
       'start_date': DateFormat('yyyy-MM-dd').format(_startDate!),
-      'end_date': DateFormat('yyyy-MM-dd').format(_endDate!),
+      'end_date': DateFormat('yyyy-MM-dd').format(actualEndDate),
       'type': _selectedType,
       'reason': _reasonController.text,
     };
@@ -121,35 +146,94 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                     const Text('Informasi Izin', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     
-                    // Date Range
-                    InkWell(
-                      onTap: _selectDateRange,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'Tanggal Izin *',
-                          border: OutlineInputBorder(
+                    // Date Inputs Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Start Date
+                        Expanded(
+                          child: InkWell(
+                            onTap: _selectStartDate,
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _startDate != null && _endDate != null
-                                  ? '${DateFormat('dd MMM yyyy').format(_startDate!)} - ${DateFormat('dd MMM yyyy').format(_endDate!)}'
-                                  : 'Pilih Tanggal',
-                              style: TextStyle(
-                                color: _startDate == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color,
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Tanggal Mulai *',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _startDate != null
+                                          ? DateFormat('dd MMM yyyy').format(_startDate!)
+                                          : 'Pilih Tanggal',
+                                      style: TextStyle(
+                                        color: _startDate == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color,
+                                        fontSize: 13,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const Icon(Icons.calendar_today, size: 16),
+                                ],
                               ),
                             ),
-                            const Icon(Icons.calendar_today),
-                          ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        // End Date (Optional)
+                        Expanded(
+                          child: InkWell(
+                            onTap: _selectEndDate,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Tanggal Selesai',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _endDate != null
+                                          ? DateFormat('dd MMM yyyy').format(_endDate!)
+                                          : 'Sama dgn mulai',
+                                      style: TextStyle(
+                                        color: _endDate == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color,
+                                        fontSize: 13,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (_endDate != null)
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _endDate = null;
+                                        });
+                                      },
+                                      child: const Icon(Icons.clear, size: 16),
+                                    )
+                                  else
+                                    const Icon(Icons.calendar_today, size: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     

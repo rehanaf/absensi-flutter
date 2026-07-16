@@ -1,3 +1,4 @@
+import '../core/api_client.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,13 +25,12 @@ class AuthProvider with ChangeNotifier {
     _token = prefs.getString('token');
     
     if (_token != null) {
+      ApiClient().setToken(_token);
       try {
         final userData = await _apiService.getUser();
         _user = userData;
-        // Selalu daftarkan/perbarui FCM token saat aplikasi baru dibuka
         await _registerFcmToken();
       } catch (e) {
-        // Token might be invalid
         await logout();
       }
     }
@@ -47,11 +47,11 @@ class AuthProvider with ChangeNotifier {
       _token = response['access_token'];
       _user = response['user'];
       
+      ApiClient().setToken(_token);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', _token!);
       await prefs.setString('user', json.encode(_user));
 
-      // After register success, register FCM token just like login
       await _registerFcmToken();
       
       _isLoading = false;
@@ -96,8 +96,10 @@ class AuthProvider with ChangeNotifier {
       _token = data['access_token'];
       _user = data['user'];
       
+      ApiClient().setToken(_token);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', _token!);
+      await prefs.setString('user', json.encode(_user));
       
       await _registerFcmToken();
 
@@ -171,8 +173,10 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
+    await prefs.remove('user');
     _token = null;
     _user = null;
+    ApiClient().setToken(null);
     notifyListeners();
   }
 }
