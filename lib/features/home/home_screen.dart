@@ -486,6 +486,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 Divider(color: Colors.white.withOpacity(0.2), height: 1),
                 const SizedBox(height: 16),
 
+                // Schedule Hours Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: [
+                        const Text(
+                          'Jadwal Masuk',
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _dashboardData?['schedule_in'] ?? '--:--',
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      height: 24,
+                      width: 1,
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                    Column(
+                      children: [
+                        const Text(
+                          'Jadwal Pulang',
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _dashboardData?['schedule_out'] ?? '--:--',
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                Divider(color: Colors.white.withOpacity(0.2), height: 1),
+                const SizedBox(height: 16),
+
                 // Attendance Status Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
