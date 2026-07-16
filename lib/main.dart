@@ -35,7 +35,7 @@ TextStyle _appFont({
   TextStyle? textStyle,
   double? wordSpacing,
 }) {
-  return GoogleFonts.albertSans(
+  return GoogleFonts.quicksand(
     background: background,
     backgroundColor: backgroundColor,
     color: color,
@@ -141,13 +141,13 @@ class MyApp extends StatelessWidget {
               theme: ThemeData(
                 colorScheme: lightColorScheme,
                 useMaterial3: true,
-                fontFamily: GoogleFonts.albertSans().fontFamily,
+                fontFamily: GoogleFonts.quicksand().fontFamily,
                 navigationBarTheme: NavigationBarThemeData(
                   labelTextStyle: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                      return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
+                      return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
                     }
-                    return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
+                    return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
                   }),
                   iconTheme: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
@@ -162,13 +162,13 @@ class MyApp extends StatelessWidget {
               darkTheme: ThemeData(
                 colorScheme: darkColorScheme,
                 useMaterial3: true,
-                fontFamily: GoogleFonts.albertSans().fontFamily,
+                fontFamily: GoogleFonts.quicksand().fontFamily,
                 navigationBarTheme: NavigationBarThemeData(
                   labelTextStyle: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                      return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
+                      return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
                     }
-                    return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontFamily: GoogleFonts.albertSans().fontFamily);
+                    return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
                   }),
                   iconTheme: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
