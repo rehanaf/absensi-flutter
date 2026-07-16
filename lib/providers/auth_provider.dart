@@ -128,6 +128,21 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateProfile(Map<String, dynamic> updates) async {
+    try {
+      final data = await _apiService.updateMyProfile(updates);
+      if (data.containsKey('user')) {
+        _user = data['user'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', json.encode(_user));
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _registerFcmToken() async {
     try {
       final messaging = FirebaseMessaging.instance;

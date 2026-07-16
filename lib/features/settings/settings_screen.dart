@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +19,280 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  void _showImagePickerOptions({required bool isAvatar, required String? currentImage}) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  isAvatar ? 'Ubah Foto Profil' : 'Ubah Latar Belakang',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (currentImage != null && currentImage.isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Hapus Gambar', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _updateProfileImage(isAvatar: isAvatar, base64Str: "");
+                  },
+                ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Kamera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(isAvatar: isAvatar, source: ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(isAvatar: isAvatar, source: ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage({required bool isAvatar, required ImageSource source}) async {
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: source,
+        maxWidth: isAvatar ? 300 : 1000,
+        maxHeight: isAvatar ? 300 : 600,
+      );
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        final base64Str = base64Encode(bytes);
+        _updateProfileImage(isAvatar: isAvatar, base64Str: base64Str);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, message: 'Gagal mengambil gambar: $e');
+      }
+    }
+  }
+
+  Future<void> _updateProfileImage({required bool isAvatar, required String base64Str}) async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final key = isAvatar ? 'avatar_base64' : 'bg_base64';
+      
+      await auth.updateProfile({key: base64Str});
+      
+      if (mounted) {
+        AppToast.showSuccess(
+          context, 
+          message: base64Str.isEmpty ? 'Gambar berhasil dihapus!' : 'Gambar berhasil diperbarui!'
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, message: 'Gagal memperbarui profil: $e');
+      }
+    }
+  }
+
+  Widget _buildProfileCard(Map<String, dynamic>? user) {
+    final String name = user?['name'] ?? 'User';
+    final String username = user?['username'] ?? '-';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final profile = user?['profile'];
+    final metaData = profile?['meta_data'];
+    final String? avatarBase64 = metaData?['avatar_base64'];
+    final String? bgBase64 = metaData?['bg_base64'];
+
+    DecorationImage? bgImage;
+    if (bgBase64 != null && bgBase64.isNotEmpty) {
+      try {
+        bgImage = DecorationImage(
+          image: MemoryImage(base64Decode(bgBase64)),
+          fit: BoxFit.cover,
+        );
+      } catch (_) {}
+    }
+
+    final boxDec = BoxDecoration(
+      borderRadius: BorderRadius.circular(24),
+      image: bgImage,
+      gradient: bgImage == null
+          ? LinearGradient(
+              colors: isDark
+                  ? [
+                      Theme.of(context).colorScheme.surfaceContainerHigh,
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ]
+                  : [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+          : null,
+      boxShadow: [
+        BoxShadow(
+          color: Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.05 : 0.2),
+          blurRadius: 16,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    );
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: boxDec,
+      child: Stack(
+        children: [
+          if (bgImage == null) ...[
+            Positioned(
+              right: -24,
+              top: -24,
+              child: CircleAvatar(
+                radius: 64,
+                backgroundColor: Colors.white.withOpacity(0.08),
+              ),
+            ),
+            Positioned(
+              left: -12,
+              bottom: -32,
+              child: CircleAvatar(
+                radius: 48,
+                backgroundColor: Colors.white.withOpacity(0.05),
+              ),
+            ),
+          ],
+          
+          if (bgImage != null)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.black.withOpacity(0.4),
+                ),
+              ),
+            ),
+
+          Positioned(
+            right: 12,
+            top: 12,
+            child: IconButton(
+              icon: Icon(
+                Icons.image,
+                color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70,
+                size: 20,
+              ),
+              onPressed: () => _showImagePickerOptions(isAvatar: false, currentImage: bgBase64),
+              tooltip: 'Ubah Latar Belakang',
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _showImagePickerOptions(isAvatar: true, currentImage: avatarBase64),
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 36,
+                          backgroundColor: Colors.white,
+                          backgroundImage: (avatarBase64 != null && avatarBase64.isNotEmpty)
+                              ? MemoryImage(base64Decode(avatarBase64))
+                              : null,
+                          child: (avatarBase64 == null || avatarBase64.isEmpty)
+                              ? Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 28,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: CircleAvatar(
+                          radius: 11,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 12,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(
+                          color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        username,
+                        style: TextStyle(
+                          color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white.withOpacity(0.85),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   String _notificationStatus = 'Memeriksa...';
   bool _isPermissionGranted = false;
   bool _isSendingTest = false;
@@ -161,7 +437,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           context,
                           MaterialPageRoute(builder: (context) => const ProfileEditScreen()),
                         ).then((_) {
-                          // refresh profile data when back
                           auth.checkAuthStatus();
                         });
                       },
@@ -171,23 +446,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimaryContainer),
-                  ),
-                  title: Text(user?['name'] ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(user?['email'] ?? '-'),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.badge, size: 16, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    Text('Role: ${user?['role']?['display_name'] ?? '-'}'),
-                  ],
-                ),
+                _buildProfileCard(user),
               ],
             ),
             const Padding(

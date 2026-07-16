@@ -281,6 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required bool canCheckOut,
     required bool requireLoc,
     required bool needCameraForCheckIn,
+    required bool needFaceBiometric,
     required bool hasFaceBiometric,
     required String todayStatus,
     required Map<String, dynamic>? todayData,
@@ -558,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Attendance Action Buttons
                 if (user?['can_attend'] == true) ...[
-                  if (needCameraForCheckIn && !hasFaceBiometric) ...[
+                  if (needFaceBiometric && !hasFaceBiometric) ...[
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
@@ -876,6 +877,7 @@ class _HomeScreenState extends State<HomeScreen> {
       
       final latestUser = _dashboardData?['user'] ?? user;
       final needCameraForCheckIn = attendanceMode == 'selfie' || attendanceMode == 'recognition';
+      final needFaceBiometric = attendanceMode == 'recognition';
       final hasFaceBiometric = latestUser != null && latestUser['face_biometric'] != null && latestUser['face_biometric'].toString().trim().isNotEmpty && latestUser['face_biometric'].toString().trim() != 'null';
   
       final todayStatus = _dashboardData?['today_status'] ?? 'belum_absen';
@@ -1138,6 +1140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               canCheckOut: canCheckOut,
                               requireLoc: requireLoc,
                               needCameraForCheckIn: needCameraForCheckIn,
+                              needFaceBiometric: needFaceBiometric,
                               hasFaceBiometric: hasFaceBiometric,
                               todayStatus: todayStatus,
                               todayData: todayData,
