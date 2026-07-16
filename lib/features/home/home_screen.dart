@@ -203,10 +203,45 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildProfileCard(Map<String, dynamic>? user, bool isMobile) {
+  Widget _buildProfileCard({
+    required Map<String, dynamic>? user,
+    required bool isMobile,
+    required bool canCheckIn,
+    required bool canCheckOut,
+    required bool requireLoc,
+    required bool needCameraForCheckIn,
+    required bool hasFaceBiometric,
+    required String todayStatus,
+    required Map<String, dynamic>? todayData,
+  }) {
     final String name = user?['name'] ?? 'User';
     final String username = user?['username'] ?? '-';
-    final String role = user?['role']?.toString().toUpperCase() ?? 'SISWA / ANGGOTA';
+    
+    String roleText = 'SISWA / ANGGOTA';
+    if (user?['role'] is Map) {
+      roleText = (user?['role']['display_name'] ?? user?['role']['name'] ?? 'SISWA / ANGGOTA').toString().toUpperCase();
+    } else if (user?['role'] != null) {
+      roleText = user!['role'].toString().toUpperCase();
+    }
+
+    // Determine status text
+    String statusText = 'Belum Absen';
+    Color statusBadgeColor = Colors.white.withOpacity(0.2);
+    if (todayStatus == 'hadir') {
+      statusText = 'HADIR';
+      if (todayData?['check_in'] != null) {
+        final ci = todayData!['check_in'].toString().substring(0, 5);
+        final co = todayData['check_out'] != null ? todayData['check_out'].toString().substring(0, 5) : '--:--';
+        statusText = 'HADIR ($ci - $co)';
+      }
+      statusBadgeColor = Colors.green[700]!.withOpacity(0.4);
+    } else if (todayStatus == 'izin' || todayStatus == 'sakit' || todayStatus == 'cuti') {
+      statusText = todayStatus.toUpperCase();
+      statusBadgeColor = Colors.orange[700]!.withOpacity(0.4);
+    } else if (todayStatus == 'libur') {
+      statusText = 'LIBUR / HARI NON-AKTIF';
+      statusBadgeColor = Colors.grey[700]!.withOpacity(0.4);
+    }
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -248,142 +283,269 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(24.0),
-            child: isMobile
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // User Details Row/Column
+                isMobile
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 36,
-                          backgroundColor: Colors.white,
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 32,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'NIS/ID: $username',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Text(
-                          role,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 38,
-                          backgroundColor: Colors.white,
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 34,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'NIS/ID: $username',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                            child: CircleAvatar(
+                              radius: 36,
+                              backgroundColor: Colors.white,
                               child: Text(
-                                role,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
+                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.1,
+                                  fontSize: 32,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'NIS/ID: $username',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Text(
+                              roleText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 38,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 34,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'NIS/ID: $username',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: Text(
+                                    roleText,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                
+                const SizedBox(height: 16),
+                Divider(color: Colors.white.withOpacity(0.2), height: 1),
+                const SizedBox(height: 16),
+
+                // Attendance Status Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Status Hari Ini:',
+                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusBadgeColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Attendance Action Buttons
+                if (user?['can_attend'] == true) ...[
+                  if (needCameraForCheckIn && !hasFaceBiometric) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.warning, color: Colors.amber, size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                'Wajah belum terdaftar!',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Harap daftarkan wajah Anda terlebih dahulu.',
+                            style: TextStyle(color: Colors.white70, fontSize: 11),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton.icon(
+                            onPressed: _isLoadingAction ? null : _handleRegisterFace,
+                            icon: _isLoadingAction 
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red)) 
+                                : const Icon(Icons.camera_alt),
+                            label: const Text('Daftarkan Wajah'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.red[800],
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: (_isLoadingAction || !canCheckIn) 
+                                ? null 
+                                : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
+                            icon: _isLoadingAction 
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.green)) 
+                                : const Icon(Icons.login),
+                            label: const Text('Masuk'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: canCheckIn ? Colors.white : Colors.white.withOpacity(0.2),
+                              foregroundColor: canCheckIn ? Colors.green[800] : Colors.white.withOpacity(0.4),
+                              disabledBackgroundColor: Colors.white.withOpacity(0.1),
+                              disabledForegroundColor: Colors.white.withOpacity(0.3),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: (_isLoadingAction || !canCheckOut) 
+                                ? null 
+                                : () => _handleCheckOut(requireLoc),
+                            icon: _isLoadingAction 
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red)) 
+                                : const Icon(Icons.logout),
+                            label: const Text('Pulang'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: canCheckOut ? Colors.white : Colors.white.withOpacity(0.2),
+                              foregroundColor: canCheckOut ? Colors.red[800] : Colors.white.withOpacity(0.4),
+                              disabledBackgroundColor: Colors.white.withOpacity(0.1),
+                              disabledForegroundColor: Colors.white.withOpacity(0.3),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -588,51 +750,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatusBanner() {
-    final status = _dashboardData?['today_status'] ?? 'belum_absen';
-    
-    Color bgColor;
-    Color textColor;
-    String message;
-    IconData icon;
 
-    if (status == 'hadir') {
-      bgColor = Colors.green.withValues(alpha: 0.1);
-      textColor = Colors.green[700]!;
-      message = 'Anda sudah absen hari ini';
-      icon = Icons.check_circle_outline;
-    } else if (status == 'izin' || status == 'sakit') {
-      bgColor = Colors.orange.withValues(alpha: 0.1);
-      textColor = Colors.orange[800]!;
-      message = 'Anda sedang $status hari ini';
-      icon = Icons.assignment_late_outlined;
-    } else {
-      bgColor = Theme.of(context).colorScheme.primaryContainer;
-      textColor = Theme.of(context).colorScheme.onPrimaryContainer;
-      message = 'Anda belum absen hari ini';
-      icon = Icons.waving_hand_outlined;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: textColor, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -911,66 +1029,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: EdgeInsets.zero,
                           children: [
                             // Header Section
-                            _buildProfileCard(latestUser, isMobile),
+                            _buildProfileCard(
+                              user: latestUser,
+                              isMobile: isMobile,
+                              canCheckIn: canCheckIn,
+                              canCheckOut: canCheckOut,
+                              requireLoc: requireLoc,
+                              needCameraForCheckIn: needCameraForCheckIn,
+                              hasFaceBiometric: hasFaceBiometric,
+                              todayStatus: todayStatus,
+                              todayData: todayData,
+                            ),
                             
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  // 2. Status Banner
-                                  _buildStatusBanner(),
-                                  const SizedBox(height: 32),
-
-                                  // 1. Aksi (Tanpa Judul)
-                                  if (user?['can_attend'] == true) ...[
-                                    if (attendanceMode == 'recognition' && !hasFaceBiometric) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.errorContainer, borderRadius: BorderRadius.circular(16)),
-                                        child: Column(
-                                          children: [
-                                            Icon(Icons.face_retouching_natural, size: 32, color: Theme.of(context).colorScheme.error),
-                                            const SizedBox(height: 8),
-                                            Text('Wajah Anda belum terdaftar!', style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer, fontWeight: FontWeight.bold)),
-                                            const SizedBox(height: 8),
-                                            Text('Harap daftarkan wajah Anda terlebih dahulu sebelum dapat melakukan absensi.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onErrorContainer.withValues(alpha: 0.8))),
-                                            const SizedBox(height: 16),
-                                            FilledButton.icon(
-                                              onPressed: _isLoadingAction ? null : _handleRegisterFace,
-                                              icon: _isLoadingAction ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.camera_alt),
-                                              label: const Text('Daftarkan Wajah'),
-                                              style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ] else ...[
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: FilledButton.icon(
-                                              onPressed: (_isLoadingAction || !canCheckIn) ? null : () => _handleCheckIn(requireLoc, needCameraForCheckIn),
-                                              icon: _isLoadingAction ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.login),
-                                              label: const Text('Masuk'),
-                                              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), backgroundColor: Colors.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: FilledButton.icon(
-                                              onPressed: (_isLoadingAction || !canCheckOut) ? null : () => _handleCheckOut(requireLoc),
-                                              icon: _isLoadingAction ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.logout),
-                                              label: const Text('Pulang'),
-                                              style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), backgroundColor: Colors.red, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
-                                  ],
 
                                   // 3. Lokasi & Kehadiran
                                   buildLokasiKehadiran(),
