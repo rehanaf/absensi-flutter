@@ -1124,9 +1124,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             )
                           ]
                         )
-                      : ListView(
+                      : SingleChildScrollView(
                           padding: EdgeInsets.zero,
-                          children: [
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
                             // Header Section
                             _buildProfileCard(
                               user: latestUser,
@@ -1208,6 +1210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                      ),
             ),
           ),
         );
