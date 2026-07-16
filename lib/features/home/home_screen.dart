@@ -289,9 +289,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // User Details Row/Column
                 isMobile
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                    ? SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -328,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'NIS/ID: $username',
+                            username,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 14,
@@ -353,7 +356,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ],
-                      )
+                      ),
+                    )
                     : Row(
                         children: [
                           Container(
@@ -396,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'NIS/ID: $username',
+                                  username,
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.8),
                                     fontSize: 15,
@@ -511,10 +515,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : const Icon(Icons.login),
                             label: const Text('Masuk'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: canCheckIn ? Colors.white : Colors.white.withOpacity(0.2),
-                              foregroundColor: canCheckIn ? Colors.green[800] : Colors.white.withOpacity(0.4),
-                              disabledBackgroundColor: Colors.white.withOpacity(0.1),
-                              disabledForegroundColor: Colors.white.withOpacity(0.3),
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.white.withOpacity(0.15),
+                              disabledForegroundColor: Colors.white.withOpacity(0.4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
@@ -531,10 +535,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : const Icon(Icons.logout),
                             label: const Text('Pulang'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: canCheckOut ? Colors.white : Colors.white.withOpacity(0.2),
-                              foregroundColor: canCheckOut ? Colors.red[800] : Colors.white.withOpacity(0.4),
-                              disabledBackgroundColor: Colors.white.withOpacity(0.1),
-                              disabledForegroundColor: Colors.white.withOpacity(0.3),
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.white.withOpacity(0.15),
+                              disabledForegroundColor: Colors.white.withOpacity(0.4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),

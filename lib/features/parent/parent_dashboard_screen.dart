@@ -183,9 +183,12 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: isMobile
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                    ? SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
@@ -222,7 +225,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Username: $username',
+                            username,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 14,
@@ -258,7 +261,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                             ),
                           ),
                         ],
-                      )
+                      ),
+                    )
                     : Row(
                         children: [
                           Container(
@@ -301,7 +305,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Username: $username',
+                                  username,
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.8),
                                     fontSize: 15,
