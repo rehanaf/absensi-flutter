@@ -203,6 +203,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _getDayName(int weekday) {
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    return days[weekday - 1];
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return months[month - 1];
+  }
+
   Widget _buildProfileCard({
     required Map<String, dynamic>? user,
     required bool isMobile,
@@ -433,6 +446,46 @@ class _HomeScreenState extends State<HomeScreen> {
                 Divider(color: Colors.white.withOpacity(0.2), height: 1),
                 const SizedBox(height: 16),
 
+                // Live Clock Widget
+                Center(
+                  child: StreamBuilder<DateTime>(
+                    stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+                    initialData: DateTime.now(),
+                    builder: (context, snapshot) {
+                      final time = snapshot.data ?? DateTime.now();
+                      final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}";
+                      final dateStr = "${_getDayName(time.weekday)}, ${time.day} ${_getMonthName(time.month)} ${time.year}";
+                      
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            timeStr,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                Divider(color: Colors.white.withOpacity(0.2), height: 1),
+                const SizedBox(height: 16),
+
                 // Attendance Status Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -515,8 +568,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : const Icon(Icons.login),
                             label: const Text('Masuk'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
+                              backgroundColor: canCheckIn ? Colors.white : Colors.white.withOpacity(0.2),
+                              foregroundColor: canCheckIn ? Theme.of(context).colorScheme.primary : Colors.white.withOpacity(0.4),
                               disabledBackgroundColor: Colors.white.withOpacity(0.15),
                               disabledForegroundColor: Colors.white.withOpacity(0.4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -535,8 +588,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : const Icon(Icons.logout),
                             label: const Text('Pulang'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
+                              backgroundColor: canCheckOut ? Colors.white : Colors.white.withOpacity(0.2),
+                              foregroundColor: canCheckOut ? Theme.of(context).colorScheme.primary : Colors.white.withOpacity(0.4),
                               disabledBackgroundColor: Colors.white.withOpacity(0.15),
                               disabledForegroundColor: Colors.white.withOpacity(0.4),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
