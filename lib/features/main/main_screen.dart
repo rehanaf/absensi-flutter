@@ -277,18 +277,18 @@ class _MainScreenState extends State<MainScreen> {
                 _historyKey.currentState?.fetchHistory();
               },
             ),
-          Badge(
-            label: _unreadNotificationsCount > 0 ? Text('$_unreadNotificationsCount') : null,
-            isLabelVisible: _unreadNotificationsCount > 0,
-            child: IconButton(
-              icon: const Icon(Icons.notifications),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                ).then((_) => _fetchUnreadCount(triggerAlert: false));
-              },
+          IconButton(
+            icon: Badge(
+              label: _unreadNotificationsCount > 0 ? Text('$_unreadNotificationsCount') : null,
+              isLabelVisible: _unreadNotificationsCount > 0,
+              child: const Icon(Icons.notifications),
             ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              ).then((_) => _fetchUnreadCount(triggerAlert: false));
+            },
           ),
           Builder(
             builder: (context) {

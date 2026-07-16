@@ -317,16 +317,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                       textColor = Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(76);
                     } else {
                       if (status == 'hadir') {
-                        textColor = Colors.green;
-                        decoration = BoxDecoration(
+                        textColor = Colors.white;
+                        decoration = const BoxDecoration(
+                          color: Colors.green,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.green, width: 2),
                         );
                       } else if (status == 'sakit' || status == 'izin' || status == 'cuti') {
-                        textColor = Colors.orange;
-                        decoration = BoxDecoration(
+                        textColor = Colors.white;
+                        decoration = const BoxDecoration(
+                          color: Colors.orange,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.orange, width: 2),
                         );
                       } else if (status == 'libur') {
                         textColor = Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(127);
@@ -336,10 +336,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         );
                       } else {
                         // Absen (Tidak Hadir)
-                        textColor = Colors.red;
-                        decoration = BoxDecoration(
+                        textColor = Colors.white;
+                        decoration = const BoxDecoration(
+                          color: Colors.red,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.red.withAlpha(76), width: 1),
                         );
                       }
                     }
