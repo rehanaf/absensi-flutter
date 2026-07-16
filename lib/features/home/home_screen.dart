@@ -18,6 +18,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  ImageProvider? _getAvatarImage(Map<String, dynamic>? user) {
+    final avatarPath = user?['profile']?['avatar'];
+    if (avatarPath != null && avatarPath.toString().isNotEmpty) {
+      final String fullUrl = avatarPath.toString().startsWith('http') 
+          ? avatarPath.toString() 
+          : 'http://absensi.test/storage/$avatarPath';
+      return NetworkImage(fullUrl);
+    }
+    return null;
+  }
+
 
 
 
@@ -238,11 +249,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final String username = user?['username'] ?? '-';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Load avatar and card preset from backend profile meta_data
+    // Load avatar and card preset from backend profile
     final profile = user?['profile'];
     final metaData = profile?['meta_data'];
-    final String? avatarBase64 = metaData?['avatar_base64'];
     final String? cardPreset = metaData?['card_preset'];
+    final avatarImage = _getAvatarImage(user);
 
     // Map presets to gradients
     final cardPresets = {
@@ -346,10 +357,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: CircleAvatar(
                         radius: 36,
                         backgroundColor: Colors.white,
-                        backgroundImage: (avatarBase64 != null && avatarBase64.isNotEmpty)
-                            ? MemoryImage(base64Decode(avatarBase64))
-                            : null,
-                        child: (avatarBase64 == null || avatarBase64.isEmpty)
+                        backgroundImage: avatarImage,
+                        child: avatarImage == null
                             ? Text(
                                 name.isNotEmpty ? name[0].toUpperCase() : 'U',
                                 style: TextStyle(

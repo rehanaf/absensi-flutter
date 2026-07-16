@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,49 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  ImageProvider? _getAvatarImage(Map<String, dynamic>? user) {
+    final avatarPath = user?['profile']?['avatar'];
+    if (avatarPath != null && avatarPath.toString().isNotEmpty) {
+      final String fullUrl = avatarPath.toString().startsWith('http') 
+          ? avatarPath.toString() 
+          : 'http://absensi.test/storage/$avatarPath';
+      return NetworkImage(fullUrl);
+    }
+    return null;
+  }
+
+  Future<void> _uploadAvatar(List<int> bytes, String fileName) async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final file = MultipartFile.fromBytes(
+        bytes,
+        filename: fileName,
+      );
+      await auth.updateProfile({'avatar': file});
+      if (mounted) {
+        AppToast.showSuccess(context, message: 'Foto profil berhasil diperbarui!');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, message: 'Gagal memperbarui profil: $e');
+      }
+    }
+  }
+
+  Future<void> _deleteAvatar() async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      await auth.updateProfile({'avatar': ''});
+      if (mounted) {
+        AppToast.showSuccess(context, message: 'Foto profil berhasil dihapus!');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, message: 'Gagal menghapus profil: $e');
+      }
+    }
+  }
+
   void _showPresetOptions() {
     showModalBottomSheet(
       context: context,
@@ -132,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Hapus Foto Profil', style: TextStyle(color: Colors.red)),
                   onTap: () {
                     Navigator.pop(context);
-                    _updateProfileImage(base64Str: "");
+                    _deleteAvatar();
                   },
                 ),
               ListTile(
@@ -168,8 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       if (image != null) {
         final bytes = await image.readAsBytes();
-        final base64Str = base64Encode(bytes);
-        _updateProfileImage(base64Str: base64Str);
+        _uploadAvatar(bytes, image.name);
       }
     } catch (e) {
       if (mounted) {
@@ -178,22 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _updateProfileImage({required String base64Str}) async {
-    try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      await auth.updateProfile({'avatar_base64': base64Str});
-      if (mounted) {
-        AppToast.showSuccess(
-          context, 
-          message: base64Str.isEmpty ? 'Foto profil berhasil dihapus!' : 'Foto profil berhasil diperbarui!'
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        AppToast.showError(context, message: 'Gagal memperbarui profil: $e');
-      }
-    }
-  }
+
 
   Widget _buildProfileCard(Map<String, dynamic>? user) {
     final String name = user?['name'] ?? 'User';
@@ -202,8 +230,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final profile = user?['profile'];
     final metaData = profile?['meta_data'];
-    final String? avatarBase64 = metaData?['avatar_base64'];
     final String? cardPreset = metaData?['card_preset'];
+    final avatarImage = _getAvatarImage(user);
 
     // Map presets to gradients
     final cardPresets = {
@@ -283,7 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => _showImagePickerOptions(currentImage: avatarBase64),
+                  onTap: () => _showImagePickerOptions(currentImage: user?['profile']?['avatar']),
                   child: Stack(
                     children: [
                       Container(
@@ -300,10 +328,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: CircleAvatar(
                           radius: 36,
                           backgroundColor: Colors.white,
-                          backgroundImage: (avatarBase64 != null && avatarBase64.isNotEmpty)
-                              ? MemoryImage(base64Decode(avatarBase64))
-                              : null,
-                          child: (avatarBase64 == null || avatarBase64.isEmpty)
+                          backgroundImage: avatarImage,
+                          child: avatarImage == null
                               ? Text(
                                   name.isNotEmpty ? name[0].toUpperCase() : 'U',
                                   style: TextStyle(

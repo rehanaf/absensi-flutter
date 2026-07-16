@@ -56,8 +56,17 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateMyProfile(Map<String, dynamic> data) async {
     try {
-      final response = await _apiClient.dio.put('/user/profile', data: data);
-      return response.data;
+      dynamic requestData;
+      bool hasFile = data.values.any((val) => val is MultipartFile);
+      if (hasFile) {
+        data['_method'] = 'PUT';
+        requestData = FormData.fromMap(data);
+        final response = await _apiClient.dio.post('/user/profile', data: requestData);
+        return response.data;
+      } else {
+        final response = await _apiClient.dio.put('/user/profile', data: data);
+        return response.data;
+      }
     } catch (e) {
       throw _handleException(e);
     }

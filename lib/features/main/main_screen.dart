@@ -47,6 +47,17 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  ImageProvider? _getAvatarImage(Map<String, dynamic>? user) {
+    final avatarPath = user?['profile']?['avatar'];
+    if (avatarPath != null && avatarPath.toString().isNotEmpty) {
+      final String fullUrl = avatarPath.toString().startsWith('http') 
+          ? avatarPath.toString() 
+          : 'http://absensi.test/storage/$avatarPath';
+      return NetworkImage(fullUrl);
+    }
+    return null;
+  }
+
   final GlobalKey<HistoryScreenState> _historyKey = GlobalKey<HistoryScreenState>();
   late final PageController _pageController;
   int _currentIndex = 0;
@@ -303,10 +314,8 @@ class _MainScreenState extends State<MainScreen> {
                   child: CircleAvatar(
                     radius: 20,
                     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    backgroundImage: (user?['profile']?['meta_data']?['avatar_base64'] != null && user?['profile']?['meta_data']?['avatar_base64'].toString().isNotEmpty == true)
-                        ? MemoryImage(base64Decode(user!['profile']['meta_data']['avatar_base64']))
-                        : null,
-                    child: (user?['profile']?['meta_data']?['avatar_base64'] == null || user?['profile']?['meta_data']?['avatar_base64'].toString().isEmpty == true)
+                    backgroundImage: _getAvatarImage(user),
+                    child: _getAvatarImage(user) == null
                         ? Text(
                             initial,
                             style: TextStyle(
@@ -340,10 +349,8 @@ class _MainScreenState extends State<MainScreen> {
                   CircleAvatar(
                     radius: 36,
                     backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    backgroundImage: (user?['profile']?['meta_data']?['avatar_base64'] != null && user?['profile']?['meta_data']?['avatar_base64'].toString().isNotEmpty == true)
-                        ? MemoryImage(base64Decode(user!['profile']['meta_data']['avatar_base64']))
-                        : null,
-                    child: (user?['profile']?['meta_data']?['avatar_base64'] == null || user?['profile']?['meta_data']?['avatar_base64'].toString().isEmpty == true)
+                    backgroundImage: _getAvatarImage(user),
+                    child: _getAvatarImage(user) == null
                         ? Text(
                             initial,
                             style: TextStyle(
