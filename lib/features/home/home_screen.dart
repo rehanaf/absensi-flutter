@@ -642,58 +642,52 @@ class _HomeScreenState extends State<HomeScreen> {
               ]
             );
           } else {
-            return IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (requireLoc) Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: Card(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: LiveLocationMap(
-                              officeLat: targetLat,
-                              officeLng: targetLng,
-                              locationName: targetLocationName,
-                              officeRadius: targetRadius,
-                              isFlexible: isLocationFlexible,
-                              onLocationUpdate: (isInside, pos) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  if (mounted) {
-                                    setState(() { _isInsideArea = isInside; _currentPos = pos; });
-                                  }
-                                });
-                              },
-                            ),
-                          ),
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (requireLoc) Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Lokasi Anda', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Card(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)
                         ),
-                      ],
-                    ),
-                  ),
-                  if (requireLoc) const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: _buildMonthlyCalendar(),
+                        clipBehavior: Clip.antiAlias,
+                        child: LiveLocationMap(
+                          officeLat: targetLat,
+                          officeLng: targetLng,
+                          locationName: targetLocationName,
+                          officeRadius: targetRadius,
+                          isFlexible: isLocationFlexible,
+                          onLocationUpdate: (isInside, pos) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                setState(() { _isInsideArea = isInside; _currentPos = pos; });
+                              }
+                            });
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ]
-              )
+                ),
+                if (requireLoc) const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      _buildMonthlyCalendar(),
+                    ],
+                  ),
+                ),
+              ]
             );
           }
         }
