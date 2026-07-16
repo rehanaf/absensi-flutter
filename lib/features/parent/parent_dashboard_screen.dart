@@ -138,72 +138,208 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
-        final avatarWidget = CircleAvatar(
-          radius: 36,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          child: Text(
-            (user?['name'] ?? 'U')[0].toUpperCase(),
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 32),
-          ),
-        );
-        final nameWidget = Text(
-          user?['name'] ?? 'Wali Murid',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
-          textAlign: isMobile ? TextAlign.center : TextAlign.start,
-        );
-        final usernameWidget = Text(
-          user?['username'] ?? 'username',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          textAlign: isMobile ? TextAlign.center : TextAlign.start,
-        );
+        final String name = user?['name'] ?? 'Wali Murid';
+        final String username = user?['username'] ?? '-';
+        final String role = 'WALI MURID / ORANG TUA';
 
-        if (isMobile) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 32, bottom: 16, left: 16, right: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                avatarWidget, 
-                const SizedBox(height: 16), 
-                nameWidget, 
-                const SizedBox(height: 4), 
-                usernameWidget,
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _showConnectChildDialog,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Hubungkan Anak'),
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          );
-        }
-        return Padding(
-          padding: const EdgeInsets.only(top: 32, bottom: 16, left: 16, right: 16),
-          child: Row(
-            children: [
-              avatarWidget, 
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, 
-                  children: [
-                    nameWidget, 
-                    const SizedBox(height: 4), 
-                    usernameWidget
-                  ]
-                )
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
               ),
-              ElevatedButton.icon(
-                onPressed: _showConnectChildDialog,
-                icon: const Icon(Icons.add),
-                label: const Text('Hubungkan Anak'),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -24,
+                top: -24,
+                child: CircleAvatar(
+                  radius: 64,
+                  backgroundColor: Colors.white.withOpacity(0.08),
                 ),
+              ),
+              Positioned(
+                left: -12,
+                bottom: -32,
+                child: CircleAvatar(
+                  radius: 48,
+                  backgroundColor: Colors.white.withOpacity(0.05),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: isMobile
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 36,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 32,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Username: $username',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Text(
+                              role,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _showConnectChildDialog,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Hubungkan Anak'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 38,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 34,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Username: $username',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: Text(
+                                    role,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: _showConnectChildDialog,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Hubungkan Anak'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ],
           ),
