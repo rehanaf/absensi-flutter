@@ -85,6 +85,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final settings = Provider.of<AppSettingsProvider>(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inputBgColor = isDark ? colorScheme.onSurface.withOpacity(0.08) : Colors.white;
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: isDark ? BorderSide.none : BorderSide(color: colorScheme.outlineVariant, width: 1),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -165,11 +171,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: Icon(Icons.badge),
                             ),
                             prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            border: inputBorder,
+                            enabledBorder: inputBorder,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                            ),
                             errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 1.5)),
                             focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 2)),
                             filled: true,
-                            fillColor: colorScheme.onSurface.withOpacity(0.08),
+                            fillColor: inputBgColor,
                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
@@ -190,11 +201,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: Icon(Icons.person),
                             ),
                             prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            border: inputBorder,
+                            enabledBorder: inputBorder,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                            ),
                             errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 1.5)),
                             focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 2)),
                             filled: true,
-                            fillColor: colorScheme.onSurface.withOpacity(0.08),
+                            fillColor: inputBgColor,
                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
@@ -215,11 +231,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: Icon(Icons.email),
                             ),
                             prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            border: inputBorder,
+                            enabledBorder: inputBorder,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                            ),
                             errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 1.5)),
                             focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 2)),
                             filled: true,
-                            fillColor: colorScheme.onSurface.withOpacity(0.08),
+                            fillColor: inputBgColor,
                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
@@ -248,11 +269,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 });
                               },
                             ),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            border: inputBorder,
+                            enabledBorder: inputBorder,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                            ),
                             errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 1.5)),
                             focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 2)),
                             filled: true,
-                            fillColor: colorScheme.onSurface.withOpacity(0.08),
+                            fillColor: inputBgColor,
                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
@@ -287,11 +313,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 });
                               },
                             ),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            border: inputBorder,
+                            enabledBorder: inputBorder,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                            ),
                             errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 1.5)),
                             focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.error, width: 2)),
                             filled: true,
-                            fillColor: colorScheme.onSurface.withOpacity(0.08),
+                            fillColor: inputBgColor,
                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
