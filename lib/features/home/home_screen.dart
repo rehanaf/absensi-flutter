@@ -38,7 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
       _error = null;
     });
     try {
-      final res = await _apiService.getUserDashboard();
+      final res = await _apiService.getUserDashboard(
+        month: _selectedMonth,
+        year: _selectedYear,
+      );
       if (mounted) {
         setState(() {
           _dashboardData = res;
@@ -490,8 +493,8 @@ class _HomeScreenState extends State<HomeScreen> {
           final cards = [
             _buildStatCard('Hadir', '${_dashboardData?['total_attendances'] ?? 0}', Colors.green, Icons.check_circle),
             _buildStatCard('Izin', '${_dashboardData?['total_permits'] ?? 0}', Colors.orange, Icons.assignment),
-            _buildStatCard('Telat', '0', Colors.redAccent, Icons.timer_off),
-            _buildStatCard('Alpa', '0', Colors.red, Icons.cancel),
+            _buildStatCard('Terlambat', '${_dashboardData?['total_lates'] ?? 0}', Colors.redAccent, Icons.timer_off),
+            _buildStatCard('Alpa', '${_dashboardData?['total_alpa'] ?? 0}', Colors.red, Icons.cancel),
           ];
           
           if (isMobile) {
@@ -843,7 +846,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 return DropdownMenuItem(value: i + 1, child: Text(months[i]));
                                               }),
                                               onChanged: (val) {
-                                                if (val != null) setState(() => _selectedMonth = val);
+                                                if (val != null) {
+                                                  setState(() => _selectedMonth = val);
+                                                  _fetchDashboard();
+                                                }
                                               },
                                             ),
                                             const SizedBox(width: 8),
@@ -857,7 +863,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 return DropdownMenuItem(value: y, child: Text(y.toString()));
                                               }),
                                               onChanged: (val) {
-                                                if (val != null) setState(() => _selectedYear = val);
+                                                if (val != null) {
+                                                  setState(() => _selectedYear = val);
+                                                  _fetchDashboard();
+                                                }
                                               },
                                             ),
                                           ],

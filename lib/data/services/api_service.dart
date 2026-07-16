@@ -212,18 +212,26 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> getUserDashboard() async {
+  Future<Map<String, dynamic>> getUserDashboard({int? month, int? year}) async {
     try {
-      final response = await _apiClient.dio.get('/dashboard/user');
+      final queryParams = <String, dynamic>{};
+      if (month != null) queryParams['month'] = month;
+      if (year != null) queryParams['year'] = year;
+      
+      final response = await _apiClient.dio.get('/dashboard/user', queryParameters: queryParams);
       return response.data;
     } catch (e) {
       throw _handleException(e);
     }
   }
 
-  Future<Map<String, dynamic>> getParentDashboard() async {
+  Future<Map<String, dynamic>> getParentDashboard({int? month, int? year}) async {
     try {
-      final response = await _apiClient.dio.get('/dashboard/parent');
+      final queryParams = <String, dynamic>{};
+      if (month != null) queryParams['month'] = month;
+      if (year != null) queryParams['year'] = year;
+      
+      final response = await _apiClient.dio.get('/dashboard/parent', queryParameters: queryParams);
       return response.data;
     } catch (e) {
       throw _handleException(e);

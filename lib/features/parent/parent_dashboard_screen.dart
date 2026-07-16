@@ -17,6 +17,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   String? _errorMessage;
   List<dynamic> _children = [];
   List<dynamic> _requests = [];
+  int _selectedMonth = DateTime.now().month;
+  int _selectedYear = DateTime.now().year;
 
   @override
   void initState() {
@@ -31,7 +33,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     });
 
     try {
-      final response = await _apiService.getParentDashboard();
+      final response = await _apiService.getParentDashboard(
+        month: _selectedMonth,
+        year: _selectedYear,
+      );
       final reqResponse = await _apiService.getParentChildrenRequests();
       if (mounted) {
         setState(() {
@@ -441,9 +446,46 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               ],
             ),
           ],
+          const SizedBox(height: 12),
+          // Child stats summary
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildChildStatCard('Hadir', '${child['total_attendances'] ?? 0}', Colors.green),
+              _buildChildStatCard('Izin', '${child['total_permits'] ?? 0}', Colors.orange),
+              _buildChildStatCard('Terlambat', '${child['total_lates'] ?? 0}', Colors.amber),
+              _buildChildStatCard('Alpa', '${child['total_alpa'] ?? 0}', Colors.red),
+            ],
+          ),
           const SizedBox(height: 16),
           _buildChildMonthlyCalendar(monthAttendance),
         ],
+      ),
+    );
+  }
+
+  Widget _buildChildStatCard(String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withAlpha(20),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10, color: color.withOpacity(0.8), fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -555,9 +597,51 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 16.0, bottom: 8.0),
-                  child: Text(
-                    'Daftar Anak Terhubung',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Daftar Anak Terhubung',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Row(
+                        children: [
+                          DropdownButton<int>(
+                            value: _selectedMonth,
+                            underline: const SizedBox(),
+                            borderRadius: BorderRadius.circular(8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            items: List.generate(12, (i) {
+                              const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                              return DropdownMenuItem(value: i + 1, child: Text(months[i]));
+                            }),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() => _selectedMonth = val);
+                                _fetchDashboard();
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<int>(
+                            value: _selectedYear,
+                            underline: const SizedBox(),
+                            borderRadius: BorderRadius.circular(8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            items: List.generate(5, (i) {
+                              final y = DateTime.now().year - i;
+                              return DropdownMenuItem(value: y, child: Text(y.toString()));
+                            }),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() => _selectedYear = val);
+                                _fetchDashboard();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
