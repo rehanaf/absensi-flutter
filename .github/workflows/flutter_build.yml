@@ -1,14 +1,7 @@
 name: Flutter Multi-Platform Auto Build
 
 on:
-  push:
-    branches:
-      - main
-      - master
-  pull_request:
-    branches:
-      - main
-      - master
+  workflow_dispatch:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
