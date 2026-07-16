@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final inputBgColor = isDark ? colorScheme.onSurface.withOpacity(0.08) : Colors.white;
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: isDark ? BorderSide.none : BorderSide(color: colorScheme.outlineVariant, width: 1),
+      borderSide: BorderSide.none,
     );
 
     return Scaffold(
