@@ -207,10 +207,156 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     );
   }
 
+  Widget _buildChildMonthlyCalendar(List<dynamic> monthAttendance) {
+    if (monthAttendance.isEmpty) return const SizedBox.shrink();
+
+    final DateTime now = DateTime.now();
+    final List<String> weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+
+    // Find the weekday of the first day of this month
+    final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
+    final int firstWeekday = firstDayOfMonth.weekday; // 1 = Mon, 7 = Sun
+    final int prefixEmptyCells = firstWeekday - 1;
+
+    // Total cells in the grid = empty cells + days in month
+    final int totalCells = prefixEmptyCells + monthAttendance.length;
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(127),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16)
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.calendar_month, color: Theme.of(context).colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Kehadiran Bulan Ini',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Weekday Headers
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: weekdays.map((day) {
+                return Expanded(
+                  child: Center(
+                    child: Text(
+                      day,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 8),
+            // Calendar Grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemCount: totalCells,
+              itemBuilder: (context, index) {
+                if (index < prefixEmptyCells) {
+                  return const SizedBox.shrink();
+                }
+
+                final int dayIndex = index - prefixEmptyCells;
+                final dayData = monthAttendance[dayIndex];
+                final int dayNum = dayData['day'] ?? (dayIndex + 1);
+                final String status = dayData['status']?.toString() ?? 'absen';
+                final String dateStr = dayData['date']?.toString() ?? '';
+                
+                // Determine if this day is in the future
+                bool isFuture = false;
+                try {
+                  if (dateStr.isNotEmpty) {
+                    final dayDate = DateTime.parse(dateStr);
+                    final todayDate = DateTime(now.year, now.month, now.day);
+                    if (dayDate.isAfter(todayDate)) {
+                      isFuture = true;
+                    }
+                  }
+                } catch (_) {}
+
+                Color? textColor;
+                BoxDecoration? decoration;
+
+                if (isFuture) {
+                  textColor = Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(76);
+                } else {
+                  if (status == 'hadir') {
+                    textColor = Colors.green;
+                    decoration = BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.green, width: 2),
+                    );
+                  } else if (status == 'sakit' || status == 'izin' || status == 'cuti') {
+                    textColor = Colors.orange;
+                    decoration = BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.orange, width: 2),
+                    );
+                  } else if (status == 'libur') {
+                    textColor = Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(127);
+                    decoration = BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(200),
+                      shape: BoxShape.circle,
+                    );
+                  } else {
+                    // Absen (Tidak Hadir)
+                    textColor = Colors.red;
+                    decoration = BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.red.withAlpha(76), width: 1),
+                    );
+                  }
+                }
+
+                return Center(
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: decoration,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$dayNum',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildChildItem(Map<String, dynamic> child) {
     final name = child['name'] ?? 'Nama Tidak Diketahui';
     final username = child['username'] ?? '-';
-    final chart7Days = (child['chart_7_days'] as List?) ?? [];
+    final monthAttendance = (child['month_attendance'] as List?) ?? [];
     final attendances = (child['attendances'] as List?) ?? [];
     
     String todayStatus = 'Belum Absen';
@@ -278,55 +424,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             ),
           ],
           const SizedBox(height: 16),
-          if (chart7Days.isEmpty)
-            Text('Belum ada riwayat 7 hari', style: Theme.of(context).textTheme.bodySmall)
-          else
-            Card(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(127),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              clipBehavior: Clip.antiAlias,
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(76),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text('Tanggal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
-                        Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                      ]
-                    )
-                  ),
-                  const Divider(height: 1),
-                  ...chart7Days.map((day) {
-                    final status = day['status']?.toString() ?? 'unknown';
-                    final dateStr = day['date']?.toString() ?? '-';
-                    
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(
-                        children: [
-                          Expanded(child: Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(status).withAlpha(26),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              status.toUpperCase(),
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _getStatusColor(status)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
+          _buildChildMonthlyCalendar(monthAttendance),
         ],
       ),
     );

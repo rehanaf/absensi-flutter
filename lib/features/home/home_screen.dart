@@ -200,9 +200,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildStreakChart() {
-    final chartData = _dashboardData?['chart_7_days'] as List<dynamic>?;
-    if (chartData == null || chartData.isEmpty) return const SizedBox.shrink();
+  Widget _buildMonthlyCalendar() {
+    final monthAttendance = _dashboardData?['month_attendance'] as List<dynamic>?;
+    if (monthAttendance == null || monthAttendance.isEmpty) return const SizedBox.shrink();
+
+    final DateTime now = DateTime.now();
+    final List<String> weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+
+    // Find the weekday of the first day of this month
+    final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
+    final int firstWeekday = firstDayOfMonth.weekday; // 1 = Mon, 7 = Sun
+    final int prefixEmptyCells = firstWeekday - 1;
+
+    // Total cells in the grid = empty cells + days in month
+    final int totalCells = prefixEmptyCells + monthAttendance.length;
 
     return Card(
       elevation: 0,
@@ -213,90 +224,127 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: chartData.map((dayData) {
-            final dateStr = dayData['date'].toString();
-            final status = dayData['status'].toString();
-            
-            DateTime parsedDate;
-            try {
-              parsedDate = DateTime.parse(dateStr);
-            } catch (e) {
-              parsedDate = DateTime.now();
-            }
-            
-            final isToday = parsedDate.year == DateTime.now().year && parsedDate.month == DateTime.now().month && parsedDate.day == DateTime.now().day;
-            final isFuture = parsedDate.isAfter(DateTime.now());
-            
-            final dayName = _getDayName(parsedDate.weekday);
-            
-            Color circleColor = Theme.of(context).colorScheme.surfaceContainerHighest;
-            IconData icon = Icons.circle;
-            Color iconColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
-
-            if (status == 'hadir') {
-              circleColor = Colors.green;
-              icon = Icons.check;
-              iconColor = Colors.white;
-            } else if (status == 'absen' || status == 'alpha') {
-              circleColor = Colors.red.withValues(alpha: 0.1);
-              icon = Icons.close;
-              iconColor = Colors.red;
-            } else if (status == 'izin' || status == 'sakit') {
-              circleColor = Colors.orange.withValues(alpha: 0.1);
-              icon = Icons.assignment_outlined;
-              iconColor = Colors.orange;
-            } else if (isFuture) {
-              circleColor = Colors.transparent;
-              icon = Icons.circle_outlined;
-              iconColor = Theme.of(context).colorScheme.outline;
-            }
-
-            return Column(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: circleColor,
-                    border: isFuture ? Border.all(color: Theme.of(context).colorScheme.outline) : null,
-                  ),
-                  child: Center(
-                    child: Icon(icon, color: iconColor, size: 20),
-                  ),
-                ),
-                const SizedBox(height: 8),
+                Icon(Icons.calendar_month, color: Theme.of(context).colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
                 Text(
-                  dayName,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                    color: isToday ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  'Kehadiran Bulan Ini',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
-            );
-          }).toList(),
-        ),
-      ],
-    )));
-  }
+            ),
+            const SizedBox(height: 16),
+            // Weekday Headers
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: weekdays.map((day) {
+                return Expanded(
+                  child: Center(
+                    child: Text(
+                      day,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 8),
+            // Calendar Grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemCount: totalCells,
+              itemBuilder: (context, index) {
+                if (index < prefixEmptyCells) {
+                  return const SizedBox.shrink();
+                }
 
-  String _getDayName(int weekday) {
-    switch (weekday) {
-      case 1: return 'Sen';
-      case 2: return 'Sel';
-      case 3: return 'Rab';
-      case 4: return 'Kam';
-      case 5: return 'Jum';
-      case 6: return 'Sab';
-      case 7: return 'Min';
-      default: return '';
-    }
+                final int dayIndex = index - prefixEmptyCells;
+                final dayData = monthAttendance[dayIndex];
+                final int dayNum = dayData['day'] ?? (dayIndex + 1);
+                final String status = dayData['status']?.toString() ?? 'absen';
+                final String dateStr = dayData['date']?.toString() ?? '';
+                
+                // Determine if this day is in the future
+                bool isFuture = false;
+                try {
+                  if (dateStr.isNotEmpty) {
+                    final dayDate = DateTime.parse(dateStr);
+                    final todayDate = DateTime(now.year, now.month, now.day);
+                    if (dayDate.isAfter(todayDate)) {
+                      isFuture = true;
+                    }
+                  }
+                } catch (_) {}
+
+                Color? textColor;
+                BoxDecoration? decoration;
+
+                if (isFuture) {
+                  textColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
+                } else {
+                  if (status == 'hadir') {
+                    textColor = Colors.green;
+                    decoration = BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.green, width: 2),
+                    );
+                  } else if (status == 'sakit' || status == 'izin' || status == 'cuti') {
+                    textColor = Colors.orange;
+                    decoration = BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.orange, width: 2),
+                    );
+                  } else if (status == 'libur') {
+                    textColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+                    decoration = BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+                      shape: BoxShape.circle,
+                    );
+                  } else {
+                    // Absen (Tidak Hadir)
+                    textColor = Colors.red;
+                    decoration = BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.red.withValues(alpha: 0.3), width: 1),
+                    );
+                  }
+                }
+
+                return Center(
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: decoration,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$dayNum',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildStatCard(String title, String value, Color color, IconData icon) {
@@ -570,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
                 Text('Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                _buildStreakChart(),
+                _buildMonthlyCalendar(),
               ]
             );
           } else {
@@ -619,7 +667,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text('Kehadiran', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         Expanded(
-                          child: _buildStreakChart(),
+                          child: _buildMonthlyCalendar(),
                         ),
                       ],
                     ),
