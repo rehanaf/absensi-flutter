@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../test/color_test_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -302,14 +303,19 @@ class _MainScreenState extends State<MainScreen> {
                   child: CircleAvatar(
                     radius: 20,
                     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: Text(
-                      initial,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                    backgroundImage: (user?['profile']?['meta_data']?['avatar_base64'] != null && user?['profile']?['meta_data']?['avatar_base64'].toString().isNotEmpty == true)
+                        ? MemoryImage(base64Decode(user!['profile']['meta_data']['avatar_base64']))
+                        : null,
+                    child: (user?['profile']?['meta_data']?['avatar_base64'] == null || user?['profile']?['meta_data']?['avatar_base64'].toString().isEmpty == true)
+                        ? Text(
+                            initial,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
               );
@@ -334,14 +340,19 @@ class _MainScreenState extends State<MainScreen> {
                   CircleAvatar(
                     radius: 36,
                     backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    child: Text(
-                      initial,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 28,
-                      ),
-                    ),
+                    backgroundImage: (user?['profile']?['meta_data']?['avatar_base64'] != null && user?['profile']?['meta_data']?['avatar_base64'].toString().isNotEmpty == true)
+                        ? MemoryImage(base64Decode(user!['profile']['meta_data']['avatar_base64']))
+                        : null,
+                    child: (user?['profile']?['meta_data']?['avatar_base64'] == null || user?['profile']?['meta_data']?['avatar_base64'].toString().isEmpty == true)
+                        ? Text(
+                            initial,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 28,
+                            ),
+                          )
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   Text(

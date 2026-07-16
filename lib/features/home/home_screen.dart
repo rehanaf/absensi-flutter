@@ -261,14 +261,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (cardPreset != null && cardPresets.containsKey(cardPreset)) {
       gradientColors = cardPresets[cardPreset]!;
-    } else if (isDark) {
-      gradientColors = [
-        Theme.of(context).colorScheme.surfaceContainerHigh,
-        Theme.of(context).colorScheme.surfaceContainerHighest,
-      ];
     }
 
-    final bool isCardColored = !isDark || (cardPreset != null && cardPreset != 'default' && cardPreset != 'slate');
+    final bool isCardColored = true;
 
     // Determine status text
     String statusText = 'Belum Absen';

@@ -222,14 +222,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (cardPreset != null && cardPresets.containsKey(cardPreset)) {
       gradientColors = cardPresets[cardPreset]!;
-    } else if (isDark) {
-      gradientColors = [
-        Theme.of(context).colorScheme.surfaceContainerHigh,
-        Theme.of(context).colorScheme.surfaceContainerHighest,
-      ];
     }
 
-    final bool isCardColored = !isDark || (cardPreset != null && cardPreset != 'default' && cardPreset != 'slate');
+    final bool isCardColored = true;
 
     final boxDec = BoxDecoration(
       borderRadius: BorderRadius.circular(24),

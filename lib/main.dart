@@ -153,7 +153,7 @@ class MyApp extends StatelessWidget {
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return IconThemeData(color: lightColorScheme.onSecondaryContainer);
+                  return IconThemeData(color: lightColorScheme.primary);
                 }
                 return IconThemeData(color: lightColorScheme.onSurfaceVariant);
               }),
@@ -174,7 +174,7 @@ class MyApp extends StatelessWidget {
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return IconThemeData(color: darkColorScheme.onSecondaryContainer);
+                  return IconThemeData(color: darkColorScheme.primary);
                 }
                 return IconThemeData(color: darkColorScheme.onSurfaceVariant);
               }),
