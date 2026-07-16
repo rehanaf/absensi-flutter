@@ -93,100 +93,100 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<AppSettingsProvider, ThemeProvider>(
       builder: (context, settings, themeProvider, child) {
-        return DynamicColorBuilder(
-          builder: (lightDynamic, darkDynamic) {
-            final pref = themeProvider.colorPreference;
-            
-            ColorScheme lightColorScheme;
-            ColorScheme darkColorScheme;
+        const lightColorScheme = ColorScheme(
+          brightness: Brightness.light,
+          primary: Color(0xFF1D4ED8), // Royal Blue (high contrast)
+          onPrimary: Colors.white,
+          primaryContainer: Color(0xFFDBEAFE),
+          onPrimaryContainer: Color(0xFF1E40AF),
+          secondary: Color(0xFF0284C7),
+          onSecondary: Colors.white,
+          secondaryContainer: Color(0xFFE0F2FE),
+          onSecondaryContainer: Color(0xFF0369A1),
+          tertiary: Color(0xFF0D9488),
+          onTertiary: Colors.white,
+          error: Color(0xFFDC2626),
+          onError: Colors.white,
+          surface: Color(0xFFF8FAFC),
+          onSurface: Color(0xFF0F172A),
+          surfaceContainerHighest: Color(0xFFF1F5F9),
+          onSurfaceVariant: Color(0xFF475569),
+          outline: Color(0xFFCBD5E1),
+          shadow: Colors.black,
+        );
 
-            if (pref == AppColorPreference.dynamic && lightDynamic != null && darkDynamic != null) {
-              lightColorScheme = lightDynamic.harmonized();
-              darkColorScheme = darkDynamic.harmonized();
-            } else {
-              Color seedColor;
-              switch (pref) {
-                case AppColorPreference.blue:
-                  seedColor = const Color(0xFF4285F4);
-                  break;
-                case AppColorPreference.red:
-                  seedColor = Colors.red;
-                  break;
-                case AppColorPreference.green:
-                  seedColor = Colors.green;
-                  break;
-                case AppColorPreference.purple:
-                  seedColor = Colors.purple;
-                  break;
-                case AppColorPreference.monochrome:
-                  seedColor = Colors.grey;
-                  break;
-                default:
-                  seedColor = const Color(0xFF4285F4);
-              }
-              
-              lightColorScheme = ColorScheme.fromSeed(
-                seedColor: seedColor,
-                brightness: Brightness.light,
-              );
-              darkColorScheme = ColorScheme.fromSeed(
-                seedColor: seedColor,
-                brightness: Brightness.dark,
-              );
-            }
+        const darkColorScheme = ColorScheme(
+          brightness: Brightness.dark,
+          primary: Color(0xFF3B82F6), // Vibrant Blue
+          onPrimary: Colors.white,
+          primaryContainer: Color(0xFF1E3A8A),
+          onPrimaryContainer: Color(0xFF93C5FD),
+          secondary: Color(0xFF38BDF8),
+          onSecondary: Color(0xFF0F172A),
+          secondaryContainer: Color(0xFF0369A1),
+          onSecondaryContainer: Color(0xFFBAE6FD),
+          tertiary: Color(0xFF2DD4BF),
+          onTertiary: Color(0xFF0F172A),
+          error: Color(0xFFEF4444),
+          onError: Colors.white,
+          surface: Color(0xFF0F172A), // Dark slate
+          onSurface: Color(0xFFF8FAFC),
+          surfaceContainerHighest: Color(0xFF1E293B),
+          onSurfaceVariant: Color(0xFF94A3B8),
+          outline: Color(0xFF475569),
+          shadow: Colors.black,
+        );
 
-            return MaterialApp.router(
-              title: settings.appName,
-              themeMode: themeProvider.themeMode,
-              theme: ThemeData(
-                colorScheme: lightColorScheme,
-                useMaterial3: true,
-                fontFamily: GoogleFonts.quicksand().fontFamily,
-                navigationBarTheme: NavigationBarThemeData(
-                  labelTextStyle: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                      return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
-                    }
-                    return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
-                  }),
-                  iconTheme: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                      return IconThemeData(color: lightColorScheme.onSecondaryContainer);
-                    }
-                    return IconThemeData(color: lightColorScheme.onSurfaceVariant);
-                  }),
-                  indicatorColor: lightColorScheme.secondaryContainer,
-                  backgroundColor: lightColorScheme.surface,
-                ),
-              ),
-              darkTheme: ThemeData(
-                colorScheme: darkColorScheme,
-                useMaterial3: true,
-                fontFamily: GoogleFonts.quicksand().fontFamily,
-                navigationBarTheme: NavigationBarThemeData(
-                  labelTextStyle: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                      return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
-                    }
-                    return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
-                  }),
-                  iconTheme: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                      return IconThemeData(color: darkColorScheme.onSecondaryContainer);
-                    }
-                    return IconThemeData(color: darkColorScheme.onSurfaceVariant);
-                  }),
-                  indicatorColor: darkColorScheme.secondaryContainer,
-                  backgroundColor: darkColorScheme.surface,
-                ),
-              ),
-              routerConfig: router,
-              builder: (context, child) {
-                return GestureDetector(
-                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                  child: child,
-                );
-              },
+        return MaterialApp.router(
+          title: settings.appName,
+          themeMode: themeProvider.themeMode,
+          theme: ThemeData(
+            colorScheme: lightColorScheme,
+            useMaterial3: true,
+            fontFamily: GoogleFonts.quicksand().fontFamily,
+            navigationBarTheme: NavigationBarThemeData(
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+                }
+                return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+              }),
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return IconThemeData(color: lightColorScheme.onSecondaryContainer);
+                }
+                return IconThemeData(color: lightColorScheme.onSurfaceVariant);
+              }),
+              indicatorColor: lightColorScheme.secondaryContainer,
+              backgroundColor: lightColorScheme.surface,
+            ),
+          ),
+          darkTheme: ThemeData(
+            colorScheme: darkColorScheme,
+            useMaterial3: true,
+            fontFamily: GoogleFonts.quicksand().fontFamily,
+            navigationBarTheme: NavigationBarThemeData(
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+                }
+                return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+              }),
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return IconThemeData(color: darkColorScheme.onSecondaryContainer);
+                }
+                return IconThemeData(color: darkColorScheme.onSurfaceVariant);
+              }),
+              indicatorColor: darkColorScheme.secondaryContainer,
+              backgroundColor: darkColorScheme.surface,
+            ),
+          ),
+          routerConfig: router,
+          builder: (context, child) {
+            return GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: child,
             );
           },
         );

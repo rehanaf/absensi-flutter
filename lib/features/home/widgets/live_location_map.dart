@@ -178,9 +178,7 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
                 ? const Color(0xFF10B981).withValues(alpha: 0.1) 
                 : const Color(0xFFEF4444).withValues(alpha: 0.1),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            border: Border.all(
-              color: _isInsideArea ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-            ),
+
           ),
           child: Row(
             children: [

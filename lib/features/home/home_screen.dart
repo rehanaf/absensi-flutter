@@ -18,58 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _avatarBase64;
-  String? _bgBase64;
 
-  Future<void> _loadCustomAssets() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _avatarBase64 = prefs.getString('custom_avatar_base64');
-        _bgBase64 = prefs.getString('custom_bg_base64');
-      });
-    }
-  }
-
-  Future<void> _pickAvatarImage() async {
-    try {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300, maxHeight: 300);
-      if (image != null) {
-        final bytes = await image.readAsBytes();
-        final base64Str = base64Encode(bytes);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('custom_avatar_base64', base64Str);
-        if (mounted) {
-          setState(() {
-            _avatarBase64 = base64Str;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error picking avatar: $e');
-    }
-  }
-
-  Future<void> _pickBackgroundImage() async {
-    try {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1000, maxHeight: 600);
-      if (image != null) {
-        final bytes = await image.readAsBytes();
-        final base64Str = base64Encode(bytes);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('custom_bg_base64', base64Str);
-        if (mounted) {
-          setState(() {
-            _bgBase64 = base64Str;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error picking background: $e');
-    }
-  }
 
 
   final ApiService _apiService = ApiService();
@@ -86,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCustomAssets();
     _fetchDashboard();
   }
 
@@ -290,6 +238,38 @@ class _HomeScreenState extends State<HomeScreen> {
     final String username = user?['username'] ?? '-';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Load avatar and card preset from backend profile meta_data
+    final profile = user?['profile'];
+    final metaData = profile?['meta_data'];
+    final String? avatarBase64 = metaData?['avatar_base64'];
+    final String? cardPreset = metaData?['card_preset'];
+
+    // Map presets to gradients
+    final cardPresets = {
+      'blue': [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
+      'orange': [const Color(0xFFF97316), const Color(0xFFC2410C)],
+      'green': [const Color(0xFF0D9488), const Color(0xFF115E59)],
+      'purple': [const Color(0xFF6366F1), const Color(0xFF4338CA)],
+      'rose': [const Color(0xFFEC4899), const Color(0xFFBE185D)],
+      'slate': [const Color(0xFF475569), const Color(0xFF1E293B)],
+    };
+
+    List<Color> gradientColors = [
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
+    ];
+
+    if (cardPreset != null && cardPresets.containsKey(cardPreset)) {
+      gradientColors = cardPresets[cardPreset]!;
+    } else if (isDark) {
+      gradientColors = [
+        Theme.of(context).colorScheme.surfaceContainerHigh,
+        Theme.of(context).colorScheme.surfaceContainerHighest,
+      ];
+    }
+
+    final bool isCardColored = !isDark || (cardPreset != null && cardPreset != 'default' && cardPreset != 'slate');
+
     // Determine status text
     String statusText = 'Belum Absen';
     Color statusBadgeColor = Colors.white.withOpacity(0.2);
@@ -309,38 +289,16 @@ class _HomeScreenState extends State<HomeScreen> {
       statusBadgeColor = Colors.grey[700]!.withOpacity(0.4);
     }
 
-    // Set background photo or theme gradient
-    DecorationImage? bgImage;
-    if (_bgBase64 != null) {
-      try {
-        bgImage = DecorationImage(
-          image: MemoryImage(base64Decode(_bgBase64!)),
-          fit: BoxFit.cover,
-        );
-      } catch (_) {}
-    }
-
     final boxDec = BoxDecoration(
       borderRadius: BorderRadius.circular(24),
-      image: bgImage,
-      gradient: bgImage == null
-          ? LinearGradient(
-              colors: isDark
-                  ? [
-                      Theme.of(context).colorScheme.surfaceContainerHigh,
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ]
-                  : [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
-                    ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            )
-          : null,
+      gradient: LinearGradient(
+        colors: gradientColors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
       boxShadow: [
         BoxShadow(
-          color: Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.05 : 0.2),
+          color: gradientColors.first.withOpacity(isDark ? 0.05 : 0.2),
           blurRadius: 16,
           offset: const Offset(0, 8),
         ),
@@ -352,49 +310,21 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: boxDec,
       child: Stack(
         children: [
-          // Background decorative circular shapes (only if no custom image)
-          if (bgImage == null) ...[
-            Positioned(
-              right: -24,
-              top: -24,
-              child: CircleAvatar(
-                radius: 64,
-                backgroundColor: Colors.white.withOpacity(0.08),
-              ),
-            ),
-            Positioned(
-              left: -12,
-              bottom: -32,
-              child: CircleAvatar(
-                radius: 48,
-                backgroundColor: Colors.white.withOpacity(0.05),
-              ),
-            ),
-          ],
-          
-          // Image background dark overlay
-          if (bgImage != null)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  color: Colors.black.withOpacity(0.4),
-                ),
-              ),
-            ),
-
-          // Change Background button
+          // Background decorative circular shapes
           Positioned(
-            right: 12,
-            top: 12,
-            child: IconButton(
-              icon: Icon(
-                Icons.image,
-                color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70,
-                size: 20,
-              ),
-              onPressed: _pickBackgroundImage,
-              tooltip: 'Ubah Latar Belakang',
+            right: -24,
+            top: -24,
+            child: CircleAvatar(
+              radius: 64,
+              backgroundColor: Colors.white.withOpacity(0.08),
+            ),
+          ),
+          Positioned(
+            left: -12,
+            bottom: -32,
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: Colors.white.withOpacity(0.05),
             ),
           ),
 
@@ -407,53 +337,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 // User Details Row (Avatar on Left, Name & Username on Right)
                 Row(
                   children: [
-                    GestureDetector(
-                      onTap: _pickAvatarImage,
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 36,
-                              backgroundColor: Colors.white,
-                              backgroundImage: _avatarBase64 != null
-                                  ? MemoryImage(base64Decode(_avatarBase64!))
-                                  : null,
-                              child: _avatarBase64 == null
-                                  ? Text(
-                                      name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 28,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: CircleAvatar(
-                              radius: 11,
-                              backgroundColor: Colors.white,
-                              child: Icon(
-                                Icons.camera_alt,
-                                size: 12,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
                           ),
                         ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.white,
+                        backgroundImage: (avatarBase64 != null && avatarBase64.isNotEmpty)
+                            ? MemoryImage(base64Decode(avatarBase64))
+                            : null,
+                        child: (avatarBase64 == null || avatarBase64.isEmpty)
+                            ? Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 28,
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -465,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             name,
                             style: TextStyle(
-                              color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white,
+                              color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -476,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             username,
                             style: TextStyle(
-                              color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white.withOpacity(0.85),
+                              color: isCardColored ? Colors.white.withOpacity(0.85) : Theme.of(context).colorScheme.onSurfaceVariant,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -488,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 
                 const SizedBox(height: 16),
-                Divider(color: (isDark && bgImage == null) ? Theme.of(context).dividerColor.withOpacity(0.2) : Colors.white.withOpacity(0.2), height: 1),
+                Divider(color: isCardColored ? Colors.white.withOpacity(0.2) : Theme.of(context).dividerColor.withOpacity(0.2), height: 1),
                 const SizedBox(height: 16),
 
                 // Official Schedule Hours Row
@@ -499,30 +409,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           'Jadwal Masuk',
-                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70, fontSize: 11),
+                          style: TextStyle(color: isCardColored ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _dashboardData?['schedule_in'] ?? '--:--',
-                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     Container(
                       height: 24,
                       width: 1,
-                      color: (isDark && bgImage == null) ? Theme.of(context).dividerColor.withOpacity(0.2) : Colors.white.withOpacity(0.2),
+                      color: isCardColored ? Colors.white.withOpacity(0.2) : Theme.of(context).dividerColor.withOpacity(0.2),
                     ),
                     Column(
                       children: [
                         Text(
                           'Jadwal Pulang',
-                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70, fontSize: 11),
+                          style: TextStyle(color: isCardColored ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _dashboardData?['schedule_out'] ?? '--:--',
-                          style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -530,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 const SizedBox(height: 16),
-                Divider(color: (isDark && bgImage == null) ? Theme.of(context).dividerColor.withOpacity(0.2) : Colors.white.withOpacity(0.2), height: 1),
+                Divider(color: isCardColored ? Colors.white.withOpacity(0.2) : Theme.of(context).dividerColor.withOpacity(0.2), height: 1),
                 const SizedBox(height: 16),
 
                 // Attendance Status Row
@@ -539,18 +449,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       'Status Hari Ini:',
-                      style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusBadgeColor,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3) : Colors.white.withOpacity(0.3), width: 1),
+                        border: Border.all(color: isCardColored ? Colors.white.withOpacity(0.3) : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3), width: 1),
                       ),
                       child: Text(
                         statusText,
-                        style: TextStyle(color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface, fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -616,11 +526,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: const Text('Masuk'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: canCheckIn 
-                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.primary : Colors.white)
-                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.surfaceVariant : Colors.white.withOpacity(0.2)),
+                                  ? (isCardColored ? Colors.white : Theme.of(context).colorScheme.primary)
+                                  : (isCardColored ? Colors.white.withOpacity(0.2) : Theme.of(context).colorScheme.primary.withOpacity(0.12)),
                               foregroundColor: canCheckIn 
-                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary)
-                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5) : Colors.white.withOpacity(0.4)),
+                                  ? (isCardColored ? const Color(0xFF0F172A) : Theme.of(context).colorScheme.onPrimary)
+                                  : (isCardColored ? Colors.white.withOpacity(0.4) : Theme.of(context).colorScheme.onSurface.withOpacity(0.38)),
                               disabledBackgroundColor: isDark ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.1) : Colors.white.withOpacity(0.1),
                               disabledForegroundColor: isDark ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -640,11 +550,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: const Text('Pulang'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: canCheckOut 
-                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.primary : Colors.white)
-                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.surfaceVariant : Colors.white.withOpacity(0.2)),
+                                  ? (isCardColored ? Colors.white : Theme.of(context).colorScheme.primary)
+                                  : (isCardColored ? Colors.white.withOpacity(0.2) : Theme.of(context).colorScheme.primary.withOpacity(0.12)),
                               foregroundColor: canCheckOut 
-                                  ? (isDark && bgImage == null ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary)
-                                  : (isDark && bgImage == null ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5) : Colors.white.withOpacity(0.4)),
+                                  ? (isCardColored ? const Color(0xFF0F172A) : Theme.of(context).colorScheme.onPrimary)
+                                  : (isCardColored ? Colors.white.withOpacity(0.4) : Theme.of(context).colorScheme.onSurface.withOpacity(0.38)),
                               disabledBackgroundColor: isDark ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.1) : Colors.white.withOpacity(0.1),
                               disabledForegroundColor: isDark ? Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3) : Colors.white.withOpacity(0.3),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

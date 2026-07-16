@@ -19,7 +19,97 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  void _showImagePickerOptions({required bool isAvatar, required String? currentImage}) {
+  void _showPresetOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Pilih Warna Kartu',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 80,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _buildPresetItem('blue', 'Biru Klasik', [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)]),
+                      _buildPresetItem('orange', 'Orange Senja', [const Color(0xFFF59E0B), const Color(0xFFD97706)]),
+                      _buildPresetItem('green', 'Teal Rimbun', [const Color(0xFF10B981), const Color(0xFF047857)]),
+                      _buildPresetItem('purple', 'Ungu Midnight', [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)]),
+                      _buildPresetItem('rose', 'Merah Mawar', [const Color(0xFFF43F5E), const Color(0xFFBE185D)]),
+                      _buildPresetItem('slate', 'Abu Elegan', [const Color(0xFF64748B), const Color(0xFF334155)]),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPresetItem(String presetKey, String name, List<Color> colors) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _updateCardPreset(presetKey);
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: colors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(name, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateCardPreset(String presetKey) async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      await auth.updateProfile({'card_preset': presetKey});
+      if (mounted) {
+        AppToast.showSuccess(context, message: 'Warna kartu berhasil diperbarui!');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, message: 'Gagal memperbarui warna kartu: $e');
+      }
+    }
+  }
+
+
+  void _showImagePickerOptions({required String? currentImage}) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -30,19 +120,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
+              const ListTile(
                 title: Text(
-                  isAvatar ? 'Ubah Foto Profil' : 'Ubah Latar Belakang',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  'Ubah Foto Profil',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               if (currentImage != null && currentImage.isNotEmpty)
                 ListTile(
                   leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text('Hapus Gambar', style: TextStyle(color: Colors.red)),
+                  title: const Text('Hapus Foto Profil', style: TextStyle(color: Colors.red)),
                   onTap: () {
                     Navigator.pop(context);
-                    _updateProfileImage(isAvatar: isAvatar, base64Str: "");
+                    _updateProfileImage(base64Str: "");
                   },
                 ),
               ListTile(
@@ -50,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: const Text('Kamera'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImage(isAvatar: isAvatar, source: ImageSource.camera);
+                  _pickImage(source: ImageSource.camera);
                 },
               ),
               ListTile(
@@ -58,7 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: const Text('Galeri'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImage(isAvatar: isAvatar, source: ImageSource.gallery);
+                  _pickImage(source: ImageSource.gallery);
                 },
               ),
             ],
@@ -68,18 +158,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _pickImage({required bool isAvatar, required ImageSource source}) async {
+  Future<void> _pickImage({required ImageSource source}) async {
     try {
       final picker = ImagePicker();
       final image = await picker.pickImage(
         source: source,
-        maxWidth: isAvatar ? 300 : 1000,
-        maxHeight: isAvatar ? 300 : 600,
+        maxWidth: 300,
+        maxHeight: 300,
       );
       if (image != null) {
         final bytes = await image.readAsBytes();
         final base64Str = base64Encode(bytes);
-        _updateProfileImage(isAvatar: isAvatar, base64Str: base64Str);
+        _updateProfileImage(base64Str: base64Str);
       }
     } catch (e) {
       if (mounted) {
@@ -88,17 +178,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _updateProfileImage({required bool isAvatar, required String base64Str}) async {
+  Future<void> _updateProfileImage({required String base64Str}) async {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final key = isAvatar ? 'avatar_base64' : 'bg_base64';
-      
-      await auth.updateProfile({key: base64Str});
-      
+      await auth.updateProfile({'avatar_base64': base64Str});
       if (mounted) {
         AppToast.showSuccess(
           context, 
-          message: base64Str.isEmpty ? 'Gambar berhasil dihapus!' : 'Gambar berhasil diperbarui!'
+          message: base64Str.isEmpty ? 'Foto profil berhasil dihapus!' : 'Foto profil berhasil diperbarui!'
         );
       }
     } catch (e) {
@@ -116,39 +203,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final profile = user?['profile'];
     final metaData = profile?['meta_data'];
     final String? avatarBase64 = metaData?['avatar_base64'];
-    final String? bgBase64 = metaData?['bg_base64'];
+    final String? cardPreset = metaData?['card_preset'];
 
-    DecorationImage? bgImage;
-    if (bgBase64 != null && bgBase64.isNotEmpty) {
-      try {
-        bgImage = DecorationImage(
-          image: MemoryImage(base64Decode(bgBase64)),
-          fit: BoxFit.cover,
-        );
-      } catch (_) {}
+    // Map presets to gradients
+    final cardPresets = {
+      'blue': [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
+      'orange': [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+      'green': [const Color(0xFF10B981), const Color(0xFF047857)],
+      'purple': [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)],
+      'rose': [const Color(0xFFF43F5E), const Color(0xFFBE185D)],
+      'slate': [const Color(0xFF64748B), const Color(0xFF334155)],
+    };
+
+    List<Color> gradientColors = [
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
+    ];
+
+    if (cardPreset != null && cardPresets.containsKey(cardPreset)) {
+      gradientColors = cardPresets[cardPreset]!;
+    } else if (isDark) {
+      gradientColors = [
+        Theme.of(context).colorScheme.surfaceContainerHigh,
+        Theme.of(context).colorScheme.surfaceContainerHighest,
+      ];
     }
+
+    final bool isCardColored = !isDark || (cardPreset != null && cardPreset != 'default' && cardPreset != 'slate');
 
     final boxDec = BoxDecoration(
       borderRadius: BorderRadius.circular(24),
-      image: bgImage,
-      gradient: bgImage == null
-          ? LinearGradient(
-              colors: isDark
-                  ? [
-                      Theme.of(context).colorScheme.surfaceContainerHigh,
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ]
-                  : [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
-                    ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            )
-          : null,
+      gradient: LinearGradient(
+        colors: gradientColors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
       boxShadow: [
         BoxShadow(
-          color: Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.05 : 0.2),
+          color: gradientColors.first.withOpacity(isDark ? 0.05 : 0.2),
           blurRadius: 16,
           offset: const Offset(0, 8),
         ),
@@ -160,46 +252,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: boxDec,
       child: Stack(
         children: [
-          if (bgImage == null) ...[
-            Positioned(
-              right: -24,
-              top: -24,
-              child: CircleAvatar(
-                radius: 64,
-                backgroundColor: Colors.white.withOpacity(0.08),
-              ),
+          Positioned(
+            right: -24,
+            top: -24,
+            child: CircleAvatar(
+              radius: 64,
+              backgroundColor: Colors.white.withOpacity(0.08),
             ),
-            Positioned(
-              left: -12,
-              bottom: -32,
-              child: CircleAvatar(
-                radius: 48,
-                backgroundColor: Colors.white.withOpacity(0.05),
-              ),
+          ),
+          Positioned(
+            left: -12,
+            bottom: -32,
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: Colors.white.withOpacity(0.05),
             ),
-          ],
-          
-          if (bgImage != null)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  color: Colors.black.withOpacity(0.4),
-                ),
-              ),
-            ),
+          ),
 
           Positioned(
             right: 12,
             top: 12,
             child: IconButton(
               icon: Icon(
-                Icons.image,
-                color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white70,
+                Icons.palette,
+                color: isCardColored ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 20,
               ),
-              onPressed: () => _showImagePickerOptions(isAvatar: false, currentImage: bgBase64),
-              tooltip: 'Ubah Latar Belakang',
+              onPressed: _showPresetOptions,
+              tooltip: 'Pilih Warna Kartu',
             ),
           ),
 
@@ -208,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => _showImagePickerOptions(isAvatar: true, currentImage: avatarBase64),
+                  onTap: () => _showImagePickerOptions(currentImage: avatarBase64),
                   child: Stack(
                     children: [
                       Container(
@@ -265,7 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         name,
                         style: TextStyle(
-                          color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurface : Colors.white,
+                          color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -276,7 +356,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         username,
                         style: TextStyle(
-                          color: (isDark && bgImage == null) ? Theme.of(context).colorScheme.onSurfaceVariant : Colors.white.withOpacity(0.85),
+                          color: isCardColored ? Colors.white.withOpacity(0.85) : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -291,7 +371,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
 
   String _notificationStatus = 'Memeriksa...';
   bool _isPermissionGranted = false;
