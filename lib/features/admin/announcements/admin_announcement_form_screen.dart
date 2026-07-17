@@ -6,10 +6,12 @@ class AdminAnnouncementFormScreen extends StatefulWidget {
   const AdminAnnouncementFormScreen({super.key, this.item});
 
   @override
-  State<AdminAnnouncementFormScreen> createState() => _AdminAnnouncementFormScreenState();
+  State<AdminAnnouncementFormScreen> createState() =>
+      _AdminAnnouncementFormScreenState();
 }
 
-class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScreen> {
+class _AdminAnnouncementFormScreenState
+    extends State<AdminAnnouncementFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
   bool _isLoading = false;
@@ -21,8 +23,12 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
   void initState() {
     super.initState();
     final item = widget.item;
-    _titleController = TextEditingController(text: item?['title']?.toString() ?? '');
-    _contentController = TextEditingController(text: item?['content']?.toString() ?? '');
+    _titleController = TextEditingController(
+      text: item?['title']?.toString() ?? '',
+    );
+    _contentController = TextEditingController(
+      text: item?['content']?.toString() ?? '',
+    );
   }
 
   @override
@@ -47,7 +53,9 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
         await _apiService.createAnnouncement(data);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pengumuman berhasil ditambahkan dan dikirim!')),
+            const SnackBar(
+              content: Text('Pengumuman berhasil ditambahkan dan dikirim!'),
+            ),
           );
         }
       } else {
@@ -92,7 +100,9 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
                   children: [
                     Text(
                       'Informasi Pengumuman',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -104,9 +114,13 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withAlpha(80),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Judul wajib diisi' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Judul wajib diisi'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -120,15 +134,21 @@ class _AdminAnnouncementFormScreenState extends State<AdminAnnouncementFormScree
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withAlpha(80),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Isi pengumuman wajib diisi' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Isi pengumuman wajib diisi'
+                          : null,
                     ),
                     const SizedBox(height: 32),
                     FilledButton.icon(
                       onPressed: _submit,
                       icon: const Icon(Icons.send),
-                      label: Text(isEditing ? 'Simpan Perubahan' : 'Kirim Pengumuman'),
+                      label: Text(
+                        isEditing ? 'Simpan Perubahan' : 'Kirim Pengumuman',
+                      ),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(

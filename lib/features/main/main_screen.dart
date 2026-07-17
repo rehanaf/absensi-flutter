@@ -1,4 +1,7 @@
+import 'package:absensi/core/constants/app_messages.dart';
+import 'package:absensi/core/config.dart';
 import 'package:flutter/material.dart';
+import '../../core/config.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:provider/provider.dart';
@@ -50,15 +53,16 @@ class _MainScreenState extends State<MainScreen> {
   ImageProvider? _getAvatarImage(Map<String, dynamic>? user) {
     final avatarPath = user?['profile']?['avatar'];
     if (avatarPath != null && avatarPath.toString().isNotEmpty) {
-      final String fullUrl = avatarPath.toString().startsWith('http') 
-          ? avatarPath.toString() 
-          : 'http://absensi.test/storage/$avatarPath';
-      return NetworkImage(fullUrl);
+      final String fullUrl = avatarPath.toString().startsWith('http')
+          ? avatarPath.toString()
+          : AppConfig.baseUrl.replaceAll('/api', '') + '/storage/$avatarPath';
+      return NetworkImage('$fullUrl?v=${user?['profile']?['updated_at'] ?? user?['updated_at'] ?? ''}');
     }
     return null;
   }
 
-  final GlobalKey<HistoryScreenState> _historyKey = GlobalKey<HistoryScreenState>();
+  final GlobalKey<HistoryScreenState> _historyKey =
+      GlobalKey<HistoryScreenState>();
   late final PageController _pageController;
   int _currentIndex = 0;
   int _previousIndex = 0;
@@ -74,13 +78,14 @@ class _MainScreenState extends State<MainScreen> {
       if (response is Map) {
         if (response.containsKey('data') && response['data'] is List) {
           list = response['data'];
-        } else if (response.containsKey('notifications') && response['notifications'] is List) {
+        } else if (response.containsKey('notifications') &&
+            response['notifications'] is List) {
           list = response['notifications'];
         }
       } else if (response is List) {
         list = response;
       }
-      
+
       int count = 0;
       for (var item in list) {
         if (item is Map) {
@@ -93,14 +98,16 @@ class _MainScreenState extends State<MainScreen> {
           if (!isRead) count++;
         }
       }
-      
+
       if (mounted) {
         // Tampilkan popup jika ada pengumuman/notifikasi baru masuk di database
-        if (triggerAlert && _lastTotalCount != -1 && list.length > _lastTotalCount) {
+        if (triggerAlert &&
+            _lastTotalCount != -1 &&
+            list.length > _lastTotalCount) {
           final newNotif = list.first;
           final title = newNotif['title'] ?? 'Notifikasi Baru';
           final message = newNotif['message'] ?? newNotif['body'] ?? '';
-          
+
           AppToast.showSuccess(
             context,
             title: title,
@@ -109,7 +116,9 @@ class _MainScreenState extends State<MainScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
               ).then((_) => _fetchUnreadCount(triggerAlert: false));
             },
           );
@@ -126,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Tabs for Absensi Mode
-  late final List<Widget> _absenScreens = [
+  List<Widget> get _absenScreens => [
     const HomeScreen(),
     HistoryScreen(key: _historyKey),
     const SubmissionScreen(),
@@ -149,10 +158,13 @@ class _MainScreenState extends State<MainScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final workspace = Provider.of<WorkspaceProvider>(context, listen: false);
       final availableModes = workspace.getAvailableModes(auth.user);
-      
-      if (availableModes.isNotEmpty && !availableModes.contains(workspace.activeMode)) {
+
+      if (availableModes.isNotEmpty &&
+          !availableModes.contains(workspace.activeMode)) {
         // Prefer 'absen' if available, else first available
-        workspace.setMode(availableModes.contains('absen') ? 'absen' : availableModes.first);
+        workspace.setMode(
+          availableModes.contains('absen') ? 'absen' : availableModes.first,
+        );
       }
     });
 
@@ -161,7 +173,6 @@ class _MainScreenState extends State<MainScreen> {
       _fetchUnreadCount(triggerAlert: true);
     });
   }
-
 
   @override
   void dispose() {
@@ -176,8 +187,6 @@ class _MainScreenState extends State<MainScreen> {
     final auth = Provider.of<AuthProvider>(context);
     final settings = Provider.of<AppSettingsProvider>(context);
     final user = auth.user;
-
-    
 
     final List<CustomNavItem> absenItems = [
       CustomNavItem(Icons.home, 'Beranda'),
@@ -209,7 +218,7 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     final List<CustomNavItem> parentItems = [
-      CustomNavItem(Icons.home, 'Anak Saya'),
+      CustomNavItem(Icons.home, AppMessages.get('Anak Saya')),
       CustomNavItem(Icons.history, 'Riwayat'),
       CustomNavItem(Icons.settings, 'Setting'),
     ];
@@ -218,7 +227,7 @@ class _MainScreenState extends State<MainScreen> {
     final String initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
 
     final availableModes = workspace.getAvailableModes(user);
-    
+
     // Reset index if switching to a mode with fewer tabs
     List<Widget> activeScreens;
     List<CustomNavItem> activeItems;
@@ -245,10 +254,14 @@ class _MainScreenState extends State<MainScreen> {
 
     String getModeDisplayName(String mode) {
       switch (mode) {
-        case 'admin': return 'Admin';
-        case 'parent': return 'Wali/Parent';
-        case 'absen': return 'Absen';
-        default: return mode;
+        case 'admin':
+          return 'Admin';
+        case 'parent':
+          return AppMessages.get('Wali/Parent');
+        case 'absen':
+          return 'Absen';
+        default:
+          return mode;
       }
     }
 
@@ -256,16 +269,40 @@ class _MainScreenState extends State<MainScreen> {
     bool isPageTitle = false;
 
     if (workspace.activeMode == 'absen') {
-      if (_currentIndex == 1) { appBarTitle = 'Riwayat Absensi'; isPageTitle = true; }
-      if (_currentIndex == 2) { appBarTitle = 'Pengajuan Izin'; isPageTitle = true; }
-      if (_currentIndex == 3) { appBarTitle = 'Pengaturan'; isPageTitle = true; }
+      if (_currentIndex == 1) {
+        appBarTitle = 'Riwayat Absensi';
+        isPageTitle = true;
+      }
+      if (_currentIndex == 2) {
+        appBarTitle = 'Pengajuan Izin';
+        isPageTitle = true;
+      }
+      if (_currentIndex == 3) {
+        appBarTitle = 'Pengaturan';
+        isPageTitle = true;
+      }
     } else if (workspace.activeMode == 'admin') {
-      if (_currentIndex == 1) { appBarTitle = 'Manajemen'; isPageTitle = true; }
-      if (_currentIndex == 2) { appBarTitle = 'Konfigurasi'; isPageTitle = true; }
-      if (_currentIndex == 3) { appBarTitle = 'Pengaturan'; isPageTitle = true; }
+      if (_currentIndex == 1) {
+        appBarTitle = 'Manajemen';
+        isPageTitle = true;
+      }
+      if (_currentIndex == 2) {
+        appBarTitle = 'Konfigurasi';
+        isPageTitle = true;
+      }
+      if (_currentIndex == 3) {
+        appBarTitle = 'Pengaturan';
+        isPageTitle = true;
+      }
     } else if (workspace.activeMode == 'parent') {
-      if (_currentIndex == 1) { appBarTitle = 'Riwayat Anak'; isPageTitle = true; }
-      if (_currentIndex == 2) { appBarTitle = 'Pengaturan'; isPageTitle = true; }
+      if (_currentIndex == 1) {
+        appBarTitle = AppMessages.get('Riwayat Anak');
+        isPageTitle = true;
+      }
+      if (_currentIndex == 2) {
+        appBarTitle = 'Pengaturan';
+        isPageTitle = true;
+      }
     }
 
     final screenWidth = MediaQuery.sizeOf(context).width;
@@ -273,13 +310,15 @@ class _MainScreenState extends State<MainScreen> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor:
+            Theme.of(context).appBarTheme.backgroundColor ??
+            Theme.of(context).colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          appBarTitle, 
+          appBarTitle,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: isPageTitle ? FontWeight.normal : FontWeight.bold
-          )
+            fontWeight: isPageTitle ? FontWeight.normal : FontWeight.bold,
+          ),
         ),
         actions: [
           if (workspace.activeMode == 'absen' && _currentIndex == 1)
@@ -291,14 +330,18 @@ class _MainScreenState extends State<MainScreen> {
             ),
           IconButton(
             icon: Badge(
-              label: _unreadNotificationsCount > 0 ? Text('$_unreadNotificationsCount') : null,
+              label: _unreadNotificationsCount > 0
+                  ? Text('$_unreadNotificationsCount')
+                  : null,
               isLabelVisible: _unreadNotificationsCount > 0,
               child: const Icon(Icons.notifications),
             ),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
               ).then((_) => _fetchUnreadCount(triggerAlert: false));
             },
           ),
@@ -313,13 +356,17 @@ class _MainScreenState extends State<MainScreen> {
                   borderRadius: BorderRadius.circular(24),
                   child: CircleAvatar(
                     radius: 20,
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     backgroundImage: _getAvatarImage(user),
                     child: _getAvatarImage(user) == null
                         ? Text(
                             initial,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -328,7 +375,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
               );
-            }
+            },
           ),
         ],
       ),
@@ -341,14 +388,18 @@ class _MainScreenState extends State<MainScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
                     backgroundImage: _getAvatarImage(user),
                     child: _getAvatarImage(user) == null
                         ? Text(
@@ -362,14 +413,15 @@ class _MainScreenState extends State<MainScreen> {
                         : null,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  Text(name, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 2),
                   Text(
                     user?['username'] ?? 'username',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant).copyWith(fontSize: 14),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        )
+                        .copyWith(fontSize: 14),
                   ),
                 ],
               ),
@@ -380,25 +432,33 @@ class _MainScreenState extends State<MainScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Ganti Mode', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Ganti Mode',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                       ),
                       value: workspace.activeMode,
                       items: availableModes.map((mode) {
                         return DropdownMenuItem<String>(
                           value: mode,
-                          child: Text('Mode: ${getModeDisplayName(mode)}'),
+                          child: Text('${AppMessages.get('Mode')}: ${getModeDisplayName(mode)}'),
                         );
                       }).toList(),
                       onChanged: (val) {
                         if (val != null) {
                           setState(() => _currentIndex = 0);
                           workspace.setMode(val);
-                          Navigator.pop(context); // Close drawer after selection
+                          Navigator.pop(
+                            context,
+                          ); // Close drawer after selection
                         }
                       },
                     ),
@@ -409,10 +469,16 @@ class _MainScreenState extends State<MainScreen> {
             ],
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Keluar (Logout)', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Keluar (Logout)',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () async {
                 Navigator.pop(context); // Close drawer
-                await Provider.of<AuthProvider>(context, listen: false).logout();
+                await Provider.of<AuthProvider>(
+                  context,
+                  listen: false,
+                ).logout();
                 if (context.mounted) {
                   context.go('/login');
                 }
@@ -429,14 +495,14 @@ class _MainScreenState extends State<MainScreen> {
         },
         children: activeScreens.map((s) => KeepAliveWrapper(child: s)).toList(),
       ),
-      bottomNavigationBar: isDesktop 
-          ? null 
+      bottomNavigationBar: isDesktop
+          ? null
           : NavigationBar(
               selectedIndex: _currentIndex,
               onDestinationSelected: (index) {
-                  setState(() => _currentIndex = index);
-                  _pageController.jumpToPage(index);
-                },
+                setState(() => _currentIndex = index);
+                _pageController.jumpToPage(index);
+              },
               destinations: activeItems.map((item) {
                 return NavigationDestination(
                   icon: Icon(item.icon),
@@ -451,15 +517,16 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           Container(
             width: 80,
-            color: Theme.of(context).navigationBarTheme.backgroundColor ?? 
-                   Theme.of(context).colorScheme.surface,
+            color:
+                Theme.of(context).navigationBarTheme.backgroundColor ??
+                Theme.of(context).colorScheme.surface,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: activeItems.asMap().entries.map((entry) {
                 final index = entry.key;
                 final item = entry.value;
                 final isSelected = index == _currentIndex;
-                
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Material(
@@ -474,15 +541,28 @@ class _MainScreenState extends State<MainScreen> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: isSelected 
-                              ? Theme.of(context).colorScheme.secondaryContainer 
+                          color: isSelected
+                              ? (Theme.of(
+                                      context,
+                                    ).navigationBarTheme.indicatorColor ??
+                                    (Theme.of(
+                                          context,
+                                        ).navigationBarTheme.indicatorColor ??
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.secondaryContainer))
                               : Colors.transparent,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           item.icon,
                           color: isSelected
-                              ? Theme.of(context).colorScheme.onSecondaryContainer
+                              ? (Theme.of(context).navigationBarTheme.iconTheme
+                                        ?.resolve({WidgetState.selected})
+                                        ?.color ??
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer)
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
@@ -509,10 +589,10 @@ class KeepAliveWrapper extends StatefulWidget {
   State<KeepAliveWrapper> createState() => _KeepAliveWrapperState();
 }
 
-class _KeepAliveWrapperState extends State<KeepAliveWrapper> with AutomaticKeepAliveClientMixin {
+class _KeepAliveWrapperState extends State<KeepAliveWrapper>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-
 
   @override
   Widget build(BuildContext context) {

@@ -10,13 +10,25 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import '../../data/services/face_recognition_service.dart';
 
-enum CameraState { initializing, loadingRegisteredFace, scanning, capturing, captured, verifying, mismatch }
+enum CameraState {
+  initializing,
+  loadingRegisteredFace,
+  scanning,
+  capturing,
+  captured,
+  verifying,
+  mismatch,
+}
 
 class FaceCameraScreen extends StatefulWidget {
   final String title;
   final String? registeredFaceBase64; // Passed when checking in
 
-  const FaceCameraScreen({super.key, required this.title, this.registeredFaceBase64});
+  const FaceCameraScreen({
+    super.key,
+    required this.title,
+    this.registeredFaceBase64,
+  });
 
   @override
   State<FaceCameraScreen> createState() => _FaceCameraScreenState();
@@ -26,14 +38,14 @@ class FaceCameraScreen extends StatefulWidget {
 Uint8List _compressImage(Uint8List list) {
   img.Image? image = img.decodeImage(list);
   if (image == null) return list;
-  
+
   // Flip horizontally so the backend receives the mirrored version
   image = img.flipHorizontal(image);
-  
+
   if (image.width > 400) {
     image = img.copyResize(image, width: 400);
   }
-  
+
   return Uint8List.fromList(img.encodeJpg(image, quality: 60));
 }
 
@@ -53,7 +65,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
   String? _capturedBase64;
   double _faceAccuracy = 0.0; // ML Kit pose accuracy
   double _tfliteSimilarity = 0.0; // TFLite visual similarity percentage
-  
+
   List<double>? _registeredEmbedding;
   String _statusMessage = 'Memuat Kamera...';
 
@@ -65,7 +77,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
 
   Future<void> _initializeApp() async {
     await FaceRecognitionService().initialize();
-    
+
     if (widget.registeredFaceBase64 != null) {
       setState(() {
         _cameraState = CameraState.loadingRegisteredFace;
@@ -73,46 +85,58 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       });
       await _loadRegisteredFace();
     }
-    
+
     await _initCamera();
   }
 
   Future<void> _loadRegisteredFace() async {
     try {
       final bytes = base64Decode(widget.registeredFaceBase64!);
-      
+
       // Save temp file for ML Kit
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/temp_registered.jpg');
       await tempFile.writeAsBytes(bytes);
-      
+
       final inputImage = InputImage.fromFilePath(tempFile.path);
       final faces = await _faceDetector.processImage(inputImage);
-      
+
       if (faces.isEmpty) {
         throw Exception("Wajah terdaftar tidak terdeteksi oleh ML Kit");
       }
-      
+
       final face = faces.first;
       final rect = face.boundingBox;
-      
+
       // Decode with image package to crop
       img.Image? originalImage = img.decodeImage(bytes);
-      if (originalImage == null) throw Exception("Gagal decode gambar terdaftar");
-      
+      if (originalImage == null)
+        throw Exception("Gagal decode gambar terdaftar");
+
       // Pad crop rectangle a bit
       int x = max(0, rect.left.toInt() - 20);
       int y = max(0, rect.top.toInt() - 20);
       int w = min(originalImage.width - x, rect.width.toInt() + 40);
       int h = min(originalImage.height - y, rect.height.toInt() + 40);
-      
-      img.Image croppedFace = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
-      
-      _registeredEmbedding = await FaceRecognitionService().extractEmbedding(croppedFace);
+
+      img.Image croppedFace = img.copyCrop(
+        originalImage,
+        x: x,
+        y: y,
+        width: w,
+        height: h,
+      );
+
+      _registeredEmbedding = await FaceRecognitionService().extractEmbedding(
+        croppedFace,
+      );
     } catch (e) {
       print('Load Registered Face Error: $e');
       if (mounted) {
-        AppToast.showError(context, message: 'Gagal memuat wajah terdaftar. Hubungi Admin.');
+        AppToast.showError(
+          context,
+          message: 'Gagal memuat wajah terdaftar. Hubungi Admin.',
+        );
       }
     }
   }
@@ -129,7 +153,9 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
         frontCamera,
         ResolutionPreset.medium,
         enableAudio: false,
-        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
       );
 
       await _cameraController!.initialize();
@@ -140,7 +166,10 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       });
 
       _cameraController!.startImageStream((CameraImage image) {
-        if (_isDetecting || (_cameraState != CameraState.scanning && _cameraState != CameraState.mismatch)) return;
+        if (_isDetecting ||
+            (_cameraState != CameraState.scanning &&
+                _cameraState != CameraState.mismatch))
+          return;
         _isDetecting = true;
         _processCameraImage(image, frontCamera);
       });
@@ -151,8 +180,12 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
     }
   }
 
-  Future<void> _processCameraImage(CameraImage image, CameraDescription camera) async {
-    if (_cameraState != CameraState.scanning && _cameraState != CameraState.mismatch) {
+  Future<void> _processCameraImage(
+    CameraImage image,
+    CameraDescription camera,
+  ) async {
+    if (_cameraState != CameraState.scanning &&
+        _cameraState != CameraState.mismatch) {
       _isDetecting = false;
       return;
     }
@@ -164,9 +197,16 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       }
       final bytes = allBytes.done().buffer.asUint8List();
 
-      final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
-      final InputImageRotation imageRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg;
-      final InputImageFormat inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
+      final Size imageSize = Size(
+        image.width.toDouble(),
+        image.height.toDouble(),
+      );
+      final InputImageRotation imageRotation =
+          InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
+          InputImageRotation.rotation0deg;
+      final InputImageFormat inputImageFormat =
+          InputImageFormatValue.fromRawValue(image.format.raw) ??
+          InputImageFormat.nv21;
 
       final inputImageData = InputImageMetadata(
         size: imageSize,
@@ -175,14 +215,19 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
         bytesPerRow: image.planes[0].bytesPerRow,
       );
 
-      final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
-      
+      final inputImage = InputImage.fromBytes(
+        bytes: bytes,
+        metadata: inputImageData,
+      );
+
       final faces = await _faceDetector.processImage(inputImage);
 
-      if (mounted && (_cameraState == CameraState.scanning || _cameraState == CameraState.mismatch)) {
+      if (mounted &&
+          (_cameraState == CameraState.scanning ||
+              _cameraState == CameraState.mismatch)) {
         if (faces.isNotEmpty) {
           final face = faces.first;
-          
+
           final rotY = face.headEulerAngleY ?? 0;
           final rotZ = face.headEulerAngleZ ?? 0;
           double deviation = rotY.abs() + rotZ.abs();
@@ -203,7 +248,9 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
   }
 
   Future<void> _autoCaptureAndVerify(double accuracy, Rect faceBounds) async {
-    if (_cameraState != CameraState.scanning && _cameraState != CameraState.mismatch) return;
+    if (_cameraState != CameraState.scanning &&
+        _cameraState != CameraState.mismatch)
+      return;
 
     setState(() {
       _cameraState = CameraState.capturing;
@@ -214,7 +261,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
       await _cameraController!.stopImageStream();
       final XFile imageFile = await _cameraController!.takePicture();
       final bytes = await imageFile.readAsBytes();
-      
+
       if (widget.registeredFaceBase64 != null && _registeredEmbedding != null) {
         setState(() {
           _cameraState = CameraState.verifying;
@@ -224,28 +271,47 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
         img.Image? liveImage = img.decodeImage(bytes);
         if (liveImage != null) {
           // Adjust bounds for aspect ratio difference if needed, but roughly:
-          double scaleX = liveImage.width / _cameraController!.value.previewSize!.height;
-          double scaleY = liveImage.height / _cameraController!.value.previewSize!.width;
-          
+          double scaleX =
+              liveImage.width / _cameraController!.value.previewSize!.height;
+          double scaleY =
+              liveImage.height / _cameraController!.value.previewSize!.width;
+
           int x = max(0, (faceBounds.left * scaleX).toInt() - 20);
           int y = max(0, (faceBounds.top * scaleY).toInt() - 20);
-          int w = min(liveImage.width - x, (faceBounds.width * scaleX).toInt() + 40);
-          int h = min(liveImage.height - y, (faceBounds.height * scaleY).toInt() + 40);
+          int w = min(
+            liveImage.width - x,
+            (faceBounds.width * scaleX).toInt() + 40,
+          );
+          int h = min(
+            liveImage.height - y,
+            (faceBounds.height * scaleY).toInt() + 40,
+          );
 
-          img.Image croppedLive = img.copyCrop(liveImage, x: x, y: y, width: w, height: h);
-          List<double> liveEmbedding = await FaceRecognitionService().extractEmbedding(croppedLive);
-          
-          double distance = FaceRecognitionService().calculateDistance(liveEmbedding, _registeredEmbedding!);
-          
+          img.Image croppedLive = img.copyCrop(
+            liveImage,
+            x: x,
+            y: y,
+            width: w,
+            height: h,
+          );
+          List<double> liveEmbedding = await FaceRecognitionService()
+              .extractEmbedding(croppedLive);
+
+          double distance = FaceRecognitionService().calculateDistance(
+            liveEmbedding,
+            _registeredEmbedding!,
+          );
+
           double similarity = 100 - (distance * 20);
           if (similarity < 0) similarity = 0;
-          
+
           if (distance > 1.0) {
             // Mismatch!
             setState(() {
               _cameraState = CameraState.mismatch;
               _tfliteSimilarity = similarity;
-              _statusMessage = 'Wajah Tidak Cocok! (Mirip: ${similarity.toStringAsFixed(1)}%)';
+              _statusMessage =
+                  'Wajah Tidak Cocok! (Mirip: ${similarity.toStringAsFixed(1)}%)';
             });
             // Restart stream after 2 seconds
             Future.delayed(const Duration(seconds: 2), () {
@@ -312,8 +378,9 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool isCameraReady = _cameraController != null && _cameraController!.value.isInitialized;
-    
+    bool isCameraReady =
+        _cameraController != null && _cameraController!.value.isInitialized;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -328,23 +395,36 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  if (_cameraState == CameraState.captured && _capturedImagePath != null)
+                  if (_cameraState == CameraState.captured &&
+                      _capturedImagePath != null)
                     Transform.scale(
                       scaleX: -1,
-                      child: Image.file(File(_capturedImagePath!), fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                      child: Image.file(
+                        File(_capturedImagePath!),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                     )
-                  else if (isCameraReady && (_cameraState == CameraState.scanning || _cameraState == CameraState.capturing || _cameraState == CameraState.verifying || _cameraState == CameraState.mismatch))
+                  else if (isCameraReady &&
+                      (_cameraState == CameraState.scanning ||
+                          _cameraState == CameraState.capturing ||
+                          _cameraState == CameraState.verifying ||
+                          _cameraState == CameraState.mismatch))
                     CameraPreview(_cameraController!)
                   else
                     const Center(child: CircularProgressIndicator()),
 
-                  if (_cameraState == CameraState.scanning || _cameraState == CameraState.mismatch)
+                  if (_cameraState == CameraState.scanning ||
+                      _cameraState == CameraState.mismatch)
                     Container(
                       width: 250,
                       height: 300,
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: _cameraState == CameraState.mismatch ? Colors.red : Colors.white.withValues(alpha: 0.5),
+                          color: _cameraState == CameraState.mismatch
+                              ? Colors.red
+                              : Colors.white.withValues(alpha: 0.5),
                           width: 3,
                         ),
                         borderRadius: BorderRadius.circular(150),
@@ -354,30 +434,41 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                   Positioned(
                     top: 20,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        color: _cameraState == CameraState.captured 
-                            ? Colors.green.withValues(alpha: 0.9) 
+                        color: _cameraState == CameraState.captured
+                            ? Colors.green.withValues(alpha: 0.9)
                             : _cameraState == CameraState.mismatch
-                                ? Colors.red.withValues(alpha: 0.9)
-                                : _cameraState == CameraState.capturing || _cameraState == CameraState.verifying 
-                                    ? Colors.orange.withValues(alpha: 0.9)
-                                    : Colors.black.withValues(alpha: 0.6),
+                            ? Colors.red.withValues(alpha: 0.9)
+                            : _cameraState == CameraState.capturing ||
+                                  _cameraState == CameraState.verifying
+                            ? Colors.orange.withValues(alpha: 0.9)
+                            : Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         _cameraState == CameraState.captured
-                            ? (widget.registeredFaceBase64 != null ? 'Wajah Cocok! Kemiripan: ${_tfliteSimilarity.toStringAsFixed(1)}%' : 'Wajah Berhasil Dipindai!')
+                            ? (widget.registeredFaceBase64 != null
+                                  ? 'Wajah Cocok! Kemiripan: ${_tfliteSimilarity.toStringAsFixed(1)}%'
+                                  : 'Wajah Berhasil Dipindai!')
                             : _cameraState == CameraState.mismatch
-                                ? _statusMessage
-                                : _cameraState == CameraState.verifying
-                                    ? _statusMessage
-                                    : _cameraState == CameraState.capturing
-                                        ? 'Menangkap Gambar...'
-                                        : _cameraState == CameraState.initializing || _cameraState == CameraState.loadingRegisteredFace
-                                            ? _statusMessage
-                                            : 'Posisikan wajah Anda lurus ke kamera',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ? _statusMessage
+                            : _cameraState == CameraState.verifying
+                            ? _statusMessage
+                            : _cameraState == CameraState.capturing
+                            ? 'Menangkap Gambar...'
+                            : _cameraState == CameraState.initializing ||
+                                  _cameraState ==
+                                      CameraState.loadingRegisteredFace
+                            ? _statusMessage
+                            : 'Posisikan wajah Anda lurus ke kamera',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -391,17 +482,46 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                 children: [
                   if (_cameraState == CameraState.captured) ...[
                     Expanded(
-                      child: OutlinedButton(onPressed: _resetCamera, child: const Text('Scan Ulang', style: TextStyle(color: Colors.white))),
+                      child: OutlinedButton(
+                        onPressed: _resetCamera,
+                        child: const Text(
+                          'Scan Ulang',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: ElevatedButton(onPressed: _saveAndReturn, child: const Text('Simpan', style: TextStyle(color: Colors.black))),
+                      child: ElevatedButton(
+                        onPressed: _saveAndReturn,
+                        child: const Text(
+                          'Simpan',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
                     ),
                   ] else ...[
                     Expanded(
-                      child: ElevatedButton(onPressed: null, child: (_cameraState == CameraState.capturing || _cameraState == CameraState.verifying || _cameraState == CameraState.loadingRegisteredFace)
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : const Text('Mendeteksi Wajah...', style: TextStyle(color: Colors.white54))),
+                      child: ElevatedButton(
+                        onPressed: null,
+                        child:
+                            (_cameraState == CameraState.capturing ||
+                                _cameraState == CameraState.verifying ||
+                                _cameraState ==
+                                    CameraState.loadingRegisteredFace)
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Mendeteksi Wajah...',
+                                style: TextStyle(color: Colors.white54),
+                              ),
+                      ),
                     ),
                   ],
                 ],

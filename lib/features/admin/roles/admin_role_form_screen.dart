@@ -18,14 +18,16 @@ class _AdminRoleFormScreenState extends State<AdminRoleFormScreen> {
   late TextEditingController _nameController;
   late TextEditingController _displayNameController;
 
-
   @override
   void initState() {
     super.initState();
     final item = widget.item;
-    _nameController = TextEditingController(text: item?['name']?.toString() ?? '');
-    _displayNameController = TextEditingController(text: item?['display_name']?.toString() ?? '');
-
+    _nameController = TextEditingController(
+      text: item?['name']?.toString() ?? '',
+    );
+    _displayNameController = TextEditingController(
+      text: item?['display_name']?.toString() ?? '',
+    );
   }
 
   @override
@@ -43,16 +45,17 @@ class _AdminRoleFormScreenState extends State<AdminRoleFormScreen> {
     final data = {
       'name': _nameController.text,
       'display_name': _displayNameController.text,
-
     };
 
     try {
       if (widget.item == null) {
         await _apiService.createRole(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
       } else {
         await _apiService.updateRole(widget.item!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -81,13 +84,32 @@ class _AdminRoleFormScreenState extends State<AdminRoleFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Kode Role')), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Kode Role'),
+                      ),
+                      controller: _nameController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Role')), controller: _displayNameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Nama Role'),
+                      ),
+                      controller: _displayNameController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan'),
+                    ),
                   ],
                 ),
               ),

@@ -8,7 +8,8 @@ class AdminFormFieldFormScreen extends StatefulWidget {
   const AdminFormFieldFormScreen({super.key, this.formField});
 
   @override
-  State<AdminFormFieldFormScreen> createState() => _AdminFormFieldFormScreenState();
+  State<AdminFormFieldFormScreen> createState() =>
+      _AdminFormFieldFormScreenState();
 }
 
 class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
@@ -23,16 +24,23 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
   bool _isEditable = true;
   bool _isLoading = false;
 
-  final List<String> _typeOptions = ['text', 'number', 'date', 'dropdown', 'email', 'phone'];
+  final List<String> _typeOptions = [
+    'text',
+    'number',
+    'date',
+    'dropdown',
+    'email',
+    'phone',
+  ];
 
   @override
   void initState() {
     super.initState();
     final field = widget.formField;
-    
+
     _labelController = TextEditingController(text: field?['field_label'] ?? '');
     _nameController = TextEditingController(text: field?['field_name'] ?? '');
-    
+
     if (field != null) {
       if (_typeOptions.contains(field['field_type'])) {
         _selectedType = field['field_type'];
@@ -41,7 +49,7 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
         _typeOptions.add(field['field_type']);
         _selectedType = field['field_type'];
       }
-      
+
       _isRequired = field['is_required'] == 1 || field['is_required'] == true;
       _isEditable = field['is_editable'] == 1 || field['is_editable'] == true;
     }
@@ -70,10 +78,18 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
     try {
       if (widget.formField == null) {
         await _apiService.createFormField(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Kolom profil berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(
+            context,
+            message: 'Kolom profil berhasil ditambahkan',
+          );
       } else {
         await _apiService.updateFormField(widget.formField!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Kolom profil berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(
+            context,
+            message: 'Kolom profil berhasil diperbarui',
+          );
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -107,39 +123,67 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Label Kolom (Yang Tampil ke Pengguna)'), hintText: 'Contoh: NIP Karyawan'), controller: _labelController, validator: (v) => (v == null || v.isEmpty) ? 'Label kolom tidak boleh kosong' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Label Kolom (Yang Tampil ke Pengguna)'),
+                        hintText: 'Contoh: NIP Karyawan',
+                      ),
+                      controller: _labelController,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Label kolom tidak boleh kosong'
+                          : null,
+                    ),
                     const SizedBox(height: 16),
-                    
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Variabel (Format Database)'), hintText: 'Contoh: nip_karyawan'), controller: _nameController, validator: (v) {
-                        if ((v == null || v.isEmpty)) return 'Nama variabel tidak boleh kosong';
-                        if (v.contains(' ')) return 'Tidak boleh mengandung spasi, gunakan underscore (_)';
+
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Nama Variabel (Format Database)'),
+                        hintText: 'Contoh: nip_karyawan',
+                      ),
+                      controller: _nameController,
+                      validator: (v) {
+                        if ((v == null || v.isEmpty))
+                          return 'Nama variabel tidak boleh kosong';
+                        if (v.contains(' '))
+                          return 'Tidak boleh mengandung spasi, gunakan underscore (_)';
                         return null;
-                      }),
+                      },
+                    ),
                     const SizedBox(height: 16),
-                    
+
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Tipe Data', style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Tipe Data',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).dividerColor),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               isExpanded: true,
                               value: _selectedType,
-                              items: _typeOptions.map<DropdownMenuItem<String>>((t) {
-                                return DropdownMenuItem<String>(
-                                  value: t,
-                                  child: Text(t.toUpperCase()),
-                                );
-                              }).toList(),
+                              items: _typeOptions.map<DropdownMenuItem<String>>(
+                                (t) {
+                                  return DropdownMenuItem<String>(
+                                    value: t,
+                                    child: Text(t.toUpperCase()),
+                                  );
+                                },
+                              ).toList(),
                               onChanged: (val) {
-                                if (val != null) setState(() => _selectedType = val);
+                                if (val != null)
+                                  setState(() => _selectedType = val);
                               },
                             ),
                           ),
@@ -147,7 +191,7 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -156,17 +200,26 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Wajib Diisi? (Required)'),
-                              Text('Pengguna tidak bisa menyimpan profil tanpa mengisi ini.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(
+                                'Pengguna tidak bisa menyimpan profil tanpa mengisi ini.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Switch(value: _isRequired, onChanged: (val) {
+                        Switch(
+                          value: _isRequired,
+                          onChanged: (val) {
                             setState(() => _isRequired = val);
-                          }),
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -175,18 +228,30 @@ class _AdminFormFieldFormScreenState extends State<AdminFormFieldFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Bisa Diedit? (Editable)'),
-                              Text('Jika mati, hanya Admin yang bisa mengubah data ini.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(
+                                'Jika mati, hanya Admin yang bisa mengubah data ini.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Switch(value: _isEditable, onChanged: (val) {
+                        Switch(
+                          value: _isEditable,
+                          onChanged: (val) {
                             setState(() => _isEditable = val);
-                          }),
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 32),
-                    
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Kolom')),
+
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan Kolom'),
+                    ),
                   ],
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:absensi/core/constants/app_messages.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -87,7 +88,10 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_startDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Pilih Tanggal Mulai izin!'), backgroundColor: Theme.of(context).colorScheme.error),
+        SnackBar(
+          content: const Text('Pilih Tanggal Mulai izin!'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
       return;
     }
@@ -104,7 +108,10 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
     };
 
     try {
-      await _apiService.submitMyPermit(data, attachmentPath: _attachmentFile?.path);
+      await _apiService.submitMyPermit(
+        data,
+        attachmentPath: _attachmentFile?.path,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pengajuan izin berhasil dikirim')),
@@ -114,7 +121,10 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengirim pengajuan: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: Text('Gagal mengirim pengajuan: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -131,9 +141,7 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buat Pengajuan Izin'),
-      ),
+      appBar: AppBar(title: const Text('Buat Pengajuan Izin')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -143,9 +151,15 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Informasi Izin', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Informasi Izin',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    
+
                     // Date Inputs Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,18 +177,28 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 filled: true,
-                                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                                fillColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withAlpha(80),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
                                       _startDate != null
-                                          ? DateFormat('dd MMM yyyy').format(_startDate!)
+                                          ? DateFormat(
+                                              'dd MMM yyyy',
+                                            ).format(_startDate!)
                                           : 'Pilih Tanggal',
                                       style: TextStyle(
-                                        color: _startDate == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color,
+                                        color: _startDate == null
+                                            ? Theme.of(context).hintColor
+                                            : Theme.of(
+                                                context,
+                                              ).textTheme.bodyLarge?.color,
                                         fontSize: 13,
                                       ),
                                       overflow: TextOverflow.ellipsis,
@@ -200,18 +224,28 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 filled: true,
-                                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                                fillColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withAlpha(80),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
                                       _endDate != null
-                                          ? DateFormat('dd MMM yyyy').format(_endDate!)
+                                          ? DateFormat(
+                                              'dd MMM yyyy',
+                                            ).format(_endDate!)
                                           : 'Sama dgn mulai',
                                       style: TextStyle(
-                                        color: _endDate == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color,
+                                        color: _endDate == null
+                                            ? Theme.of(context).hintColor
+                                            : Theme.of(
+                                                context,
+                                              ).textTheme.bodyLarge?.color,
                                         fontSize: 13,
                                       ),
                                       overflow: TextOverflow.ellipsis,
@@ -236,7 +270,7 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Type
                     DropdownButtonFormField<String>(
                       value: _selectedType,
@@ -247,10 +281,15 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withAlpha(80),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'izin', child: Text('Izin (Keperluan Pribadi)')),
+                        DropdownMenuItem(
+                          value: 'izin',
+                          child: Text('Izin (Keperluan Pribadi)'),
+                        ),
                         DropdownMenuItem(value: 'sakit', child: Text('Sakit')),
                         DropdownMenuItem(value: 'cuti', child: Text('Cuti')),
                       ],
@@ -259,7 +298,7 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Reason
                     TextFormField(
                       controller: _reasonController,
@@ -272,14 +311,24 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withAlpha(80),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Alasan wajib diisi' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Alasan wajib diisi'
+                          : null,
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Attachment
-                    const Text('Lampiran Bukti (Opsional)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Lampiran Bukti (Opsional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: _pickAttachment,
@@ -287,27 +336,43 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(80),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: _attachmentFile != null ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                            color: _attachmentFile != null
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.transparent,
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
                             Icon(
-                              _attachmentFile != null ? Icons.check_circle : Icons.upload_file,
-                              color: _attachmentFile != null ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                              _attachmentFile != null
+                                  ? Icons.check_circle
+                                  : Icons.upload_file,
+                              color: _attachmentFile != null
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _attachmentFile != null
-                                    ? _attachmentFile!.path.split(Platform.pathSeparator).last
+                                    ? _attachmentFile!.path
+                                          .split(Platform.pathSeparator)
+                                          .last
                                     : 'Upload Foto Surat Dokter / Bukti (PDF, JPG, PNG)',
                                 style: TextStyle(
-                                  color: _attachmentFile != null ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: _attachmentFile != null
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                   fontSize: 13,
                                 ),
                               ),
@@ -315,13 +380,14 @@ class _PermitFormScreenState extends State<PermitFormScreen> {
                             if (_attachmentFile != null)
                               IconButton(
                                 icon: const Icon(Icons.close, size: 20),
-                                onPressed: () => setState(() => _attachmentFile = null),
+                                onPressed: () =>
+                                    setState(() => _attachmentFile = null),
                               ),
                           ],
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
                     FilledButton.icon(
                       onPressed: _submit,

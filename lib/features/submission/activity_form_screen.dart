@@ -1,3 +1,4 @@
+import 'package:absensi/core/constants/app_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/services/api_service.dart';
@@ -37,14 +38,16 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
   Future<void> _selectTime(bool isStart) async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: isStart 
-          ? (_startTime ?? const TimeOfDay(hour: 8, minute: 0)) 
+      initialTime: isStart
+          ? (_startTime ?? const TimeOfDay(hour: 8, minute: 0))
           : (_endTime ?? const TimeOfDay(hour: 17, minute: 0)),
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startTime = picked;
-        else _endTime = picked;
+        if (isStart)
+          _startTime = picked;
+        else
+          _endTime = picked;
       });
     }
   }
@@ -53,13 +56,19 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_date == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Pilih tanggal!'), backgroundColor: Theme.of(context).colorScheme.error),
+        SnackBar(
+          content: const Text('Pilih tanggal!'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
       return;
     }
     if (_startTime == null || _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Pilih jam mulai dan selesai!'), backgroundColor: Theme.of(context).colorScheme.error),
+        SnackBar(
+          content: const Text('Pilih jam mulai dan selesai!'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
       return;
     }
@@ -91,7 +100,10 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengirim pengajuan: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: Text('Gagal mengirim pengajuan: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -108,9 +120,7 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buat Pengajuan Aktivitas'),
-      ),
+      appBar: AppBar(title: const Text('Buat Pengajuan Aktivitas')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -120,9 +130,15 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Detail Lembur / Tugas Luar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Detail Lembur / Tugas Luar',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    
+
                     // Type
                     DropdownButtonFormField<String>(
                       value: _activityType,
@@ -133,18 +149,26 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withAlpha(80),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'lembur', child: Text('Lembur')),
-                        DropdownMenuItem(value: 'tugas_luar', child: Text('Tugas Luar / Dinas')),
+                        DropdownMenuItem(
+                          value: 'lembur',
+                          child: Text('Lembur'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'tugas_luar',
+                          child: Text('Tugas Luar / Dinas'),
+                        ),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _activityType = val);
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Date
                     InkWell(
                       onTap: _selectDate,
@@ -157,15 +181,23 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                          fillColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(80),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              _date != null ? DateFormat('dd MMM yyyy').format(_date!) : 'Pilih Tanggal',
+                              _date != null
+                                  ? DateFormat('dd MMM yyyy').format(_date!)
+                                  : 'Pilih Tanggal',
                               style: TextStyle(
-                                color: _date == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color,
+                                color: _date == null
+                                    ? Theme.of(context).hintColor
+                                    : Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                               ),
                             ),
                             const Icon(Icons.calendar_today),
@@ -190,14 +222,26 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 filled: true,
-                                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                                fillColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withAlpha(80),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    _startTime != null ? _startTime!.format(context) : '--:--',
-                                    style: TextStyle(color: _startTime == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color),
+                                    _startTime != null
+                                        ? _startTime!.format(context)
+                                        : '--:--',
+                                    style: TextStyle(
+                                      color: _startTime == null
+                                          ? Theme.of(context).hintColor
+                                          : Theme.of(
+                                              context,
+                                            ).textTheme.bodyLarge?.color,
+                                    ),
                                   ),
                                   const Icon(Icons.access_time, size: 18),
                                 ],
@@ -218,14 +262,26 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 filled: true,
-                                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                                fillColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withAlpha(80),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    _endTime != null ? _endTime!.format(context) : '--:--',
-                                    style: TextStyle(color: _endTime == null ? Theme.of(context).hintColor : Theme.of(context).textTheme.bodyLarge?.color),
+                                    _endTime != null
+                                        ? _endTime!.format(context)
+                                        : '--:--',
+                                    style: TextStyle(
+                                      color: _endTime == null
+                                          ? Theme.of(context).hintColor
+                                          : Theme.of(
+                                              context,
+                                            ).textTheme.bodyLarge?.color,
+                                    ),
                                   ),
                                   const Icon(Icons.access_time, size: 18),
                                 ],
@@ -236,7 +292,7 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Description
                     TextFormField(
                       controller: _descController,
@@ -249,11 +305,15 @@ class _ActivityFormScreenState extends State<ActivityFormScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withAlpha(80),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Keterangan wajib diisi' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Keterangan wajib diisi'
+                          : null,
                     ),
-                    
+
                     const SizedBox(height: 32),
                     FilledButton.icon(
                       onPressed: _submit,

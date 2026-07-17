@@ -66,7 +66,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         final userProfile = auth.user?['profile']?['meta_data'] ?? {};
         if (userProfile is Map) {
           userProfile.forEach((key, value) {
-            _customFieldControllers[key] = TextEditingController(text: value.toString());
+            _customFieldControllers[key] = TextEditingController(
+              text: value.toString(),
+            );
             _formFieldsConfig.add({
               'field_name': key,
               'field_label': key,
@@ -116,10 +118,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (_formFieldsConfig.isNotEmpty) {
       final customFields = <String, dynamic>{};
       for (var field in _formFieldsConfig) {
-        final isEditable = field['is_editable'] == 1 || field['is_editable'] == true;
+        final isEditable =
+            field['is_editable'] == 1 || field['is_editable'] == true;
         if (isEditable) {
           final fieldName = field['field_name'];
-          customFields[fieldName] = _customFieldControllers[fieldName]?.text ?? '';
+          customFields[fieldName] =
+              _customFieldControllers[fieldName]?.text ?? '';
         }
       }
       if (customFields.isNotEmpty) {
@@ -150,7 +154,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool enabled = true, bool isRequired = false, TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool enabled = true,
+    bool isRequired = false,
+    TextInputType? keyboardType,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
@@ -164,9 +174,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: enabled 
-              ? Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(80) 
-              : Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(40),
+          fillColor: enabled
+              ? Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withAlpha(80)
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withAlpha(40),
         ),
         validator: isRequired && enabled
             ? (v) => v == null || v.isEmpty ? '$label tidak boleh kosong' : null
@@ -181,13 +195,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     final canEditName = settings.getSetting('user_can_edit_name') == '1';
     final canEditEmail = settings.getSetting('user_can_edit_email') == '1';
-    final canEditUsername = settings.getSetting('user_can_edit_username') == '1';
+    final canEditUsername =
+        settings.getSetting('user_can_edit_username') == '1';
     final canEditPhone = settings.getSetting('user_can_edit_phone') == '1';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profil'),
-      ),
+      appBar: AppBar(title: const Text('Edit Profil')),
       body: _isLoading || _isLoadingFields
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -197,27 +210,65 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Informasi Dasar', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Informasi Dasar',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    _buildTextField('Nama Lengkap', _nameController, enabled: canEditName, isRequired: true),
-                    _buildTextField('Email', _emailController, enabled: canEditEmail, isRequired: true, keyboardType: TextInputType.emailAddress),
-                    _buildTextField(settings.getSetting('username_label') ?? 'Username', _usernameController, enabled: canEditUsername, isRequired: true),
-                    _buildTextField('No. HP / WhatsApp', _phoneController, enabled: canEditPhone, keyboardType: TextInputType.phone),
-                    
+                    _buildTextField(
+                      'Nama Lengkap',
+                      _nameController,
+                      enabled: canEditName,
+                      isRequired: true,
+                    ),
+                    _buildTextField(
+                      'Email',
+                      _emailController,
+                      enabled: canEditEmail,
+                      isRequired: true,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    _buildTextField(
+                      settings.getSetting('username_label') ?? 'Username',
+                      _usernameController,
+                      enabled: canEditUsername,
+                      isRequired: true,
+                    ),
+                    _buildTextField(
+                      'No. HP / WhatsApp',
+                      _phoneController,
+                      enabled: canEditPhone,
+                      keyboardType: TextInputType.phone,
+                    ),
+
                     const SizedBox(height: 16),
-                    
+
                     if (_formFieldsConfig.isNotEmpty) ...[
-                      Text('Data Tambahan', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Data Tambahan',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       ..._formFieldsConfig.map((field) {
-                        final label = field['field_label'] ?? field['field_name'];
+                        final label =
+                            field['field_label'] ?? field['field_name'];
                         final type = field['field_type'] ?? 'text';
-                        final isRequired = field['is_required'] == 1 || field['is_required'] == true;
-                        final isEditable = field['is_editable'] == 1 || field['is_editable'] == true;
+                        final isRequired =
+                            field['is_required'] == 1 ||
+                            field['is_required'] == true;
+                        final isEditable =
+                            field['is_editable'] == 1 ||
+                            field['is_editable'] == true;
 
                         TextInputType keyboardType = TextInputType.text;
-                        if (type == 'number') keyboardType = TextInputType.number;
-                        if (type == 'email') keyboardType = TextInputType.emailAddress;
+                        if (type == 'number')
+                          keyboardType = TextInputType.number;
+                        if (type == 'email')
+                          keyboardType = TextInputType.emailAddress;
                         if (type == 'phone') keyboardType = TextInputType.phone;
 
                         return _buildTextField(

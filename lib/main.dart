@@ -1,3 +1,4 @@
+import 'core/constants/app_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -60,10 +61,9 @@ TextStyle _appFont({
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await AppMessages.load();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Setup global unauthorized redirect
   ApiClient.onUnauthorized = () {
@@ -82,9 +82,6 @@ void main() async {
     ),
   );
 }
-
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -144,12 +141,37 @@ class MyApp extends StatelessWidget {
             colorScheme: lightColorScheme,
             useMaterial3: true,
             fontFamily: GoogleFonts.quicksand().fontFamily,
+            scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              iconTheme: IconThemeData(color: lightColorScheme.onSurface),
+              titleTextStyle: TextStyle(
+                color: lightColorScheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: GoogleFonts.quicksand().fontFamily,
+              ),
+            ),
             navigationBarTheme: NavigationBarThemeData(
+              elevation: 0,
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return TextStyle(color: lightColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+                  return TextStyle(
+                    color: lightColorScheme.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: GoogleFonts.quicksand().fontFamily,
+                  );
                 }
-                return TextStyle(color: lightColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+                return TextStyle(
+                  color: lightColorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: GoogleFonts.quicksand().fontFamily,
+                );
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
@@ -158,7 +180,7 @@ class MyApp extends StatelessWidget {
                 return IconThemeData(color: lightColorScheme.onSurfaceVariant);
               }),
               indicatorColor: lightColorScheme.secondaryContainer,
-              backgroundColor: lightColorScheme.surface,
+              backgroundColor: Colors.white,
             ),
           ),
           darkTheme: ThemeData(
@@ -168,9 +190,19 @@ class MyApp extends StatelessWidget {
             navigationBarTheme: NavigationBarThemeData(
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return TextStyle(color: darkColorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+                  return TextStyle(
+                    color: darkColorScheme.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: GoogleFonts.quicksand().fontFamily,
+                  );
                 }
-                return TextStyle(color: darkColorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: GoogleFonts.quicksand().fontFamily);
+                return TextStyle(
+                  color: darkColorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: GoogleFonts.quicksand().fontFamily,
+                );
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
@@ -178,7 +210,7 @@ class MyApp extends StatelessWidget {
                 }
                 return IconThemeData(color: darkColorScheme.onSurfaceVariant);
               }),
-              indicatorColor: darkColorScheme.secondaryContainer,
+              indicatorColor: darkColorScheme.primary.withOpacity(0.15),
               backgroundColor: darkColorScheme.surface,
             ),
           ),

@@ -6,20 +6,44 @@ class ColorTestScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     final colors = [
       _ColorItem('primary', colorScheme.primary, colorScheme.onPrimary),
       _ColorItem('onPrimary', colorScheme.onPrimary, colorScheme.primary),
-      _ColorItem('primaryContainer', colorScheme.primaryContainer, colorScheme.onPrimaryContainer),
-      _ColorItem('onPrimaryContainer', colorScheme.onPrimaryContainer, colorScheme.primaryContainer),
+      _ColorItem(
+        'primaryContainer',
+        colorScheme.primaryContainer,
+        colorScheme.onPrimaryContainer,
+      ),
+      _ColorItem(
+        'onPrimaryContainer',
+        colorScheme.onPrimaryContainer,
+        colorScheme.primaryContainer,
+      ),
       _ColorItem('secondary', colorScheme.secondary, colorScheme.onSecondary),
-      _ColorItem('secondaryContainer', colorScheme.secondaryContainer, colorScheme.onSecondaryContainer),
+      _ColorItem(
+        'secondaryContainer',
+        colorScheme.secondaryContainer,
+        colorScheme.onSecondaryContainer,
+      ),
       _ColorItem('tertiary', colorScheme.tertiary, colorScheme.onTertiary),
-      _ColorItem('tertiaryContainer', colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer),
+      _ColorItem(
+        'tertiaryContainer',
+        colorScheme.tertiaryContainer,
+        colorScheme.onTertiaryContainer,
+      ),
       _ColorItem('error', colorScheme.error, colorScheme.onError),
-      _ColorItem('errorContainer', colorScheme.errorContainer, colorScheme.onErrorContainer),
+      _ColorItem(
+        'errorContainer',
+        colorScheme.errorContainer,
+        colorScheme.onErrorContainer,
+      ),
       _ColorItem('surface', colorScheme.surface, colorScheme.onSurface),
-      _ColorItem('surfaceContainer', colorScheme.surfaceContainer, colorScheme.onSurface),
+      _ColorItem(
+        'surfaceContainer',
+        colorScheme.surfaceContainer,
+        colorScheme.onSurface,
+      ),
     ];
 
     return Scaffold(
@@ -47,7 +71,10 @@ class ColorTestScreen extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               item.name,
-              style: TextStyle(color: item.onColor, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: item.onColor,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
           );

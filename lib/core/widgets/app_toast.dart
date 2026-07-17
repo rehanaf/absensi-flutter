@@ -1,3 +1,4 @@
+import 'package:absensi/core/constants/app_messages.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -10,7 +11,14 @@ class AppToast {
     Duration duration = const Duration(seconds: 3),
     VoidCallback? onTap,
   }) {
-    _show(context, title: title, message: message, isError: false, duration: duration, onTap: onTap);
+    _show(
+      context,
+      title: title,
+      message: AppMessages.get(message),
+      isError: false,
+      duration: duration,
+      onTap: onTap,
+    );
   }
 
   static void showError(
@@ -20,7 +28,14 @@ class AppToast {
     Duration duration = const Duration(seconds: 3),
     VoidCallback? onTap,
   }) {
-    _show(context, title: title, message: message, isError: true, duration: duration, onTap: onTap);
+    _show(
+      context,
+      title: title,
+      message: AppMessages.get(message),
+      isError: true,
+      duration: duration,
+      onTap: onTap,
+    );
   }
 
   static void _show(
@@ -37,7 +52,7 @@ class AppToast {
     overlayEntry = OverlayEntry(
       builder: (context) => _ToastWidget(
         title: title,
-        message: message,
+        message: AppMessages.get(message),
         isError: isError,
         onDismiss: () => overlayEntry.remove(),
         duration: duration,
@@ -71,7 +86,8 @@ class _ToastWidget extends StatefulWidget {
   State<_ToastWidget> createState() => _ToastWidgetState();
 }
 
-class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderStateMixin {
+class _ToastWidgetState extends State<_ToastWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _opacityAnimation;
@@ -121,10 +137,12 @@ class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderSta
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     final primaryColor = widget.isError ? Colors.red : Colors.green;
-    final icon = widget.isError ? LucideIcons.alertTriangle : LucideIcons.checkCircle2;
-    
+    final icon = widget.isError
+        ? LucideIcons.alertTriangle
+        : LucideIcons.checkCircle2;
+
     return SafeArea(
       child: Align(
         alignment: Alignment.topCenter,
@@ -144,16 +162,22 @@ class _ToastWidgetState extends State<_ToastWidget> with SingleTickerProviderSta
                     _dismiss();
                   },
                   onVerticalDragEnd: (details) {
-                    if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+                    if (details.primaryVelocity != null &&
+                        details.primaryVelocity! < 0) {
                       _dismiss(); // dismiss on swipe up
                     }
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant.withOpacity(0.5),
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.08),

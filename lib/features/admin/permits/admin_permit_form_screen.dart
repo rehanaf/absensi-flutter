@@ -22,18 +22,28 @@ class _AdminPermitFormScreenState extends State<AdminPermitFormScreen> {
   late TextEditingController _reasonController;
   late TextEditingController _statusController;
 
-
   @override
   void initState() {
     super.initState();
     final item = widget.item;
-    _userIdController = TextEditingController(text: item?['user_id']?.toString() ?? '');
-    _startDateController = TextEditingController(text: item?['start_date']?.toString() ?? '');
-    _endDateController = TextEditingController(text: item?['end_date']?.toString() ?? '');
-    _typeController = TextEditingController(text: item?['type']?.toString() ?? '');
-    _reasonController = TextEditingController(text: item?['reason']?.toString() ?? '');
-    _statusController = TextEditingController(text: item?['status']?.toString() ?? '');
-
+    _userIdController = TextEditingController(
+      text: item?['user_id']?.toString() ?? '',
+    );
+    _startDateController = TextEditingController(
+      text: item?['start_date']?.toString() ?? '',
+    );
+    _endDateController = TextEditingController(
+      text: item?['end_date']?.toString() ?? '',
+    );
+    _typeController = TextEditingController(
+      text: item?['type']?.toString() ?? '',
+    );
+    _reasonController = TextEditingController(
+      text: item?['reason']?.toString() ?? '',
+    );
+    _statusController = TextEditingController(
+      text: item?['status']?.toString() ?? '',
+    );
   }
 
   @override
@@ -59,16 +69,17 @@ class _AdminPermitFormScreenState extends State<AdminPermitFormScreen> {
       'type': _typeController.text,
       'reason': _reasonController.text,
       'status': _statusController.text,
-
     };
 
     try {
       if (widget.item == null) {
         await _apiService.createPermit(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
       } else {
         await _apiService.updatePermit(widget.item!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -97,21 +108,72 @@ class _AdminPermitFormScreenState extends State<AdminPermitFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('User ID')), controller: _userIdController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('User ID'),
+                      ),
+                      controller: _userIdController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tgl Mulai')), controller: _startDateController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Tgl Mulai'),
+                      ),
+                      controller: _startDateController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tgl Selesai')), controller: _endDateController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Tgl Selesai'),
+                      ),
+                      controller: _endDateController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tipe')), controller: _typeController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Tipe'),
+                      ),
+                      controller: _typeController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Alasan')), controller: _reasonController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Alasan'),
+                      ),
+                      controller: _reasonController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Status')), controller: _statusController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Status'),
+                      ),
+                      controller: _statusController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan'),
+                    ),
                   ],
                 ),
               ),

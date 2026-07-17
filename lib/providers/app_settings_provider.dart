@@ -1,3 +1,4 @@
+import 'package:absensi/core/constants/app_messages.dart';
 import 'package:flutter/material.dart';
 import '../data/services/api_service.dart';
 
@@ -5,6 +6,7 @@ class AppSettingsProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   String _appName = 'Absensi App';
+  String _appMode = 'perusahaan';
   String _identityLabel = 'ID';
   String _themeColorName = 'zinc';
   bool _requireLocation = false;
@@ -21,6 +23,7 @@ class AppSettingsProvider with ChangeNotifier {
   String? _errorMessage;
 
   String get appName => _appName;
+  String get appMode => _appMode;
   String get identityLabel => _identityLabel;
   String get themeColorName => _themeColorName;
   bool get requireLocation => _requireLocation;
@@ -70,52 +73,77 @@ class AppSettingsProvider with ChangeNotifier {
             settingsMap[item['key']] = item['value'];
           }
         }
-        
+
         _appName = settingsMap['app_name'] ?? _appName;
+        _appMode = settingsMap['app_mode']?.toString() ?? _appMode;
+        AppMessages.setAppMode(_appMode);
         _identityLabel = settingsMap['username_label'] ?? _identityLabel;
-        
+
         if (settingsMap['theme_color'] != null) {
           _themeColorName = settingsMap['theme_color'].toString().toLowerCase();
         }
-        
-        _requireLocation = settingsMap['require_location']?.toString() == '1' || settingsMap['require_location']?.toString().toLowerCase() == 'true';
+
+        _requireLocation =
+            settingsMap['require_location']?.toString() == '1' ||
+            settingsMap['require_location']?.toString().toLowerCase() == 'true';
         _attendanceMode = settingsMap['attendance_mode']?.toString() ?? 'none';
-        _allowRegistration = settingsMap['allow_registration']?.toString() == '1' || settingsMap['allow_registration']?.toString().toLowerCase() == 'true';
+        _allowRegistration =
+            settingsMap['allow_registration']?.toString() == '1' ||
+            settingsMap['allow_registration']?.toString().toLowerCase() ==
+                'true';
 
         if (settingsMap['center_latitude'] != null) {
-          _officeLat = double.tryParse(settingsMap['center_latitude'].toString()) ?? _officeLat;
+          _officeLat =
+              double.tryParse(settingsMap['center_latitude'].toString()) ??
+              _officeLat;
         }
         if (settingsMap['center_longitude'] != null) {
-          _officeLng = double.tryParse(settingsMap['center_longitude'].toString()) ?? _officeLng;
+          _officeLng =
+              double.tryParse(settingsMap['center_longitude'].toString()) ??
+              _officeLng;
         }
         if (settingsMap['location_name'] != null) {
           _locationName = settingsMap['location_name'].toString();
         }
         if (settingsMap['office_radius'] != null) {
-          _officeRadius = double.tryParse(settingsMap['office_radius'].toString()) ?? _officeRadius;
+          _officeRadius =
+              double.tryParse(settingsMap['office_radius'].toString()) ??
+              _officeRadius;
         }
       } else if (settings is Map) {
         // Fallback backward compatibility
         _appName = settings['app_name'] ?? _appName;
+        _appMode = settings['app_mode']?.toString() ?? _appMode;
+        AppMessages.setAppMode(_appMode);
         _identityLabel = settings['username_label'] ?? _identityLabel;
         if (settings['theme_color'] != null) {
           _themeColorName = settings['theme_color'].toString().toLowerCase();
         }
-        _requireLocation = settings['require_location']?.toString() == '1' || settings['require_location']?.toString().toLowerCase() == 'true';
+        _requireLocation =
+            settings['require_location']?.toString() == '1' ||
+            settings['require_location']?.toString().toLowerCase() == 'true';
         _attendanceMode = settings['attendance_mode']?.toString() ?? 'none';
-        _allowRegistration = settings['allow_registration']?.toString() == '1' || settings['allow_registration']?.toString().toLowerCase() == 'true';
+        _allowRegistration =
+            settings['allow_registration']?.toString() == '1' ||
+            settings['allow_registration']?.toString().toLowerCase() == 'true';
 
         if (settings['center_latitude'] != null) {
-          _officeLat = double.tryParse(settings['center_latitude'].toString()) ?? _officeLat;
+          _officeLat =
+              double.tryParse(settings['center_latitude'].toString()) ??
+              _officeLat;
         }
         if (settings['center_longitude'] != null) {
-          _officeLng = double.tryParse(settings['center_longitude'].toString()) ?? _officeLng;
+          _officeLng =
+              double.tryParse(settings['center_longitude'].toString()) ??
+              _officeLng;
         }
         if (settings['location_name'] != null) {
           _locationName = settings['location_name'].toString();
         }
         if (settings['office_radius'] != null) {
-          _officeRadius = double.tryParse(settings['office_radius'].toString()) ?? _officeRadius;
+          _officeRadius =
+              double.tryParse(settings['office_radius'].toString()) ??
+              _officeRadius;
         }
       }
 

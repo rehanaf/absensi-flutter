@@ -46,12 +46,18 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'hadir': return Colors.green;
-      case 'absen': return Colors.red;
-      case 'izin': return Colors.orange;
-      case 'sakit': return Colors.blue;
-      case 'terlambat': return Colors.amber;
-      default: return Colors.grey;
+      case 'hadir':
+        return Colors.green;
+      case 'absen':
+        return Colors.red;
+      case 'izin':
+        return Colors.orange;
+      case 'sakit':
+        return Colors.blue;
+      case 'terlambat':
+        return Colors.amber;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -76,16 +82,30 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
             title: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  child: Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
+                  child: Icon(
+                    Icons.person,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      Text('NIS / ID: $username', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text(
+                        name,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'NIS / ID: $username',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -103,12 +123,17 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: attendances.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final att = attendances[index];
                     final dateStr = att['date']?.toString() ?? '-';
-                    final checkIn = att['check_in'] != null ? att['check_in'].toString().substring(0, 5) : '--:--';
-                    final checkOut = att['check_out'] != null ? att['check_out'].toString().substring(0, 5) : '--:--';
+                    final checkIn = att['check_in'] != null
+                        ? att['check_in'].toString().substring(0, 5)
+                        : '--:--';
+                    final checkOut = att['check_out'] != null
+                        ? att['check_out'].toString().substring(0, 5)
+                        : '--:--';
                     final status = att['status']?.toString() ?? '-';
 
                     return Padding(
@@ -120,31 +145,71 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  dateStr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Icon(Icons.login, size: 14, color: Theme.of(context).colorScheme.primary),
+                                    Icon(
+                                      Icons.login,
+                                      size: 14,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text(checkIn, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                    Text(
+                                      checkIn,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
                                     const SizedBox(width: 12),
-                                    Icon(Icons.logout, size: 14, color: Theme.of(context).colorScheme.error),
+                                    Icon(
+                                      Icons.logout,
+                                      size: 14,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text(checkOut, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                    Text(
+                                      checkOut,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: _getStatusColor(status).withAlpha(26),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               status.toUpperCase(),
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _getStatusColor(status)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _getStatusColor(status),
+                              ),
                             ),
                           ),
                         ],
@@ -162,9 +227,7 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_errorMessage != null) {
@@ -175,9 +238,16 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const SizedBox(height: 16),
-                Text('Gagal memuat riwayat:\n$_errorMessage', textAlign: TextAlign.center),
+                Text(
+                  'Gagal memuat riwayat:\n$_errorMessage',
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _fetchHistory,
@@ -197,9 +267,16 @@ class _ParentHistoryScreenState extends State<ParentHistoryScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.history, size: 64, color: Theme.of(context).colorScheme.surfaceContainerHighest),
+              Icon(
+                Icons.history,
+                size: 64,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
               const SizedBox(height: 16),
-              Text('Belum ada data riwayat anak.', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Belum ada data riwayat anak.',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ],
           ),
         ),

@@ -12,10 +12,10 @@ class SubmissionScreen extends StatefulWidget {
 
 class _SubmissionScreenState extends State<SubmissionScreen> {
   final ApiService _apiService = ApiService();
-  
+
   bool _isLoadingPermits = true;
   bool _isLoadingActivities = true;
-  
+
   List<dynamic> _permits = [];
   List<dynamic> _activities = [];
 
@@ -67,10 +67,14 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'approved': return Colors.green;
-      case 'rejected': return Colors.red;
-      case 'pending': return Colors.orange;
-      default: return Colors.grey;
+      case 'approved':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'pending':
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -78,9 +82,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
     if (_isLoadingPermits) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_permits.isEmpty) {
-      return const Center(child: Text('Belum ada riwayat pengajuan izin/sakit'));
+      return const Center(
+        child: Text('Belum ada riwayat pengajuan izin/sakit'),
+      );
     }
 
     return RefreshIndicator(
@@ -97,11 +103,24 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
           final endDate = item['end_date'] ?? '-';
           final reason = item['reason'] ?? '-';
 
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? Theme.of(context).cardColor : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Theme.of(context).dividerColor),
+              border: isDark
+                  ? Border.all(color: Theme.of(context).dividerColor)
+                  : null,
+              boxShadow: isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -112,22 +131,41 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(type, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onPrimaryContainer)),
+                        child: Text(
+                          type,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                        ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: _getStatusColor(status).withAlpha(26),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           status.toUpperCase(),
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _getStatusColor(status)),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _getStatusColor(status),
+                          ),
                         ),
                       ),
                     ],
@@ -135,13 +173,23 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 8),
-                      Text('$startDate s/d $endDate', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        '$startDate s/d $endDate',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('Alasan: $reason', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Alasan: $reason',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
@@ -155,7 +203,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
     if (_isLoadingActivities) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (_activities.isEmpty) {
       return const Center(child: Text('Belum ada riwayat lembur/tugas luar'));
     }
@@ -168,18 +216,36 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = _activities[index] as Map<String, dynamic>;
-          final type = item['activity_type']?.toString().replaceAll('_', ' ').toUpperCase() ?? 'LEMBUR';
+          final type =
+              item['activity_type']
+                  ?.toString()
+                  .replaceAll('_', ' ')
+                  .toUpperCase() ??
+              'LEMBUR';
           final status = item['status_approval']?.toString() ?? 'pending';
           final date = item['date'] ?? '-';
           final start = item['start_time'] ?? '-';
           final end = item['end_time'] ?? '-';
           final desc = item['description'] ?? '-';
 
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? Theme.of(context).cardColor : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Theme.of(context).dividerColor),
+              border: isDark
+                  ? Border.all(color: Theme.of(context).dividerColor)
+                  : null,
+              boxShadow: isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -190,22 +256,43 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.tertiaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(type, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onTertiaryContainer)),
+                        child: Text(
+                          type,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onTertiaryContainer,
+                          ),
+                        ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: _getStatusColor(status).withAlpha(26),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           status.toUpperCase(),
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _getStatusColor(status)),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _getStatusColor(status),
+                          ),
                         ),
                       ),
                     ],
@@ -213,17 +300,34 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 8),
-                      Text(date, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        date,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(width: 16),
-                      const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                      const Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 8),
-                      Text('${start.toString().substring(0, 5)} - ${end.toString().substring(0, 5)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        '${start.toString().substring(0, 5)} - ${end.toString().substring(0, 5)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('Ket: $desc', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Ket: $desc',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
@@ -235,6 +339,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -268,12 +373,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
             ),
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildPermitsTab(),
-            _buildActivitiesTab(),
-          ],
-        ),
+        body: TabBarView(children: [_buildPermitsTab(), _buildActivitiesTab()]),
         floatingActionButton: Builder(
           builder: (context) {
             return FloatingActionButton.extended(
@@ -283,13 +383,17 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                 if (tabIndex == 0) {
                   result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PermitFormScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const PermitFormScreen(),
+                    ),
                   );
                   if (result == true) _fetchPermits();
                 } else {
                   result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ActivityFormScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const ActivityFormScreen(),
+                    ),
                   );
                   if (result == true) _fetchActivities();
                 }
@@ -297,7 +401,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Buat Pengajuan'),
             );
-          }
+          },
         ),
       ),
     );

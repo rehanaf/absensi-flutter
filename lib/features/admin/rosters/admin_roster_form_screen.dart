@@ -19,15 +19,19 @@ class _AdminRosterFormScreenState extends State<AdminRosterFormScreen> {
   late TextEditingController _shiftIdController;
   late TextEditingController _dateController;
 
-
   @override
   void initState() {
     super.initState();
     final item = widget.item;
-    _userIdController = TextEditingController(text: item?['user_id']?.toString() ?? '');
-    _shiftIdController = TextEditingController(text: item?['shift_id']?.toString() ?? '');
-    _dateController = TextEditingController(text: item?['date']?.toString() ?? '');
-
+    _userIdController = TextEditingController(
+      text: item?['user_id']?.toString() ?? '',
+    );
+    _shiftIdController = TextEditingController(
+      text: item?['shift_id']?.toString() ?? '',
+    );
+    _dateController = TextEditingController(
+      text: item?['date']?.toString() ?? '',
+    );
   }
 
   @override
@@ -47,16 +51,17 @@ class _AdminRosterFormScreenState extends State<AdminRosterFormScreen> {
       'user_id': _userIdController.text,
       'shift_id': _shiftIdController.text,
       'date': _dateController.text,
-
     };
 
     try {
       if (widget.item == null) {
         await _apiService.createRoster(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
       } else {
         await _apiService.updateRoster(widget.item!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -85,15 +90,42 @@ class _AdminRosterFormScreenState extends State<AdminRosterFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('User ID')), controller: _userIdController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('User ID'),
+                      ),
+                      controller: _userIdController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Shift ID')), controller: _shiftIdController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Shift ID'),
+                      ),
+                      controller: _shiftIdController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tanggal')), controller: _dateController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Tanggal'),
+                      ),
+                      controller: _dateController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan'),
+                    ),
                   ],
                 ),
               ),

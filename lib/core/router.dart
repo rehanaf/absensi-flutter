@@ -19,10 +19,7 @@ final router = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/login',
       builder: (context, state) {
@@ -39,9 +36,6 @@ final router = GoRouter(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
     ),
-    GoRoute(
-      path: '/home',
-      builder: (context, state) => const MainScreen(),
-    ),
+    GoRoute(path: '/home', builder: (context, state) => const MainScreen()),
   ],
 );

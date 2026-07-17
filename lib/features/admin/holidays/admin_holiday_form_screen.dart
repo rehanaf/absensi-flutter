@@ -18,14 +18,16 @@ class _AdminHolidayFormScreenState extends State<AdminHolidayFormScreen> {
   late TextEditingController _nameController;
   late TextEditingController _dateController;
 
-
   @override
   void initState() {
     super.initState();
     final item = widget.item;
-    _nameController = TextEditingController(text: item?['name']?.toString() ?? '');
-    _dateController = TextEditingController(text: item?['date']?.toString() ?? '');
-
+    _nameController = TextEditingController(
+      text: item?['name']?.toString() ?? '',
+    );
+    _dateController = TextEditingController(
+      text: item?['date']?.toString() ?? '',
+    );
   }
 
   @override
@@ -40,19 +42,17 @@ class _AdminHolidayFormScreenState extends State<AdminHolidayFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    final data = {
-      'name': _nameController.text,
-      'date': _dateController.text,
-
-    };
+    final data = {'name': _nameController.text, 'date': _dateController.text};
 
     try {
       if (widget.item == null) {
         await _apiService.createHoliday(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
       } else {
         await _apiService.updateHoliday(widget.item!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -81,13 +81,32 @@ class _AdminHolidayFormScreenState extends State<AdminHolidayFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Libur')), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Nama Libur'),
+                      ),
+                      controller: _nameController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tanggal')), controller: _dateController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Tanggal'),
+                      ),
+                      controller: _dateController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan'),
+                    ),
                   ],
                 ),
               ),

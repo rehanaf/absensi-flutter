@@ -3,7 +3,8 @@ import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class FaceRecognitionService {
-  static final FaceRecognitionService _instance = FaceRecognitionService._internal();
+  static final FaceRecognitionService _instance =
+      FaceRecognitionService._internal();
   factory FaceRecognitionService() => _instance;
   FaceRecognitionService._internal();
 
@@ -27,7 +28,7 @@ class FaceRecognitionService {
     if (!_isInitialized || _interpreter == null) {
       await initialize();
     }
-    
+
     if (_interpreter == null) throw Exception("Interpreter not loaded");
 
     // Resize image to exactly 112x112 as expected by MobileFaceNet
@@ -38,10 +39,7 @@ class FaceRecognitionService {
       1,
       (i) => List.generate(
         112,
-        (y) => List.generate(
-          112,
-          (x) => List.filled(3, 0.0),
-        ),
+        (y) => List.generate(112, (x) => List.filled(3, 0.0)),
       ),
     );
 
@@ -63,7 +61,7 @@ class FaceRecognitionService {
     _interpreter!.run(input, output);
 
     List<double> raw = output[0];
-    
+
     // L2 Normalization (Crucial for Euclidean Distance / Cosine Similarity)
     double sumSq = 0.0;
     for (double v in raw) {
@@ -71,7 +69,7 @@ class FaceRecognitionService {
     }
     double magnitude = sqrt(sumSq);
     if (magnitude == 0) magnitude = 1e-10; // Prevent division by zero
-    
+
     List<double> normalized = raw.map((v) => v / magnitude).toList();
 
     // Return the normalized 192D vector
@@ -81,13 +79,13 @@ class FaceRecognitionService {
   /// Calculate Euclidean distance between two 192D embeddings
   double calculateDistance(List<double> e1, List<double> e2) {
     if (e1.length != e2.length) return 999.0;
-    
+
     double sum = 0.0;
     for (int i = 0; i < e1.length; i++) {
       final diff = e1[i] - e2[i];
       sum += diff * diff;
     }
-    
+
     return sqrt(sum);
   }
 }

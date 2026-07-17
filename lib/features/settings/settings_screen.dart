@@ -1,7 +1,14 @@
+import 'dart:math';
+import 'package:absensi/core/constants/app_messages.dart';
+import 'package:absensi/core/config.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/config.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,10 +30,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ImageProvider? _getAvatarImage(Map<String, dynamic>? user) {
     final avatarPath = user?['profile']?['avatar'];
     if (avatarPath != null && avatarPath.toString().isNotEmpty) {
-      final String fullUrl = avatarPath.toString().startsWith('http') 
-          ? avatarPath.toString() 
-          : 'http://absensi.test/storage/$avatarPath';
-      return NetworkImage(fullUrl);
+      final String fullUrl = avatarPath.toString().startsWith('http')
+          ? avatarPath.toString()
+          : AppConfig.baseUrl.replaceAll('/api', '') + '/storage/$avatarPath';
+      return NetworkImage('$fullUrl?v=${user?['profile']?['updated_at'] ?? user?['updated_at'] ?? ''}');
     }
     return null;
   }
@@ -34,13 +41,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _uploadAvatar(List<int> bytes, String fileName) async {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final file = MultipartFile.fromBytes(
-        bytes,
-        filename: fileName,
-      );
+      final file = MultipartFile.fromBytes(bytes, filename: fileName);
       await auth.updateProfile({'avatar': file});
       if (mounted) {
-        AppToast.showSuccess(context, message: 'Foto profil berhasil diperbarui!');
+        AppToast.showSuccess(
+          context,
+          message: AppMessages.profileUpdateSuccess,
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -87,12 +94,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _buildPresetItem('blue', 'Biru Klasik', [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)]),
-                      _buildPresetItem('orange', 'Orange Senja', [const Color(0xFFF59E0B), const Color(0xFFD97706)]),
-                      _buildPresetItem('green', 'Teal Rimbun', [const Color(0xFF10B981), const Color(0xFF047857)]),
-                      _buildPresetItem('purple', 'Ungu Midnight', [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)]),
-                      _buildPresetItem('rose', 'Merah Mawar', [const Color(0xFFF43F5E), const Color(0xFFBE185D)]),
-                      _buildPresetItem('slate', 'Abu Elegan', [const Color(0xFF64748B), const Color(0xFF334155)]),
+                      _buildPresetItem('blue', 'Biru Klasik', [
+                        const Color(0xFF3B82F6),
+                        const Color(0xFF1D4ED8),
+                      ]),
+                      _buildPresetItem('orange', 'Orange Senja', [
+                        const Color(0xFFF59E0B),
+                        const Color(0xFFD97706),
+                      ]),
+                      _buildPresetItem('green', 'Teal Rimbun', [
+                        const Color(0xFF10B981),
+                        const Color(0xFF047857),
+                      ]),
+                      _buildPresetItem('purple', 'Ungu Midnight', [
+                        const Color(0xFF8B5CF6),
+                        const Color(0xFF6D28D9),
+                      ]),
+                      _buildPresetItem('rose', 'Merah Mawar', [
+                        const Color(0xFFF43F5E),
+                        const Color(0xFFBE185D),
+                      ]),
+                      _buildPresetItem('slate', 'Abu Elegan', [
+                        const Color(0xFF64748B),
+                        const Color(0xFF334155),
+                      ]),
                     ],
                   ),
                 ),
@@ -126,12 +151,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2)),
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 6),
-            Text(name, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Text(
+              name,
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -143,15 +175,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       await auth.updateProfile({'card_preset': presetKey});
       if (mounted) {
-        AppToast.showSuccess(context, message: 'Warna kartu berhasil diperbarui!');
+        AppToast.showSuccess(
+          context,
+          message: 'Warna kartu berhasil diperbarui!',
+        );
       }
     } catch (e) {
       if (mounted) {
-        AppToast.showError(context, message: 'Gagal memperbarui warna kartu: $e');
+        AppToast.showError(
+          context,
+          message: 'Gagal memperbarui warna kartu: $e',
+        );
       }
     }
   }
-
 
   void _showImagePickerOptions({required String? currentImage}) {
     showModalBottomSheet(
@@ -173,7 +210,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (currentImage != null && currentImage.isNotEmpty)
                 ListTile(
                   leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text('Hapus Foto Profil', style: TextStyle(color: Colors.red)),
+                  title: const Text(
+                    'Hapus Foto Profil',
+                    style: TextStyle(color: Colors.red),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _deleteAvatar();
@@ -220,8 +260,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
   }
-
-
 
   Widget _buildProfileCard(Map<String, dynamic>? user) {
     final String name = user?['name'] ?? 'User';
@@ -298,7 +336,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: IconButton(
               icon: Icon(
                 Icons.palette,
-                color: isCardColored ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant,
+                color: isCardColored
+                    ? Colors.white70
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 20,
               ),
               onPressed: _showPresetOptions,
@@ -311,7 +351,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => _showImagePickerOptions(currentImage: user?['profile']?['avatar']),
+                  onTap: () => _showImagePickerOptions(
+                    currentImage: user?['profile']?['avatar'],
+                  ),
                   child: Stack(
                     children: [
                       Container(
@@ -333,7 +375,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ? Text(
                                   name.isNotEmpty ? name[0].toUpperCase() : 'U',
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 28,
                                   ),
@@ -366,7 +410,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         name,
                         style: TextStyle(
-                          color: isCardColored ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                          color: isCardColored
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurface,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -377,7 +423,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         username,
                         style: TextStyle(
-                          color: isCardColored ? Colors.white.withOpacity(0.85) : Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: isCardColored
+                              ? Colors.white.withOpacity(0.85)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -405,10 +453,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkNotificationPermission() async {
     try {
-      final settings = await FirebaseMessaging.instance.getNotificationSettings();
+      final settings = await FirebaseMessaging.instance
+          .getNotificationSettings();
       final status = settings.authorizationStatus;
-      
-      bool granted = status == AuthorizationStatus.authorized || status == AuthorizationStatus.provisional;
+
+      bool granted =
+          status == AuthorizationStatus.authorized ||
+          status == AuthorizationStatus.provisional;
       if (mounted) {
         setState(() {
           _isPermissionGranted = granted;
@@ -443,8 +494,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       final status = settings.authorizationStatus;
-      bool granted = status == AuthorizationStatus.authorized || status == AuthorizationStatus.provisional;
-      
+      bool granted =
+          status == AuthorizationStatus.authorized ||
+          status == AuthorizationStatus.provisional;
+
       if (mounted) {
         setState(() {
           _isPermissionGranted = granted;
@@ -462,9 +515,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final fcmToken = await messaging.getToken();
         if (fcmToken != null && mounted) {
           final apiService = ApiService();
-          await apiService.registerFcmToken(fcmToken);
+          final deviceName = kIsWeb
+              ? 'Web Browser'
+              : Platform.isAndroid
+                  ? 'Android Device'
+                  : Platform.isIOS
+                      ? 'iOS Device'
+                      : 'Desktop/Unknown';
+          final prefs = await SharedPreferences.getInstance();
+          String? devId = prefs.getString('device_id');
+          if (devId == null) {
+            devId = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
+            await prefs.setString('device_id', devId);
+          }
+          await apiService.registerFcmToken(fcmToken, deviceName: deviceName, deviceId: devId);
           if (mounted) {
-            AppToast.showSuccess(context, message: 'Notifikasi berhasil diaktifkan!');
+            AppToast.showSuccess(
+              context,
+              message: 'Notifikasi berhasil diaktifkan!',
+            );
           }
         }
       } else {
@@ -475,7 +544,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Izin Notifikasi Ditolak'),
               content: const Text(
                 'Anda telah menonaktifkan notifikasi untuk aplikasi ini. \n\n'
-                'Silakan buka Pengaturan HP Anda, lalu masuk ke Aplikasi -> Absensi -> Notifikasi, dan aktifkan izin secara manual.'
+                'Silakan buka Pengaturan HP Anda, lalu masuk ke Aplikasi -> Absensi -> Notifikasi, dan aktifkan izin secara manual.',
               ),
               actions: [
                 TextButton(
@@ -500,11 +569,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final apiService = ApiService();
       final result = await apiService.sendTestNotification();
       if (mounted) {
-        AppToast.showSuccess(context, message: result['message'] ?? 'Notifikasi tes berhasil dikirim!');
+        AppToast.showSuccess(
+          context,
+          message: result['message'] ?? 'Notifikasi tes berhasil dikirim!',
+        );
       }
     } catch (e) {
       if (mounted) {
-        AppToast.showError(context, message: 'Gagal mengirim notifikasi tes: $e');
+        AppToast.showError(
+          context,
+          message: 'Gagal mengirim notifikasi tes: $e',
+        );
       }
     } finally {
       if (mounted) {
@@ -530,12 +605,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Info Profil', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Info Profil',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     TextButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ProfileEditScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileEditScreen(),
+                          ),
                         ).then((_) {
                           auth.checkAuthStatus();
                         });
@@ -553,7 +635,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: EdgeInsets.symmetric(vertical: 24.0),
               child: Divider(height: 1),
             ),
-            Text('Preferensi', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Preferensi',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -563,9 +650,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: themeProvider.themeMode,
                 underline: const SizedBox(),
                 items: const [
-                  DropdownMenuItem(value: ThemeMode.system, child: TwemojiText(text: '💻 Sistem')),
-                  DropdownMenuItem(value: ThemeMode.light, child: TwemojiText(text: '🌞 Terang')),
-                  DropdownMenuItem(value: ThemeMode.dark, child: TwemojiText(text: '🌙 Gelap')),
+                  DropdownMenuItem(
+                    value: ThemeMode.system,
+                    child: TwemojiText(text: '💻 Sistem'),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.light,
+                    child: TwemojiText(text: '🌞 Terang'),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.dark,
+                    child: TwemojiText(text: '🌙 Gelap'),
+                  ),
                 ],
                 onChanged: (val) {
                   if (val != null) {
@@ -579,7 +675,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Izin Notifikasi'),
               subtitle: Text(_notificationStatus),
               leading: Icon(
-                _isPermissionGranted ? Icons.notifications_active : Icons.notifications_off,
+                _isPermissionGranted
+                    ? Icons.notifications_active
+                    : Icons.notifications_off,
                 color: _isPermissionGranted ? Colors.green : Colors.grey,
               ),
               trailing: OutlinedButton(
@@ -594,8 +692,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.send_to_mobile, color: Colors.blue),
               trailing: ElevatedButton(
                 onPressed: _isSendingTest ? null : _sendTestNotification,
-                child: _isSendingTest 
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                child: _isSendingTest
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('Tes Kirim'),
               ),
             ),

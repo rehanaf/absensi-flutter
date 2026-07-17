@@ -10,7 +10,8 @@ class AdminScheduleFormScreen extends StatefulWidget {
   const AdminScheduleFormScreen({super.key, this.schedule});
 
   @override
-  State<AdminScheduleFormScreen> createState() => _AdminScheduleFormScreenState();
+  State<AdminScheduleFormScreen> createState() =>
+      _AdminScheduleFormScreenState();
 }
 
 class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
@@ -19,7 +20,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
 
   int? _selectedGroupId;
   String _selectedGroupName = 'Jadwal Default (Semua)';
-  
+
   String _selectedDay = 'Monday';
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
@@ -41,20 +42,33 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
   void initState() {
     super.initState();
     final schedule = widget.schedule;
-    
+
     if (schedule != null) {
       _selectedGroupId = schedule['group_id'];
-      _selectedGroupName = schedule['group']?['name'] ?? (_selectedGroupId == null ? 'Jadwal Default (Semua)' : 'Group #$_selectedGroupId');
+      _selectedGroupName =
+          schedule['group']?['name'] ??
+          (_selectedGroupId == null
+              ? 'Jadwal Default (Semua)'
+              : 'Group #$_selectedGroupId');
       _selectedDay = schedule['day'] ?? 'Monday';
-      _isFlexible = schedule['is_flexible'] == 1 || schedule['is_flexible'] == true;
+      _isFlexible =
+          schedule['is_flexible'] == 1 || schedule['is_flexible'] == true;
 
       if (schedule['start_time'] != null) {
         final parts = schedule['start_time'].toString().split(':');
-        if (parts.length >= 2) _startTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+        if (parts.length >= 2)
+          _startTime = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
       }
       if (schedule['end_time'] != null) {
         final parts = schedule['end_time'].toString().split(':');
-        if (parts.length >= 2) _endTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+        if (parts.length >= 2)
+          _endTime = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
       }
     }
   }
@@ -68,7 +82,9 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
   Future<void> _pickTime(bool isStart) async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: isStart ? (_startTime ?? const TimeOfDay(hour: 7, minute: 0)) : (_endTime ?? const TimeOfDay(hour: 16, minute: 0)),
+      initialTime: isStart
+          ? (_startTime ?? const TimeOfDay(hour: 7, minute: 0))
+          : (_endTime ?? const TimeOfDay(hour: 16, minute: 0)),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
@@ -78,8 +94,10 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startTime = picked;
-        else _endTime = picked;
+        if (isStart)
+          _startTime = picked;
+        else
+          _endTime = picked;
       });
     }
   }
@@ -122,10 +140,12 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     try {
       if (widget.schedule == null) {
         await _apiService.createSchedule(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Jadwal berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Jadwal berhasil ditambahkan');
       } else {
         await _apiService.updateSchedule(widget.schedule!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Jadwal berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Jadwal berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -142,9 +162,7 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
     final isEditing = widget.schedule != null;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditing ? 'Edit Jadwal' : 'Tambah Jadwal'),
-      ),
+      appBar: AppBar(title: Text(isEditing ? 'Edit Jadwal' : 'Tambah Jadwal')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -159,9 +177,14 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                     GestureDetector(
                       onTap: _showGroupPicker,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Theme.of(context).dividerColor),
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -180,19 +203,23 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).dividerColor),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           isExpanded: true,
                           value: _selectedDay,
-                          items: _daysMap.entries.map<DropdownMenuItem<String>>((entry) {
-                            return DropdownMenuItem<String>(
-                              value: entry.key,
-                              child: Text(entry.value),
-                            );
-                          }).toList(),
+                          items: _daysMap.entries.map<DropdownMenuItem<String>>(
+                            (entry) {
+                              return DropdownMenuItem<String>(
+                                value: entry.key,
+                                child: Text(entry.value),
+                              );
+                            },
+                          ).toList(),
                           onChanged: (val) {
                             if (val != null) setState(() => _selectedDay = val);
                           },
@@ -200,27 +227,40 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Masuk', style: Theme.of(context).textTheme.bodySmall),
+                              Text(
+                                'Jam Masuk',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(true),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Theme.of(context).dividerColor),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(_startTime != null ? _formatTimeOfDay(_startTime!) : 'Pilih Waktu'),
+                                      Text(
+                                        _startTime != null
+                                            ? _formatTimeOfDay(_startTime!)
+                                            : 'Pilih Waktu',
+                                      ),
                                       const Icon(LucideIcons.clock, size: 16),
                                     ],
                                   ),
@@ -234,20 +274,33 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Pulang', style: Theme.of(context).textTheme.bodySmall),
+                              Text(
+                                'Jam Pulang',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(false),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Theme.of(context).dividerColor),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(_endTime != null ? _formatTimeOfDay(_endTime!) : 'Pilih Waktu'),
+                                      Text(
+                                        _endTime != null
+                                            ? _formatTimeOfDay(_endTime!)
+                                            : 'Pilih Waktu',
+                                      ),
                                       const Icon(LucideIcons.clock, size: 16),
                                     ],
                                   ),
@@ -268,18 +321,30 @@ class _AdminScheduleFormScreenState extends State<AdminScheduleFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Waktu Fleksibel?'),
-                              Text('Aktifkan jika tidak ada teguran terlambat', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(
+                                'Aktifkan jika tidak ada teguran terlambat',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Switch(value: _isFlexible, onChanged: (val) {
+                        Switch(
+                          value: _isFlexible,
+                          onChanged: (val) {
                             setState(() => _isFlexible = val);
-                          }),
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 32),
-                    
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Jadwal')),
+
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan Jadwal'),
+                    ),
                   ],
                 ),
               ),
@@ -351,16 +416,31 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Pilih Kelompok', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Pilih Kelompok',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
-            TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari kelompok...'), onChanged: _onSearchChanged),
+            TextField(
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: 'Cari kelompok...',
+              ),
+              onChanged: _onSearchChanged,
+            ),
             const SizedBox(height: 16),
-            
+
             // Option for default (All)
             ListTile(
               leading: const Icon(LucideIcons.users, color: Colors.blue),
-              title: const Text('Jadwal Default (Semua Pengguna)', style: TextStyle(fontWeight: FontWeight.bold)),
-              onTap: () => Navigator.pop(context, {'id': null, 'name': 'Jadwal Default (Semua)'}),
+              title: const Text(
+                'Jadwal Default (Semua Pengguna)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: () => Navigator.pop(context, {
+                'id': null,
+                'name': 'Jadwal Default (Semua)',
+              }),
             ),
             const Divider(),
 
@@ -370,8 +450,12 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
               Expanded(
                 child: Center(
                   child: Text(
-                    _searchQuery.isEmpty ? 'Tidak ada kelompok tersedia.' : 'Kelompok tidak ditemukan.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    _searchQuery.isEmpty
+                        ? 'Tidak ada kelompok tersedia.'
+                        : 'Kelompok tidak ditemukan.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               )
@@ -379,11 +463,15 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
               Expanded(
                 child: ListView.separated(
                   itemCount: _searchResults.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final group = _searchResults[index];
                     return ListTile(
-                      title: Text(group['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      title: Text(
+                        group['name'] ?? 'No Name',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Text(group['type'] ?? ''),
                       onTap: () => Navigator.pop(context, group),
                     );
@@ -393,12 +481,14 @@ class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-            )
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-

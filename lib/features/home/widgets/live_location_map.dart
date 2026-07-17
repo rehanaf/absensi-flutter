@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+
 class LiveLocationMap extends StatefulWidget {
   final double officeLat;
   final double officeLng;
@@ -72,19 +73,22 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
 
       // Get initial position first to center map quickly
       final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       _updatePosition(pos);
 
       // Start listening to location updates
-      _positionStream = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 5, // update every 5 meters
-        ),
-      ).listen((Position position) {
-        _updatePosition(position);
-      });
+      _positionStream =
+          Geolocator.getPositionStream(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 5, // update every 5 meters
+            ),
+          ).listen((Position position) {
+            _updatePosition(position);
+          });
     } catch (e) {
       setState(() {
         _error = 'Gagal mendapatkan lokasi: $e';
@@ -95,7 +99,7 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
 
   void _updatePosition(Position pos) {
     if (!mounted) return;
-    
+
     final distance = Geolocator.distanceBetween(
       pos.latitude,
       pos.longitude,
@@ -103,7 +107,9 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
       widget.officeLng,
     );
 
-    final isInside = widget.isFlexible ? true : (distance <= widget.officeRadius);
+    final isInside = widget.isFlexible
+        ? true
+        : (distance <= widget.officeRadius);
 
     setState(() {
       _currentPosition = pos;
@@ -138,9 +144,11 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
         height: 200,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.1),
+          color: Theme.of(
+            context,
+          ).colorScheme.errorContainer.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+          // removed red border
         ),
         child: Center(
           child: Column(
@@ -148,15 +156,22 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
             children: [
               const Icon(Icons.location_off, color: Colors.red, size: 32),
               const SizedBox(height: 8),
-              Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: () {
+              OutlinedButton(
+                onPressed: () {
                   setState(() {
                     _isLoading = true;
                     _error = null;
                   });
                   _initLocation();
-                }, child: const Text('Coba Lagi')),
+                },
+                child: const Text('Coba Lagi'),
+              ),
             ],
           ),
         ),
@@ -164,7 +179,7 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
     }
 
     final officeLatLng = LatLng(widget.officeLat, widget.officeLng);
-    final currentLatLng = _currentPosition != null 
+    final currentLatLng = _currentPosition != null
         ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
         : officeLatLng;
 
@@ -174,17 +189,18 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: _isInsideArea 
-                ? const Color(0xFF10B981).withValues(alpha: 0.1) 
+            color: _isInsideArea
+                ? const Color(0xFF10B981).withValues(alpha: 0.1)
                 : const Color(0xFFEF4444).withValues(alpha: 0.1),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-
           ),
           child: Row(
             children: [
               Icon(
                 _isInsideArea ? Icons.check_circle : Icons.cancel,
-                color: _isInsideArea ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                color: _isInsideArea
+                    ? const Color(0xFF10B981)
+                    : const Color(0xFFEF4444),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -192,16 +208,25 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.isFlexible ? 'Lokasi Fleksibel Aktif' : widget.locationName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      widget.isFlexible
+                          ? 'Lokasi Fleksibel Aktif'
+                          : widget.locationName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                     Text(
-                      widget.isFlexible 
-                          ? 'Bebas melakukan absen dari mana saja' 
-                          : (_isInsideArea ? 'Anda berada di dalam jangkauan' : 'Anda berada di luar jangkauan'),
+                      widget.isFlexible
+                          ? 'Bebas melakukan absen dari mana saja'
+                          : (_isInsideArea
+                                ? 'Anda berada di dalam jangkauan'
+                                : 'Anda berada di luar jangkauan'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: _isInsideArea ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                        color: _isInsideArea
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFFEF4444),
                       ),
                     ),
                   ],
@@ -213,7 +238,9 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
         SizedBox(
           height: 200,
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(12),
+            ),
             child: FlutterMap(
               mapController: _mapController,
               options: MapOptions(
@@ -245,7 +272,11 @@ class _LiveLocationMapState extends State<LiveLocationMap> {
                         point: currentLatLng,
                         width: 40,
                         height: 40,
-                        child: const Icon(Icons.person_pin_circle, color: Colors.red, size: 40),
+                        child: const Icon(
+                          Icons.person_pin_circle,
+                          color: Colors.red,
+                          size: 40,
+                        ),
                       ),
                   ],
                 ),

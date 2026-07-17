@@ -7,7 +7,8 @@ class AdminLocationFormScreen extends StatefulWidget {
   const AdminLocationFormScreen({super.key, this.item});
 
   @override
-  State<AdminLocationFormScreen> createState() => _AdminLocationFormScreenState();
+  State<AdminLocationFormScreen> createState() =>
+      _AdminLocationFormScreenState();
 }
 
 class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
@@ -20,16 +21,22 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
   late TextEditingController _longitudeController;
   late TextEditingController _radiusController;
 
-
   @override
   void initState() {
     super.initState();
     final item = widget.item;
-    _nameController = TextEditingController(text: item?['name']?.toString() ?? '');
-    _latitudeController = TextEditingController(text: item?['latitude']?.toString() ?? '');
-    _longitudeController = TextEditingController(text: item?['longitude']?.toString() ?? '');
-    _radiusController = TextEditingController(text: item?['radius']?.toString() ?? '');
-
+    _nameController = TextEditingController(
+      text: item?['name']?.toString() ?? '',
+    );
+    _latitudeController = TextEditingController(
+      text: item?['latitude']?.toString() ?? '',
+    );
+    _longitudeController = TextEditingController(
+      text: item?['longitude']?.toString() ?? '',
+    );
+    _radiusController = TextEditingController(
+      text: item?['radius']?.toString() ?? '',
+    );
   }
 
   @override
@@ -51,16 +58,17 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
       'latitude': _latitudeController.text,
       'longitude': _longitudeController.text,
       'radius': _radiusController.text,
-
     };
 
     try {
       if (widget.item == null) {
         await _apiService.createLocation(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil ditambahkan');
       } else {
         await _apiService.updateLocation(widget.item!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(context, message: 'Berhasil diperbarui');
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -78,7 +86,9 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Cabang / Lokasi' : 'Tambah Cabang / Lokasi'),
+        title: Text(
+          isEditing ? 'Edit Cabang / Lokasi' : 'Tambah Cabang / Lokasi',
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -89,17 +99,52 @@ class _AdminLocationFormScreenState extends State<AdminLocationFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Cabang')), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Nama Cabang'),
+                      ),
+                      controller: _nameController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Latitude')), controller: _latitudeController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Latitude'),
+                      ),
+                      controller: _latitudeController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Longitude')), controller: _longitudeController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Longitude'),
+                      ),
+                      controller: _longitudeController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Radius (m)')), controller: _radiusController, validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Radius (m)'),
+                      ),
+                      controller: _radiusController,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                    ),
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 24),
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan')),
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan'),
+                    ),
                   ],
                 ),
               ),

@@ -30,10 +30,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         if (response is Map) {
           if (response.containsKey('data') && response['data'] is List) {
             _notifications = response['data'];
-          } else if (response.containsKey('notifications') && response['notifications'] is List) {
+          } else if (response.containsKey('notifications') &&
+              response['notifications'] is List) {
             _notifications = response['notifications'];
           } else {
-            var listVal = response.values.firstWhere((v) => v is List, orElse: () => null);
+            var listVal = response.values.firstWhere(
+              (v) => v is List,
+              orElse: () => null,
+            );
             if (listVal != null) {
               _notifications = listVal;
             } else {
@@ -68,8 +72,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     try {
       final apiService = ApiService();
-      if (notification is Map && notification['id'] != null) await apiService.markNotificationAsRead(notification['id']);
-      
+      if (notification is Map && notification['id'] != null)
+        await apiService.markNotificationAsRead(notification['id']);
+
       setState(() {
         if (notification is Map && notification.containsKey('is_read')) {
           notification['is_read'] = 1;
@@ -97,17 +102,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   String _getNotificationTitle(dynamic notification) {
-    if (notification is Map && notification.containsKey('title')) return notification['title'];
-    if (notification is Map && notification.containsKey('data') && notification['data'] is Map && notification['data'] is Map && notification['data'].containsKey('title')) {
+    if (notification is Map && notification.containsKey('title'))
+      return notification['title'];
+    if (notification is Map &&
+        notification.containsKey('data') &&
+        notification['data'] is Map &&
+        notification['data'] is Map &&
+        notification['data'].containsKey('title')) {
       return notification['data']['title'];
     }
     return 'Notifikasi Baru';
   }
 
   String _getNotificationMessage(dynamic notification) {
-    if (notification is Map && notification.containsKey('message')) return notification['message'];
-    if (notification is Map && notification.containsKey('body')) return notification['body'];
-    if (notification is Map && notification.containsKey('data') && notification['data'] is Map && notification['data'] is Map && notification['data'].containsKey('message')) {
+    if (notification is Map && notification.containsKey('message'))
+      return notification['message'];
+    if (notification is Map && notification.containsKey('body'))
+      return notification['body'];
+    if (notification is Map &&
+        notification.containsKey('data') &&
+        notification['data'] is Map &&
+        notification['data'] is Map &&
+        notification['data'].containsKey('message')) {
       return notification['data']['message'];
     }
     return '';
@@ -139,81 +155,95 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(LucideIcons.bellOff, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Tidak ada notifikasi',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    LucideIcons.bellOff,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchNotifications,
-                  child: ListView.separated(
-                    itemCount: _notifications.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final notification = _notifications[index];
-                      final title = _getNotificationTitle(notification);
-                      final message = _getNotificationMessage(notification);
-                      final isRead = _isNotificationRead(notification);
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tidak ada notifikasi',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchNotifications,
+              child: ListView.separated(
+                itemCount: _notifications.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final notification = _notifications[index];
+                  final title = _getNotificationTitle(notification);
+                  final message = _getNotificationMessage(notification);
+                  final isRead = _isNotificationRead(notification);
 
-                      return ListTile(
-                        onTap: () => _markAsRead(notification),
-                        tileColor: isRead ? null : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                        leading: CircleAvatar(
-                          backgroundColor: isRead 
-                              ? Theme.of(context).colorScheme.surfaceContainerHighest 
-                              : Theme.of(context).colorScheme.primary,
-                          child: Icon(
-                            LucideIcons.bell,
-                            color: isRead 
-                                ? Theme.of(context).colorScheme.onSurfaceVariant 
-                                : Theme.of(context).colorScheme.onPrimary,
+                  return ListTile(
+                    onTap: () => _markAsRead(notification),
+                    tileColor: isRead
+                        ? null
+                        : Theme.of(context).colorScheme.surfaceContainerHighest
+                              .withOpacity(0.3),
+                    leading: CircleAvatar(
+                      backgroundColor: isRead
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest
+                          : Theme.of(context).colorScheme.primary,
+                      child: Icon(
+                        LucideIcons.bell,
+                        color: isRead
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                    title: Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: isRead
+                            ? FontWeight.normal
+                            : FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(message),
+                        if (notification is Map &&
+                            notification['created_at'] != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            notification['created_at'].toString().split('T')[0],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        title: Text(
-                          title,
-                          style: TextStyle(
-                            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(message),
-                            if (notification is Map && notification['created_at'] != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                notification['created_at'].toString().split('T')[0],
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ]
-                          ],
-                        ),
-                        trailing: !isRead 
-                            ? Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            : null,
-                      );
-                    },
-                  ),
-                ),
+                        ],
+                      ],
+                    ),
+                    trailing: !isRead
+                        ? Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : null,
+                  );
+                },
+              ),
+            ),
     );
   }
 }

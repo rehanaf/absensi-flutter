@@ -46,10 +46,26 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
   Future<void> _deleteField(int id) async {
     final bool? confirm = await showDialog(
       context: context,
-      builder: (context) => AlertDialog(title: const Text('Hapus Kolom'), content: const Text('Apakah Anda yakin ingin menghapus kolom profil ini? Data terkait pengguna mungkin akan hilang.'), actions: [
-          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError), onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
-        ]),
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Kolom'),
+        content: const Text(
+          'Apakah Anda yakin ingin menghapus kolom profil ini? Data terkait pengguna mungkin akan hilang.',
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
     );
 
     if (confirm != true) return;
@@ -89,91 +105,147 @@ class _AdminFormFieldsScreenState extends State<AdminFormFieldsScreen> {
           IconButton(
             icon: const Icon(LucideIcons.refreshCw),
             onPressed: _fetchFields,
-          )
+          ),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Gagal memuat kolom profil', style: Theme.of(context).textTheme.titleMedium),
-                      Text(_error!, style: const TextStyle(color: Colors.red)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(onPressed: _fetchFields, child: const Text('Coba Lagi')),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Gagal memuat kolom profil',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _fields.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final field = _fields[index];
-                    final isRequired = field['is_required'] == 1 || field['is_required'] == true;
-                    final isEditable = field['is_editable'] == 1 || field['is_editable'] == true;
+                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _fetchFields,
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: _fields.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final field = _fields[index];
+                final isRequired =
+                    field['is_required'] == 1 || field['is_required'] == true;
+                final isEditable =
+                    field['is_editable'] == 1 || field['is_editable'] == true;
 
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).dividerColor),
-                        borderRadius: BorderRadius.circular(12),
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.purple.withOpacity(0.1),
+                      child: const Icon(
+                        LucideIcons.formInput,
+                        color: Colors.purple,
                       ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.purple.withOpacity(0.1),
-                          child: const Icon(LucideIcons.formInput, color: Colors.purple),
+                    ),
+                    title: Text(
+                      field['field_label'] ?? 'No Label',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Variabel: ${field['field_name']} • Tipe: ${field['field_type']}',
                         ),
-                        title: Text(field['field_label'] ?? 'No Label', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 4),
+                        Row(
                           children: [
-                            Text('Variabel: ${field['field_name']} • Tipe: ${field['field_type']}'),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                if (isRequired)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    margin: const EdgeInsets.only(right: 8),
-                                    decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                    child: const Text('Wajib', style: TextStyle(color: Colors.red, fontSize: 10)),
+                            if (isRequired)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Wajib',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 10,
                                   ),
-                                if (isEditable)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                    child: const Text('Bisa Diedit', style: TextStyle(color: Colors.green, fontSize: 10)),
-                                  )
-                                else
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                    child: const Text('Hanya Baca', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                                ),
+                              ),
+                            if (isEditable)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Bisa Diedit',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 10,
                                   ),
-                              ],
-                            )
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Hanya Baca',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
-                        isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(LucideIcons.edit2, size: 20),
-                              onPressed: () => _navigateToForm(field),
-                            ),
-                            IconButton(
-                              icon: const Icon(LucideIcons.trash2, size: 20, color: Colors.red),
-                              onPressed: () => _deleteField(field['id']),
-                            ),
-                          ],
+                      ],
+                    ),
+                    isThreeLine: true,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(LucideIcons.edit2, size: 20),
+                          onPressed: () => _navigateToForm(field),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                        IconButton(
+                          icon: const Icon(
+                            LucideIcons.trash2,
+                            size: 20,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => _deleteField(field['id']),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToForm(),
         child: const Icon(LucideIcons.plus),

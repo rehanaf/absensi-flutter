@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AppColorPreference {
-  dynamic,
-  monochrome,
-  blue,
-  red,
-  green,
-  purple,
-}
+enum AppColorPreference { dynamic, monochrome, blue, red, green, purple }
 
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
@@ -23,20 +16,24 @@ class ThemeProvider with ChangeNotifier {
 
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     final modeIndex = prefs.getInt('theme_mode');
-    if (modeIndex != null && modeIndex >= 0 && modeIndex < ThemeMode.values.length) {
+    if (modeIndex != null &&
+        modeIndex >= 0 &&
+        modeIndex < ThemeMode.values.length) {
       _themeMode = ThemeMode.values[modeIndex];
     }
 
     final colorIndex = prefs.getInt('color_preference');
-    if (colorIndex != null && colorIndex >= 0 && colorIndex < AppColorPreference.values.length) {
+    if (colorIndex != null &&
+        colorIndex >= 0 &&
+        colorIndex < AppColorPreference.values.length) {
       _colorPreference = AppColorPreference.values[colorIndex];
     } else {
       // Default to blue
       _colorPreference = AppColorPreference.blue;
     }
-    
+
     notifyListeners();
   }
 

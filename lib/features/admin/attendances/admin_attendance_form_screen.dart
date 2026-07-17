@@ -10,7 +10,8 @@ class AdminAttendanceFormScreen extends StatefulWidget {
   const AdminAttendanceFormScreen({super.key, this.attendance});
 
   @override
-  State<AdminAttendanceFormScreen> createState() => _AdminAttendanceFormScreenState();
+  State<AdminAttendanceFormScreen> createState() =>
+      _AdminAttendanceFormScreenState();
 }
 
 class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
@@ -22,7 +23,7 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
 
   int? _selectedUserId;
   String _selectedUserName = 'Pilih Pengguna';
-  
+
   DateTime? _selectedDate;
   TimeOfDay? _checkInTime;
   TimeOfDay? _checkOutTime;
@@ -36,22 +37,32 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     final att = widget.attendance;
 
     _statusController = TextEditingController(text: att?['status'] ?? '');
-    _lateMinutesController = TextEditingController(text: att?['late_minutes']?.toString() ?? '0');
+    _lateMinutesController = TextEditingController(
+      text: att?['late_minutes']?.toString() ?? '0',
+    );
 
     if (att != null) {
       _selectedUserId = att['user_id'];
       _selectedUserName = att['user']?['name'] ?? 'Pengguna #${att['user_id']}';
-      
+
       if (att['date'] != null) {
         _selectedDate = DateTime.tryParse(att['date']);
       }
       if (att['check_in'] != null) {
         final parts = att['check_in'].toString().split(':');
-        if (parts.length >= 2) _checkInTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+        if (parts.length >= 2)
+          _checkInTime = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
       }
       if (att['check_out'] != null) {
         final parts = att['check_out'].toString().split(':');
-        if (parts.length >= 2) _checkOutTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+        if (parts.length >= 2)
+          _checkOutTime = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
       }
       _isLate = att['is_late'] == 1 || att['is_late'] == true;
     } else {
@@ -93,7 +104,9 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
   Future<void> _pickTime(bool isStart) async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: isStart ? (_checkInTime ?? const TimeOfDay(hour: 7, minute: 0)) : (_checkOutTime ?? const TimeOfDay(hour: 16, minute: 0)),
+      initialTime: isStart
+          ? (_checkInTime ?? const TimeOfDay(hour: 7, minute: 0))
+          : (_checkOutTime ?? const TimeOfDay(hour: 16, minute: 0)),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
@@ -103,8 +116,10 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _checkInTime = picked;
-        else _checkOutTime = picked;
+        if (isStart)
+          _checkInTime = picked;
+        else
+          _checkOutTime = picked;
       });
     }
   }
@@ -135,7 +150,9 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     final data = <String, dynamic>{
       'user_id': _selectedUserId,
       'date': _formatDate(_selectedDate!),
-      'status': _statusController.text.isEmpty ? 'hadir' : _statusController.text,
+      'status': _statusController.text.isEmpty
+          ? 'hadir'
+          : _statusController.text,
       'is_late': _isLate,
       'late_minutes': int.tryParse(_lateMinutesController.text) ?? 0,
     };
@@ -150,10 +167,18 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
     try {
       if (widget.attendance == null) {
         await _apiService.createAttendance(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Absensi berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(
+            context,
+            message: 'Absensi berhasil ditambahkan',
+          );
       } else {
         await _apiService.updateAttendance(widget.attendance!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Data absensi berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(
+            context,
+            message: 'Data absensi berhasil diperbarui',
+          );
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -182,14 +207,22 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Pengguna', style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      'Pengguna',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _showUserPicker,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Theme.of(context).dividerColor),
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -206,20 +239,32 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Tanggal', style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          'Tanggal',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: _pickDate,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Theme.of(context).dividerColor),
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(_selectedDate != null ? _formatDate(_selectedDate!) : 'Pilih Tanggal'),
+                                Text(
+                                  _selectedDate != null
+                                      ? _formatDate(_selectedDate!)
+                                      : 'Pilih Tanggal',
+                                ),
                                 const Icon(LucideIcons.calendar, size: 16),
                               ],
                             ),
@@ -228,27 +273,40 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Masuk', style: Theme.of(context).textTheme.bodySmall),
+                              Text(
+                                'Jam Masuk',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(true),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Theme.of(context).dividerColor),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(_checkInTime != null ? _formatTimeOfDay(_checkInTime!) : '--:--:--'),
+                                      Text(
+                                        _checkInTime != null
+                                            ? _formatTimeOfDay(_checkInTime!)
+                                            : '--:--:--',
+                                      ),
                                       const Icon(LucideIcons.clock, size: 16),
                                     ],
                                   ),
@@ -262,20 +320,33 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Jam Keluar', style: Theme.of(context).textTheme.bodySmall),
+                              Text(
+                                'Jam Keluar',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () => _pickTime(false),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Theme.of(context).dividerColor),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(_checkOutTime != null ? _formatTimeOfDay(_checkOutTime!) : '--:--:--'),
+                                      Text(
+                                        _checkOutTime != null
+                                            ? _formatTimeOfDay(_checkOutTime!)
+                                            : '--:--:--',
+                                      ),
                                       const Icon(LucideIcons.clock, size: 16),
                                     ],
                                   ),
@@ -288,9 +359,19 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Status (Teks Bebas)'), hintText: 'Contoh: hadir, sakit, izin...'), controller: _statusController, validator: (v) => (v == null || v.isEmpty) ? 'Status wajib diisi' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Status (Teks Bebas)'),
+                        hintText: 'Contoh: hadir, sakit, izin...',
+                      ),
+                      controller: _statusController,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Status wajib diisi'
+                          : null,
+                    ),
                     const SizedBox(height: 24),
-                    
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -299,23 +380,45 @@ class _AdminAttendanceFormScreenState extends State<AdminAttendanceFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Terlambat?'),
-                              Text('Tandai jika pengguna ini terlambat', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(
+                                'Tandai jika pengguna ini terlambat',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Switch(value: _isLate, onChanged: (val) {
+                        Switch(
+                          value: _isLate,
+                          onChanged: (val) {
                             setState(() => _isLate = val);
-                          }),
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
 
                     if (_isLate)
-                      TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Jumlah Keterlambatan (Menit)')), controller: _lateMinutesController, validator: (v) => (v == null || v.isEmpty) ? 'Isi dengan 0 jika tidak pasti' : null, keyboardType: TextInputType.number),
-                    
+                      TextFormField(
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          label: Text('Jumlah Keterlambatan (Menit)'),
+                        ),
+                        controller: _lateMinutesController,
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Isi dengan 0 jika tidak pasti'
+                            : null,
+                        keyboardType: TextInputType.number,
+                      ),
+
                     const SizedBox(height: 32),
-                    
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Absensi')),
+
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan Absensi'),
+                    ),
                   ],
                 ),
               ),
@@ -387,9 +490,18 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Pilih Pengguna', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Pilih Pengguna',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
-            TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari pengguna...'), onChanged: _onSearchChanged),
+            TextField(
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: 'Cari pengguna...',
+              ),
+              onChanged: _onSearchChanged,
+            ),
             const SizedBox(height: 16),
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -397,8 +509,12 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
               Expanded(
                 child: Center(
                   child: Text(
-                    _searchQuery.isEmpty ? 'Tidak ada pengguna tersedia.' : 'Pengguna tidak ditemukan.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    _searchQuery.isEmpty
+                        ? 'Tidak ada pengguna tersedia.'
+                        : 'Pengguna tidak ditemukan.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               )
@@ -406,11 +522,15 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
               Expanded(
                 child: ListView.separated(
                   itemCount: _searchResults.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final user = _searchResults[index];
                     return ListTile(
-                      title: Text(user['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      title: Text(
+                        user['name'] ?? 'No Name',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Text(user['email'] ?? ''),
                       onTap: () => Navigator.pop(context, user),
                     );
@@ -420,12 +540,14 @@ class _UserSelectionDialogState extends State<_UserSelectionDialog> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-            )
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-

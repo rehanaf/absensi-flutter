@@ -24,7 +24,7 @@ class _AdminGroupFormScreenState extends State<AdminGroupFormScreen> {
   void initState() {
     super.initState();
     final group = widget.group;
-    
+
     _nameController = TextEditingController(text: group?['name'] ?? '');
     _typeController = TextEditingController(text: group?['type'] ?? '');
   }
@@ -41,18 +41,23 @@ class _AdminGroupFormScreenState extends State<AdminGroupFormScreen> {
 
     setState(() => _isLoading = true);
 
-    final data = {
-      'name': _nameController.text,
-      'type': _typeController.text,
-    };
+    final data = {'name': _nameController.text, 'type': _typeController.text};
 
     try {
       if (widget.group == null) {
         await _apiService.createGroup(data);
-        if (mounted) AppToast.showSuccess(context, message: 'Kelompok berhasil ditambahkan');
+        if (mounted)
+          AppToast.showSuccess(
+            context,
+            message: 'Kelompok berhasil ditambahkan',
+          );
       } else {
         await _apiService.updateGroup(widget.group!['id'], data);
-        if (mounted) AppToast.showSuccess(context, message: 'Kelompok berhasil diperbarui');
+        if (mounted)
+          AppToast.showSuccess(
+            context,
+            message: 'Kelompok berhasil diperbarui',
+          );
       }
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -81,13 +86,36 @@ class _AdminGroupFormScreenState extends State<AdminGroupFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Nama Kelompok / Kelas'), hintText: 'Contoh: Kelas X RPL 1'), controller: _nameController, validator: (v) => (v == null || v.isEmpty) ? 'Nama kelompok tidak boleh kosong' : null),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Nama Kelompok / Kelas'),
+                        hintText: 'Contoh: Kelas X RPL 1',
+                      ),
+                      controller: _nameController,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Nama kelompok tidak boleh kosong'
+                          : null,
+                    ),
                     const SizedBox(height: 16),
-                    
-                    TextFormField(decoration: InputDecoration(border: const OutlineInputBorder(), label: Text('Tipe'), hintText: 'Contoh: Kelas, Departemen, Shift'), controller: _typeController, validator: (v) => (v == null || v.isEmpty) ? 'Tipe tidak boleh kosong' : null),
+
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: Text('Tipe'),
+                        hintText: 'Contoh: Kelas, Departemen, Shift',
+                      ),
+                      controller: _typeController,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Tipe tidak boleh kosong'
+                          : null,
+                    ),
                     const SizedBox(height: 32),
-                    
-                    ElevatedButton(onPressed: _submit, child: const Text('Simpan Kelompok')),
+
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Simpan Kelompok'),
+                    ),
                   ],
                 ),
               ),

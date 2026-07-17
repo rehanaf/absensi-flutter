@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io';
 import '../core/api_client.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -23,7 +26,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
-    
+
     if (_token != null) {
       ApiClient().setToken(_token);
       try {
@@ -46,14 +49,14 @@ class AuthProvider with ChangeNotifier {
       final response = await _apiService.register(data);
       _token = response['access_token'];
       _user = response['user'];
-      
+
       ApiClient().setToken(_token);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', _token!);
       await prefs.setString('user', json.encode(_user));
 
       await _registerFcmToken();
-      
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -65,15 +68,17 @@ class AuthProvider with ChangeNotifier {
           if (responseData is Map && responseData.containsKey('errors')) {
             final errors = responseData['errors'] as Map;
             _errorMessage = errors.values.first[0].toString();
-          } else if (responseData is Map && responseData.containsKey('message')) {
+          } else if (responseData is Map &&
+              responseData.containsKey('message')) {
             _errorMessage = responseData['message'];
           } else {
             _errorMessage = 'Validasi gagal';
           }
         } else if (e.response != null && e.response?.statusCode == 403) {
           final responseData = e.response?.data;
-          _errorMessage = (responseData is Map && responseData.containsKey('message')) 
-              ? responseData['message'] 
+          _errorMessage =
+              (responseData is Map && responseData.containsKey('message'))
+              ? responseData['message']
               : 'Pendaftaran ditutup.';
         } else {
           _errorMessage = 'Gagal mendaftar: ';
@@ -95,12 +100,12 @@ class AuthProvider with ChangeNotifier {
       final data = await _apiService.login(email, password);
       _token = data['access_token'];
       _user = data['user'];
-      
+
       ApiClient().setToken(_token);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', _token!);
       await prefs.setString('user', json.encode(_user));
-      
+
       await _registerFcmToken();
 
       _isLoading = false;
@@ -108,12 +113,13 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _isLoading = false;
-      
+
       if (e is DioException) {
         if (e.response != null && e.response?.data != null) {
           // If the backend returns a JSON with a 'message' field
           final responseData = e.response?.data;
-          if (responseData is Map<String, dynamic> && responseData.containsKey('message')) {
+          if (responseData is Map<String, dynamic> &&
+              responseData.containsKey('message')) {
             _errorMessage = responseData['message'];
           } else {
             _errorMessage = 'Login failed: ${e.response?.statusCode}';
@@ -124,7 +130,7 @@ class AuthProvider with ChangeNotifier {
       } else {
         _errorMessage = 'Login failed. Please check your credentials.';
       }
-      
+
       notifyListeners();
       return false;
     }
@@ -148,7 +154,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> _registerFcmToken() async {
     try {
       final messaging = FirebaseMessaging.instance;
-      
+
       // Meminta izin notifikasi (wajib untuk iOS dan Android 13+)
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,
@@ -156,11 +162,24 @@ class AuthProvider with ChangeNotifier {
         sound: true,
       );
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized || 
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         final fcmToken = await messaging.getToken();
         if (fcmToken != null) {
-          await _apiService.registerFcmToken(fcmToken);
+          final deviceName = kIsWeb
+              ? 'Web Browser'
+              : Platform.isAndroid
+                  ? 'Android Device'
+                  : Platform.isIOS
+                      ? 'iOS Device'
+                      : 'Desktop/Unknown';
+          final prefs = await SharedPreferences.getInstance();
+          String? devId = prefs.getString('device_id');
+          if (devId == null) {
+            devId = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
+            await prefs.setString('device_id', devId);
+          }
+          await _apiService.registerFcmToken(fcmToken, deviceName: deviceName, deviceId: devId);
         }
       } else {
         debugPrint('User declined or has not accepted permission');

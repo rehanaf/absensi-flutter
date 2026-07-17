@@ -1,3 +1,4 @@
+import 'package:absensi/core/constants/app_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:absensi/core/widgets/app_toast.dart';
 import '../../../data/services/api_service.dart';
@@ -209,7 +210,7 @@ class _AdminUserFormScreenState extends State<AdminUserFormScreen> {
                                 items: roles.map<DropdownMenuItem<int>>((r) {
                                   return DropdownMenuItem<int>(
                                     value: int.tryParse(r['id']?.toString() ?? ''),
-                                    child: Text(r['display_name'] ?? r['name'] ?? 'Unknown'),
+                                    child: Text(AppMessages.get(r['display_name'] ?? r['name'] ?? 'Unknown')),
                                   );
                                 }).toList(),
                                 onChanged: (val) {

@@ -10,6 +10,7 @@ class ApiClient {
       dio.options.headers.remove('Authorization');
     }
   }
+
   static final ApiClient _instance = ApiClient._internal();
   late Dio dio;
   static void Function()? onUnauthorized;
@@ -45,7 +46,8 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('/login')) {
+          if (e.response?.statusCode == 401 &&
+              !e.requestOptions.path.contains('/login')) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('token');
             await prefs.remove('user');

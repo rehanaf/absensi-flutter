@@ -1,3 +1,4 @@
+import 'package:absensi/core/constants/app_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/services/api_service.dart';
@@ -57,23 +58,35 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'hadir': return Colors.green;
-      case 'absen': return Colors.red;
-      case 'izin': return Colors.orange;
-      case 'sakit': return Colors.blue;
-      case 'terlambat': return Colors.amber;
-      default: return Colors.grey;
+      case 'hadir':
+        return Colors.green;
+      case 'absen':
+        return Colors.red;
+      case 'izin':
+        return Colors.orange;
+      case 'sakit':
+        return Colors.blue;
+      case 'terlambat':
+        return Colors.amber;
+      default:
+        return Colors.grey;
     }
   }
 
   IconData _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
-      case 'hadir': return Icons.check_circle;
-      case 'absen': return Icons.cancel;
-      case 'izin': return Icons.info;
-      case 'sakit': return Icons.local_hospital;
-      case 'terlambat': return Icons.watch_later;
-      default: return Icons.help_outline;
+      case 'hadir':
+        return Icons.check_circle;
+      case 'absen':
+        return Icons.cancel;
+      case 'izin':
+        return Icons.info;
+      case 'sakit':
+        return Icons.local_hospital;
+      case 'terlambat':
+        return Icons.watch_later;
+      default:
+        return Icons.help_outline;
     }
   }
 
@@ -82,7 +95,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hubungkan Anak'),
+        title: Text(AppMessages.get('Hubungkan Anak')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,12 +122,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               final username = controller.text.trim();
               if (username.isEmpty) return;
               Navigator.pop(context);
-              
+
               setState(() => _isLoading = true);
               try {
                 final result = await _apiService.connectParentChild(username);
                 if (mounted) {
-                  AppToast.showSuccess(context, message: result['message'] ?? 'Permintaan berhasil dikirim!');
+                  AppToast.showSuccess(
+                    context,
+                    message:
+                        result['message'] ?? 'Permintaan berhasil dikirim!',
+                  );
                   _fetchDashboard();
                 }
               } catch (e) {
@@ -134,7 +151,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   Widget _buildHeader(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final user = auth.user;
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
@@ -149,7 +166,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withRed(100).withBlue(200),
+                Theme.of(
+                  context,
+                ).colorScheme.primary.withRed(100).withBlue(200),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -189,80 +208,92 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 3,
                                 ),
-                              ],
-                            ),
-                            child: CircleAvatar(
-                              radius: 36,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 32,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                              child: CircleAvatar(
+                                radius: 36,
+                                backgroundColor: Colors.white,
+                                child: Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 32,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            username,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Text(
-                              role,
+                            const SizedBox(height: 16),
+                            Text(
+                              name,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                letterSpacing: 1.1,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              username,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                role,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.1,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _showConnectChildDialog,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Hubungkan Anak'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Theme.of(context).colorScheme.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _showConnectChildDialog,
+                              icon: const Icon(Icons.add),
+                              label: const Text('Hubungkan Anak'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )
+                          ],
+                        ),
+                      )
                     : Row(
                         children: [
                           Container(
@@ -313,7 +344,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(30),
@@ -337,9 +371,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                             label: const Text('Hubungkan Anak'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: Theme.of(context).colorScheme.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -357,7 +398,15 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       if (monthAttendance.isEmpty) return const SizedBox.shrink();
 
       final DateTime now = DateTime.now();
-      final List<String> weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+      final List<String> weekdays = [
+        'Sen',
+        'Sel',
+        'Rab',
+        'Kam',
+        'Jum',
+        'Sab',
+        'Min',
+      ];
 
       // Find the weekday of the first day of this month
       final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
@@ -369,10 +418,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
 
       return Card(
         elevation: 0,
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(127),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16)
-        ),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withAlpha(127),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -380,11 +429,17 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.calendar_month, color: Theme.of(context).colorScheme.primary, size: 20),
+                  Icon(
+                    Icons.calendar_month,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Kehadiran Bulan Ini',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -428,22 +483,29 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                     if (dayIndex < 0 || dayIndex >= monthAttendance.length) {
                       return const SizedBox.shrink();
                     }
-                    
+
                     final dayData = monthAttendance[dayIndex];
                     if (dayData is! Map) {
                       return const SizedBox.shrink();
                     }
-                    
-                    final int dayNum = int.tryParse(dayData['day']?.toString() ?? '') ?? (dayIndex + 1);
-                    final String status = dayData['status']?.toString() ?? 'absen';
+
+                    final int dayNum =
+                        int.tryParse(dayData['day']?.toString() ?? '') ??
+                        (dayIndex + 1);
+                    final String status =
+                        dayData['status']?.toString() ?? 'absen';
                     final String dateStr = dayData['date']?.toString() ?? '';
-                    
+
                     // Determine if this day is in the future
                     bool isFuture = false;
                     try {
                       if (dateStr.isNotEmpty) {
                         final dayDate = DateTime.parse(dateStr);
-                        final todayDate = DateTime(now.year, now.month, now.day);
+                        final todayDate = DateTime(
+                          now.year,
+                          now.month,
+                          now.day,
+                        );
                         if (dayDate.isAfter(todayDate)) {
                           isFuture = true;
                         }
@@ -454,7 +516,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                     BoxDecoration? decoration;
 
                     if (isFuture) {
-                      textColor = Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(76);
+                      textColor = Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withAlpha(76);
                     } else {
                       if (status == 'hadir') {
                         textColor = Colors.white;
@@ -462,16 +526,22 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           color: Colors.green,
                           shape: BoxShape.circle,
                         );
-                      } else if (status == 'sakit' || status == 'izin' || status == 'cuti') {
+                      } else if (status == 'sakit' ||
+                          status == 'izin' ||
+                          status == 'cuti') {
                         textColor = Colors.white;
                         decoration = const BoxDecoration(
                           color: Colors.orange,
                           shape: BoxShape.circle,
                         );
                       } else if (status == 'libur') {
-                        textColor = Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(127);
+                        textColor = Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withAlpha(127);
                         decoration = BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(200),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(200),
                           shape: BoxShape.circle,
                         );
                       } else {
@@ -485,17 +555,18 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                     }
 
                     return Center(
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: decoration,
-                        alignment: Alignment.center,
-                        child: Text(
-                          '$dayNum',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: textColor,
+                      child: AspectRatio(
+                        aspectRatio: 1.0,
+                        child: Container(
+                          decoration: decoration,
+                          alignment: Alignment.center,
+                          child: Text(
+                            '$dayNum',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11, // Slightly smaller text to avoid squeeze
+                              color: textColor,
+                            ),
                           ),
                         ),
                       ),
@@ -521,21 +592,29 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     final username = child['username'] ?? '-';
     final monthAttendance = (child['month_attendance'] as List?) ?? [];
     final attendances = (child['attendances'] as List?) ?? [];
-    
+
     String todayStatus = 'Belum Absen';
     String todayTime = '';
     if (attendances.isNotEmpty) {
       final todayRecord = attendances.first;
       todayStatus = todayRecord['status'] ?? todayStatus;
-      final clockIn = todayRecord['clock_in'] != null ? todayRecord['clock_in'].toString().substring(0,5) : '--:--';
-      final clockOut = todayRecord['clock_out'] != null ? todayRecord['clock_out'].toString().substring(0,5) : '--:--';
+      final clockIn = todayRecord['clock_in'] != null
+          ? todayRecord['clock_in'].toString().substring(0, 5)
+          : '--:--';
+      final clockOut = todayRecord['clock_out'] != null
+          ? todayRecord['clock_out'].toString().substring(0, 5)
+          : '--:--';
       todayTime = '$clockIn - $clockOut';
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withAlpha(50))),
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor.withAlpha(50),
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,20 +623,36 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             children: [
               CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                child: Icon(
+                  Icons.person,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    Text('NIS / ID: $username', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'NIS / ID: $username',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: _getStatusColor(todayStatus).withAlpha(26),
                   borderRadius: BorderRadius.circular(12),
@@ -565,11 +660,19 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(_getStatusIcon(todayStatus), size: 14, color: _getStatusColor(todayStatus)),
+                    Icon(
+                      _getStatusIcon(todayStatus),
+                      size: 14,
+                      color: _getStatusColor(todayStatus),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       todayStatus.toUpperCase(),
-                      style: TextStyle(color: _getStatusColor(todayStatus), fontWeight: FontWeight.bold, fontSize: 11),
+                      style: TextStyle(
+                        color: _getStatusColor(todayStatus),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -580,9 +683,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.access_time, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.access_time,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 6),
-                Text('Waktu: $todayTime', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  'Waktu: $todayTime',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
           ],
@@ -591,10 +701,26 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildChildStatCard('Hadir', '${child['total_attendances'] ?? 0}', Colors.green),
-              _buildChildStatCard('Izin', '${child['total_permits'] ?? 0}', Colors.orange),
-              _buildChildStatCard('Terlambat', '${child['total_lates'] ?? 0}', Colors.amber),
-              _buildChildStatCard('Alpa', '${child['total_alpa'] ?? 0}', Colors.red),
+              _buildChildStatCard(
+                'Hadir',
+                '${child['total_attendances'] ?? 0}',
+                Colors.green,
+              ),
+              _buildChildStatCard(
+                'Izin',
+                '${child['total_permits'] ?? 0}',
+                Colors.orange,
+              ),
+              _buildChildStatCard(
+                'Terlambat',
+                '${child['total_lates'] ?? 0}',
+                Colors.amber,
+              ),
+              _buildChildStatCard(
+                'Alpa',
+                '${child['total_alpa'] ?? 0}',
+                Colors.red,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -617,12 +743,20 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           children: [
             Text(
               value,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: color,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(fontSize: 10, color: color.withOpacity(0.8), fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 10,
+                color: color.withOpacity(0.8),
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -635,7 +769,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     final childName = child['name'] ?? 'Nama Tidak Diketahui';
     final childUsername = child['username'] ?? '-';
     final status = request['status'] ?? 'pending';
-    
+
     Color statusColor = Colors.orange;
     if (status == 'approved') statusColor = Colors.green;
     if (status == 'rejected') statusColor = Colors.red;
@@ -643,21 +777,39 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withAlpha(50))),
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor.withAlpha(50),
+          ),
+        ),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: Icon(Icons.person_search, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.person_search,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(childName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('NIS / ID: $childUsername', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  childName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'NIS / ID: $childUsername',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -669,7 +821,11 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
             ),
             child: Text(
               status.toUpperCase(),
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: statusColor,
+              ),
             ),
           ),
         ],
@@ -680,136 +836,183 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     try {
+      if (_isLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Gagal memuat data:\n$_errorMessage', textAlign: TextAlign.center),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _fetchDashboard,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Coba Lagi'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= 600;
-        return RefreshIndicator(
-          onRefresh: _fetchDashboard,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: _buildHeader(context),
-              ),
-              if (_requests.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 16.0, bottom: 8.0),
-                    child: Text(
-                      'Status Pengajuan Hubungan',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+      if (_errorMessage != null) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
                 ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildRequestItem(_requests[index]),
-                    childCount: _requests.length,
-                  ),
+                const SizedBox(height: 16),
+                Text(
+                  'Gagal memuat data:\n$_errorMessage',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _fetchDashboard,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Coba Lagi'),
                 ),
               ],
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 16.0, bottom: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Daftar Anak Terhubung',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+      }
+
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 600;
+          return RefreshIndicator(
+            onRefresh: _fetchDashboard,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeader(context)),
+                if (_requests.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 24.0,
+                        right: 24.0,
+                        top: 16.0,
+                        bottom: 8.0,
                       ),
-                      Row(
-                        children: [
-                          DropdownButton<int>(
-                            value: _selectedMonth,
-                            underline: const SizedBox(),
-                            borderRadius: BorderRadius.circular(8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            items: List.generate(12, (i) {
-                              const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                              return DropdownMenuItem(value: i + 1, child: Text(months[i]));
-                            }),
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() => _selectedMonth = val);
-                                _fetchDashboard();
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          DropdownButton<int>(
-                            value: _selectedYear,
-                            underline: const SizedBox(),
-                            borderRadius: BorderRadius.circular(8),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            items: List.generate(5, (i) {
-                              final y = DateTime.now().year - i;
-                              return DropdownMenuItem(value: y, child: Text(y.toString()));
-                            }),
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() => _selectedYear = val);
-                                _fetchDashboard();
-                              }
-                            },
-                          ),
-                        ],
+                      child: Text(
+                        'Status Pengajuan Hubungan',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              if (_children.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildRequestItem(_requests[index]),
+                      childCount: _requests.length,
+                    ),
+                  ),
+                ],
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 24.0,
+                      right: 24.0,
+                      top: 16.0,
+                      bottom: 8.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.family_restroom, size: 64, color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                        const SizedBox(height: 16),
-                        Text('Belum ada data anak tertaut.', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          'Daftar Anak Terhubung',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Row(
+                          children: [
+                            DropdownButton<int>(
+                              value: _selectedMonth,
+                              underline: const SizedBox(),
+                              borderRadius: BorderRadius.circular(8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              items: List.generate(12, (i) {
+                                const months = [
+                                  'Januari',
+                                  'Februari',
+                                  'Maret',
+                                  'April',
+                                  'Mei',
+                                  'Juni',
+                                  'Juli',
+                                  'Agustus',
+                                  'September',
+                                  'Oktober',
+                                  'November',
+                                  'Desember',
+                                ];
+                                return DropdownMenuItem(
+                                  value: i + 1,
+                                  child: Text(months[i]),
+                                );
+                              }),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() => _selectedMonth = val);
+                                  _fetchDashboard();
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<int>(
+                              value: _selectedYear,
+                              underline: const SizedBox(),
+                              borderRadius: BorderRadius.circular(8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              items: List.generate(5, (i) {
+                                final y = DateTime.now().year - i;
+                                return DropdownMenuItem(
+                                  value: y,
+                                  child: Text(y.toString()),
+                                );
+                              }),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() => _selectedYear = val);
+                                  _fetchDashboard();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
-                )
-              else if (isDesktop)
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
+                ),
+                if (_children.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.family_restroom,
+                            size: 64,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Belum ada data anak tertaut.',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (isDesktop)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
                       if (index % 2 != 0) return const SizedBox.shrink();
-                      
+
                       final item1 = _buildChildItem(_children[index]);
-                      final item2 = index + 1 < _children.length 
-                          ? _buildChildItem(_children[index + 1]) 
+                      final item2 = index + 1 < _children.length
+                          ? _buildChildItem(_children[index + 1])
                           : Container();
-                      
+
                       return IntrinsicHeight(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -819,22 +1022,20 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           ],
                         ),
                       );
-                    },
-                    childCount: _children.length,
+                    }, childCount: _children.length),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildChildItem(_children[index]),
+                      childCount: _children.length,
+                    ),
                   ),
-                )
-              else
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildChildItem(_children[index]),
-                    childCount: _children.length,
-                  ),
-                ),
-            ],
-          ),
-        );
-      }
-    );
+              ],
+            ),
+          );
+        },
+      );
     } catch (e, stack) {
       debugPrint('CRITICAL: Error in ParentDashboardScreen.build: $e\n$stack');
       return Scaffold(
@@ -848,7 +1049,11 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 const SizedBox(height: 16),
                 const Text('Terjadi kesalahan saat memuat halaman wali.'),
                 const SizedBox(height: 8),
-                Text('$e', style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                Text(
+                  '$e',
+                  style: const TextStyle(color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => _fetchDashboard(),

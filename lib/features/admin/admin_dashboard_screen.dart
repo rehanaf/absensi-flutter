@@ -40,14 +40,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
-  Widget _buildDailyCard(BuildContext context, String title, String value, IconData icon, Color color) {
+  Widget _buildDailyCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -65,9 +71,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant).copyWith(fontSize: 14)),
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        )
+                        .copyWith(fontSize: 14),
+                  ),
                   const SizedBox(height: 4),
-                  Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    value,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -84,8 +102,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final roles = stats['roles_breakdown'] as List<dynamic>? ?? [];
     final groups = stats['groups_breakdown'] as List<dynamic>? ?? [];
 
-    final roleColors = [Colors.purple, Colors.indigo, Colors.teal, Colors.cyan, Colors.deepOrange];
-    final groupColors = [Colors.amber, Colors.brown, Colors.pink, Colors.lime, Colors.blueGrey];
+    final roleColors = [
+      Colors.purple,
+      Colors.indigo,
+      Colors.teal,
+      Colors.cyan,
+      Colors.deepOrange,
+    ];
+    final groupColors = [
+      Colors.amber,
+      Colors.brown,
+      Colors.pink,
+      Colors.lime,
+      Colors.blueGrey,
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +133,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             final int index = entry.key;
             final r = entry.value;
             final color = roleColors[index % roleColors.length];
-            return _buildDailyCard(context, r['name'], '${r['count']}', Icons.person, color);
+            return _buildDailyCard(
+              context,
+              r['name'],
+              '${r['count']}',
+              Icons.person,
+              color,
+            );
           }).toList(),
         ),
         const SizedBox(height: 32),
@@ -120,7 +156,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             final int index = entry.key;
             final g = entry.value;
             final color = groupColors[index % groupColors.length];
-            return _buildDailyCard(context, g['name'], '${g['count']}', Icons.people, color);
+            return _buildDailyCard(
+              context,
+              g['name'],
+              '${g['count']}',
+              Icons.people,
+              color,
+            );
           }).toList(),
         ),
       ],
@@ -136,9 +178,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     final cards = [
       _buildDailyCard(context, 'User', '$totalUser', Icons.group, Colors.blue),
-      _buildDailyCard(context, 'Sudah Absen', '${daily['total_present'] ?? 0}', Icons.check_circle, Colors.green),
-      _buildDailyCard(context, 'Izin', '${daily['total_permits'] ?? 0}', Icons.description, Colors.orange),
-      _buildDailyCard(context, 'Belum Absen', '${daily['total_absent'] ?? 0}', Icons.cancel, Colors.red),
+      _buildDailyCard(
+        context,
+        'Sudah Absen',
+        '${daily['total_present'] ?? 0}',
+        Icons.check_circle,
+        Colors.green,
+      ),
+      _buildDailyCard(
+        context,
+        'Izin',
+        '${daily['total_permits'] ?? 0}',
+        Icons.description,
+        Colors.orange,
+      ),
+      _buildDailyCard(
+        context,
+        'Belum Absen',
+        '${daily['total_absent'] ?? 0}',
+        Icons.cancel,
+        Colors.red,
+      ),
     ];
 
     return GridView.count(
@@ -158,7 +218,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     List<FlSpot> presentSpots = [];
     List<FlSpot> absentSpots = [];
-    
+
     double maxVal = 0;
 
     for (int i = 0; i < chartData.length; i++) {
@@ -167,7 +227,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final double a = (item['absent'] ?? 0).toDouble();
       presentSpots.add(FlSpot(i.toDouble(), p));
       absentSpots.add(FlSpot(i.toDouble(), a));
-      
+
       if (p > maxVal) maxVal = p;
       if (a > maxVal) maxVal = a;
     }
@@ -176,7 +236,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       height: 300,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
       ),
       child: LineChart(
@@ -194,7 +256,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     if (parts.length == 3) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8.0),
-                        child: Text('${parts[2]}/${parts[1]}', style: const TextStyle(fontSize: 10)),
+                        child: Text(
+                          '${parts[2]}/${parts[1]}',
+                          style: const TextStyle(fontSize: 10),
+                        ),
                       );
                     }
                   }
@@ -202,9 +267,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 },
               ),
             ),
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           minX: 0,
@@ -219,7 +290,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: true),
-              belowBarData: BarAreaData(show: true, color: Colors.green.withValues(alpha: 0.1)),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Colors.green.withValues(alpha: 0.1),
+              ),
             ),
             LineChartBarData(
               spots: absentSpots,
@@ -228,7 +302,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: true),
-              belowBarData: BarAreaData(show: true, color: Colors.red.withValues(alpha: 0.1)),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Colors.red.withValues(alpha: 0.1),
+              ),
             ),
           ],
         ),
@@ -238,7 +315,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tren 7 Hari Terakhir', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          'Tren 7 Hari Terakhir',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 16),
         if (isDesktop)
           Row(
@@ -262,44 +342,65 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Gagal memuat data', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _fetchDashboard, child: const Text('Coba Lagi')),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Gagal memuat data',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _fetchDashboard,
-                    child: ListView(
-                      padding: const EdgeInsets.all(16.0),
-                      children: [
-                        Text('Dashboard Admin', style: Theme.of(context).textTheme.headlineSmall),
-                        const SizedBox(height: 4),
-                        Text('Data per: ${_data?['date'] ?? '-'}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                        const SizedBox(height: 16),
-                        
-                        // 1. Statistics
-                        _buildStatisticsBlock(isDesktop),
-                        const SizedBox(height: 16),
-                        
-                        // 2. Daily Grid
-                        Text('Kehadiran Hari Ini', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 16),
-                        _buildDailyGrid(isDesktop),
-                        const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _fetchDashboard,
+                      child: const Text('Coba Lagi'),
+                    ),
+                  ],
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _fetchDashboard,
+                child: ListView(
+                  padding: const EdgeInsets.all(16.0),
+                  children: [
+                    Text(
+                      'Dashboard Admin',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Data per: ${_data?['date'] ?? '-'}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-                        // 3. Chart
-                        _buildChart(isDesktop),
-                        const SizedBox(height: 16),
-                      ],
+                    // 1. Statistics
+                    _buildStatisticsBlock(isDesktop),
+                    const SizedBox(height: 16),
+
+                    // 2. Daily Grid
+                    Text(
+                      'Kehadiran Hari Ini',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    _buildDailyGrid(isDesktop),
+                    const SizedBox(height: 16),
+
+                    // 3. Chart
+                    _buildChart(isDesktop),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
       ),
     );
   }

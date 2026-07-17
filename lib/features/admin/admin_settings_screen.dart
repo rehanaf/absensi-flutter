@@ -21,7 +21,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   final Map<String, dynamic> _formValues = {};
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, XFile?> _imageFiles = {};
-  
+
   bool _isLoading = false;
   bool _isInitialized = false;
 
@@ -31,13 +31,16 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      final settingsProvider = Provider.of<AppSettingsProvider>(context, listen: false);
+      final settingsProvider = Provider.of<AppSettingsProvider>(
+        context,
+        listen: false,
+      );
       for (var item in settingsProvider.rawSettings) {
         if (item is Map) {
           final key = item['key'] as String;
           final value = item['value'];
           final type = item['type'] as String;
-          
+
           if (type == 'boolean') {
             _formValues[key] = (value == '1' || value == true);
           } else if (type == 'color') {
@@ -64,7 +67,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
 
   Future<void> _pickImage(String key) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
       if (pickedFile != null) {
         setState(() {
           _imageFiles[key] = pickedFile;
@@ -81,7 +86,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     setState(() => _isLoading = true);
     try {
       final Map<String, dynamic> payload = {};
-      
+
       // Update text values from controllers
       _controllers.forEach((key, controller) {
         _formValues[key] = controller.text;
@@ -100,18 +105,29 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       for (var entry in _imageFiles.entries) {
         if (entry.value != null) {
           final bytes = await entry.value!.readAsBytes();
-          payload[entry.key] = MultipartFile.fromBytes(bytes, filename: entry.value!.name);
+          payload[entry.key] = MultipartFile.fromBytes(
+            bytes,
+            filename: entry.value!.name,
+          );
         }
       }
 
       await _apiService.updateAdminSettings(payload);
-      
+
       if (mounted) {
         // Refresh global settings state
-        await Provider.of<AppSettingsProvider>(context, listen: false).fetchSettings();
-        
+        await Provider.of<AppSettingsProvider>(
+          context,
+          listen: false,
+        ).fetchSettings();
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pengaturan berhasil disimpan'), backgroundColor: Colors.green));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pengaturan berhasil disimpan'),
+              backgroundColor: Colors.green,
+            ),
+          );
         }
       }
     } catch (e) {
@@ -127,7 +143,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
     final key = item['key'] as String;
     final label = item['label'] as String?;
     final type = item['type'] as String?;
-    
+
     if (type == 'boolean') {
       return Container(
         margin: const EdgeInsets.only(bottom: 24),
@@ -139,7 +155,10 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
         child: Row(
           children: [
             Expanded(
-              child: Text(label ?? key, style: const TextStyle(fontWeight: FontWeight.w600)),
+              child: Text(
+                label ?? key,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
             Switch(
               value: _formValues[key] == true,
@@ -156,7 +175,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
         } else if (item['options'] is String) {
           try {
             final decoded = jsonDecode(item['options']);
-            if (decoded is List) options = decoded.map((e) => e.toString()).toList();
+            if (decoded is List)
+              options = decoded.map((e) => e.toString()).toList();
           } catch (_) {}
         }
       }
@@ -171,7 +191,14 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               decoration: const InputDecoration(border: OutlineInputBorder()),
               hint: const Text('Pilih Opsi'),
               value: _formValues[key] as String?,
-              items: options.map((opt) => DropdownMenuItem(value: opt, child: Text(opt.toUpperCase()))).toList(),
+              items: options
+                  .map(
+                    (opt) => DropdownMenuItem(
+                      value: opt,
+                      child: Text(opt.toUpperCase()),
+                    ),
+                  )
+                  .toList(),
               onChanged: (val) {
                 if (val != null) {
                   setState(() => _formValues[key] = val);
@@ -228,16 +255,28 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   clipBehavior: Clip.hardEdge,
                   child: localFile != null
-                      ? (kIsWeb ? Image.network(localFile.path, fit: BoxFit.cover) : Image.file(File(localFile.path), fit: BoxFit.cover))
+                      ? (kIsWeb
+                            ? Image.network(localFile.path, fit: BoxFit.cover)
+                            : Image.file(
+                                File(localFile.path),
+                                fit: BoxFit.cover,
+                              ))
                       : (imageUrl != null && imageUrl.isNotEmpty)
-                          ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (c,e,s) => const Icon(Icons.broken_image))
-                          : const Icon(Icons.image),
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (c, e, s) =>
+                              const Icon(Icons.broken_image),
+                        )
+                      : const Icon(Icons.image),
                 ),
                 const SizedBox(width: 16),
                 OutlinedButton(
@@ -248,9 +287,12 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () => setState(() => _imageFiles.remove(key)),
-                    child: const Text('Batal', style: TextStyle(color: Colors.red)),
+                    child: const Text(
+                      'Batal',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
-                ]
+                ],
               ],
             ),
           ],
@@ -280,14 +322,22 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
 
   IconData? _getGroupIcon(String groupName) {
     switch (groupName.toLowerCase()) {
-      case 'umum': return Icons.settings;
-      case 'personalisasi': return Icons.palette;
-      case 'absensi': return Icons.how_to_reg;
-      case 'profil': return Icons.person;
-      case 'alamat': return Icons.location_on;
-      case 'berkas': return Icons.folder;
-      case 'keamanan': return Icons.security;
-      default: return null;
+      case 'umum':
+        return Icons.settings;
+      case 'personalisasi':
+        return Icons.palette;
+      case 'absensi':
+        return Icons.how_to_reg;
+      case 'profil':
+        return Icons.person;
+      case 'alamat':
+        return Icons.location_on;
+      case 'berkas':
+        return Icons.folder;
+      case 'keamanan':
+        return Icons.security;
+      default:
+        return null;
     }
   }
 
@@ -322,7 +372,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
             dividerColor: Colors.transparent,
             indicatorColor: Theme.of(context).colorScheme.primary,
             labelColor: Theme.of(context).colorScheme.primary,
-            unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+            unselectedLabelColor: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant,
             tabs: groups.map((g) {
               final iconData = _getGroupIcon(g);
               return Tab(
@@ -346,7 +398,10 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 return ListView(
                   padding: const EdgeInsets.all(24.0),
                   children: [
-                    Text('Pengaturan $g', style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                      'Pengaturan $g',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 24),
                     ...items.map(_buildField),
                   ],
@@ -358,7 +413,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+              border: Border(
+                top: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
             width: double.infinity,
             child: ElevatedButton(
@@ -368,8 +425,15 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: _isLoading 
-                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onPrimary))
+              child: _isLoading
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    )
                   : const Text('Simpan Perubahan'),
             ),
           ),

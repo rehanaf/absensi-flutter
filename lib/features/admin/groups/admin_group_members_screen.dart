@@ -10,13 +10,14 @@ class AdminGroupMembersScreen extends StatefulWidget {
   const AdminGroupMembersScreen({super.key, required this.group});
 
   @override
-  State<AdminGroupMembersScreen> createState() => _AdminGroupMembersScreenState();
+  State<AdminGroupMembersScreen> createState() =>
+      _AdminGroupMembersScreenState();
 }
 
 class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
-  
+
   late List<dynamic> _members;
 
   @override
@@ -30,7 +31,9 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
     try {
       // Re-fetch groups and find this group to update members
       // (assuming getGroups without search/page will return it if we use search by group name)
-      final groupsData = await _apiService.getGroups(search: widget.group['name']);
+      final groupsData = await _apiService.getGroups(
+        search: widget.group['name'],
+      );
       final groups = groupsData['data'] as List<dynamic>? ?? [];
       final updatedGroup = groups.firstWhere(
         (g) => g['id'] == widget.group['id'],
@@ -49,10 +52,26 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
   Future<void> _detachUser(int userId) async {
     final bool? confirm = await showDialog(
       context: context,
-      builder: (context) => AlertDialog(title: const Text('Keluarkan Anggota'), content: const Text('Apakah Anda yakin ingin mengeluarkan pengguna ini dari kelompok?'), actions: [
-          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error, foregroundColor: Theme.of(context).colorScheme.onError), onPressed: () => Navigator.pop(context, true), child: const Text('Keluarkan')),
-        ]),
+      builder: (context) => AlertDialog(
+        title: const Text('Keluarkan Anggota'),
+        content: const Text(
+          'Apakah Anda yakin ingin mengeluarkan pengguna ini dari kelompok?',
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Keluarkan'),
+          ),
+        ],
+      ),
     );
 
     if (confirm != true) return;
@@ -105,68 +124,87 @@ class _AdminGroupMembersScreenState extends State<AdminGroupMembersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Anggota: ${widget.group['name']}'),
-      ),
+      appBar: AppBar(title: Text('Anggota: ${widget.group['name']}')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _members.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(LucideIcons.users, size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text('Belum ada anggota', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 16),
-                      ElevatedButton(onPressed: _showAddMemberDialog, child: const Text('Tambah Anggota'))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(LucideIcons.users, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Belum ada anggota',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _showAddMemberDialog,
+                    child: const Text('Tambah Anggota'),
+                  ),
+                ],
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Theme.of(context).dividerColor),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Column(
-                          children: _members.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final member = entry.value;
-                            final isLast = index == _members.length - 1;
-                            
-                            return Column(
-                              children: [
-                                ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  title: Text(member['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  subtitle: Text(member['email'] ?? ''),
-                                  trailing: IconButton(
-                                    icon: const Icon(LucideIcons.userMinus, color: Colors.red),
-                                    onPressed: () => _detachUser(member['id']),
-                                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Column(
+                      children: _members.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final member = entry.value;
+                        final isLast = index == _members.length - 1;
+
+                        return Column(
+                          children: [
+                            ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              title: Text(
+                                member['name'] ?? '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                if (!isLast) Divider(height: 1, color: Theme.of(context).dividerColor),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                              ),
+                              subtitle: Text(member['email'] ?? ''),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  LucideIcons.userMinus,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _detachUser(member['id']),
+                              ),
+                            ),
+                            if (!isLast)
+                              Divider(
+                                height: 1,
+                                color: Theme.of(context).dividerColor,
+                              ),
+                          ],
+                        );
+                      }).toList(),
                     ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddMemberDialog,
         icon: const Icon(LucideIcons.userPlus),
@@ -228,7 +266,9 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
       if (mounted) {
         setState(() {
           final allUsers = response['data'] as List<dynamic>? ?? [];
-          _searchResults = allUsers.where((u) => !widget.currentMemberIds.contains(u['id'])).toList();
+          _searchResults = allUsers
+              .where((u) => !widget.currentMemberIds.contains(u['id']))
+              .toList();
           _isLoading = false;
         });
       }
@@ -246,9 +286,18 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tambah Anggota', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Tambah Anggota',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
-            TextField(decoration: InputDecoration(border: const OutlineInputBorder(), hintText: 'Cari pengguna...'), onChanged: _onSearchChanged),
+            TextField(
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: 'Cari pengguna...',
+              ),
+              onChanged: _onSearchChanged,
+            ),
             const SizedBox(height: 16),
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -256,8 +305,12 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
               Expanded(
                 child: Center(
                   child: Text(
-                    _searchQuery.isEmpty ? 'Tidak ada pengguna tersedia.' : 'Pengguna tidak ditemukan.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    _searchQuery.isEmpty
+                        ? 'Tidak ada pengguna tersedia.'
+                        : 'Pengguna tidak ditemukan.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               )
@@ -265,11 +318,15 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
               Expanded(
                 child: ListView.separated(
                   itemCount: _searchResults.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final user = _searchResults[index];
                     return ListTile(
-                      title: Text(user['name'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      title: Text(
+                        user['name'] ?? 'No Name',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Text(user['email'] ?? ''),
                       onTap: () => Navigator.pop(context, user['id']),
                     );
@@ -279,12 +336,14 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-            )
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-

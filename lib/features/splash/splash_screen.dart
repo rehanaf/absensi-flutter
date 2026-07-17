@@ -28,11 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // 1. Minta Izin Notifikasi
     try {
       final messaging = FirebaseMessaging.instance;
-      await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      await messaging.requestPermission(alert: true, badge: true, sound: true);
     } catch (e) {
       debugPrint('Gagal meminta izin notifikasi: $e');
     }
@@ -72,7 +68,10 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     // Get providers before async
-    final settingsProvider = Provider.of<AppSettingsProvider>(context, listen: false);
+    final settingsProvider = Provider.of<AppSettingsProvider>(
+      context,
+      listen: false,
+    );
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     // Fetch settings first
@@ -139,10 +138,6 @@ class _SplashScreenState extends State<SplashScreen> {
       );
     }
 
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

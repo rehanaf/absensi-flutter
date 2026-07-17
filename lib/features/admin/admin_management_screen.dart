@@ -35,19 +35,84 @@ class AdminManagementScreen extends StatelessWidget {
     final isDesktop = MediaQuery.sizeOf(context).width >= 600;
 
     final menus = [
-      const _MenuData(title: 'Pengguna', icon: Icons.people, color: Colors.blue, screen: AdminUsersScreen()),
-      const _MenuData(title: 'Jadwal Kerja', icon: Icons.access_time, color: Colors.teal, screen: AdminSchedulesScreen()),
-      const _MenuData(title: 'Kelompok / Kelas', icon: Icons.category, color: Colors.purple, screen: AdminGroupsScreen()),
-      const _MenuData(title: 'Kolom Profil', icon: Icons.edit_note, color: Colors.orange, screen: AdminFormFieldsScreen()),
-      const _MenuData(title: 'Rekap Absensi', icon: Icons.fact_check, color: Colors.green, screen: AdminAttendancesScreen()),
-      const _MenuData(title: 'Hari Libur', icon: Icons.event, color: Colors.redAccent, screen: AdminHolidaysScreen()),
-      const _MenuData(title: 'Shift Kerja', icon: Icons.work_history, color: Colors.cyan, screen: AdminShiftsScreen()),
-      const _MenuData(title: 'Roster Jadwal', icon: Icons.calendar_month, color: Colors.indigo, screen: AdminRostersScreen()),
-      const _MenuData(title: 'Pengumuman', icon: Icons.campaign, color: Colors.deepOrange, screen: AdminAnnouncementsScreen()),
-      const _MenuData(title: 'Izin & Cuti', icon: Icons.description, color: Colors.amber, screen: AdminPermitsScreen()),
-      const _MenuData(title: 'Cabang / Lokasi', icon: Icons.location_on, color: Colors.pink, screen: AdminLocationsScreen()),
-      const _MenuData(title: 'Role & Akses', icon: Icons.security, color: Colors.blueGrey, screen: AdminRolesScreen()),
-      const _MenuData(title: 'Persetujuan Wali Murid', icon: Icons.family_restroom, color: Colors.indigoAccent, screen: AdminParentChildRequestsScreen()),
+      const _MenuData(
+        title: 'Pengguna',
+        icon: Icons.people,
+        color: Colors.blue,
+        screen: AdminUsersScreen(),
+      ),
+      const _MenuData(
+        title: 'Jadwal Kerja',
+        icon: Icons.access_time,
+        color: Colors.teal,
+        screen: AdminSchedulesScreen(),
+      ),
+      const _MenuData(
+        title: 'Kelompok / Kelas',
+        icon: Icons.category,
+        color: Colors.purple,
+        screen: AdminGroupsScreen(),
+      ),
+      const _MenuData(
+        title: 'Kolom Profil',
+        icon: Icons.edit_note,
+        color: Colors.orange,
+        screen: AdminFormFieldsScreen(),
+      ),
+      const _MenuData(
+        title: 'Rekap Absensi',
+        icon: Icons.fact_check,
+        color: Colors.green,
+        screen: AdminAttendancesScreen(),
+      ),
+      const _MenuData(
+        title: 'Hari Libur',
+        icon: Icons.event,
+        color: Colors.redAccent,
+        screen: AdminHolidaysScreen(),
+      ),
+      const _MenuData(
+        title: 'Shift Kerja',
+        icon: Icons.work_history,
+        color: Colors.cyan,
+        screen: AdminShiftsScreen(),
+      ),
+      const _MenuData(
+        title: 'Roster Jadwal',
+        icon: Icons.calendar_month,
+        color: Colors.indigo,
+        screen: AdminRostersScreen(),
+      ),
+      const _MenuData(
+        title: 'Pengumuman',
+        icon: Icons.campaign,
+        color: Colors.deepOrange,
+        screen: AdminAnnouncementsScreen(),
+      ),
+      const _MenuData(
+        title: 'Izin & Cuti',
+        icon: Icons.description,
+        color: Colors.amber,
+        screen: AdminPermitsScreen(),
+      ),
+      const _MenuData(
+        title: 'Cabang / Lokasi',
+        icon: Icons.location_on,
+        color: Colors.pink,
+        screen: AdminLocationsScreen(),
+      ),
+      const _MenuData(
+        title: 'Role & Akses',
+        icon: Icons.security,
+        color: Colors.blueGrey,
+        screen: AdminRolesScreen(),
+      ),
+      const _MenuData(
+        title: 'Persetujuan Wali Murid',
+        icon: Icons.family_restroom,
+        color: Colors.indigoAccent,
+        screen: AdminParentChildRequestsScreen(),
+      ),
     ];
 
     return Scaffold(
@@ -65,11 +130,17 @@ class AdminManagementScreen extends StatelessWidget {
             final menu = menus[index];
             return InkWell(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => menu.screen));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => menu.screen),
+                );
               },
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -83,11 +154,18 @@ class AdminManagementScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        menu.title, 
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.normal),
+                        menu.title,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.normal,
+                        ),
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.surfaceContainerHighest),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                    ),
                   ],
                 ),
               ),
