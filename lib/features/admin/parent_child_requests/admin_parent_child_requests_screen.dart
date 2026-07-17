@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/app_toast.dart';
+import 'dart:async';
 
 class AdminParentChildRequestsScreen extends StatefulWidget {
   const AdminParentChildRequestsScreen({super.key});
@@ -13,6 +14,8 @@ class AdminParentChildRequestsScreen extends StatefulWidget {
 class _AdminParentChildRequestsScreenState
     extends State<AdminParentChildRequestsScreen> {
   final ApiService _apiService = ApiService();
+  final SearchController _searchController = SearchController();
+
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -20,6 +23,10 @@ class _AdminParentChildRequestsScreenState
   int _currentPage = 1;
   int _lastPage = 1;
   String _selectedStatus = ''; // '' for all, 'pending', 'approved', 'rejected'
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  static const _iconColor = Color(0xFF7E57C2);
 
   @override
   void initState() {
@@ -27,11 +34,35 @@ class _AdminParentChildRequestsScreenState
     _fetchRequests();
   }
 
-  Future<void> _fetchRequests({bool refresh = true}) async {
-    if (refresh) {
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _searchQuery = query;
+          _currentPage = 1;
+        });
+        _fetchRequests();
+      }
+    });
+  }
+
+  Future<void> _fetchRequests({bool resetPage = true}) async {
+    if (resetPage) {
       setState(() {
         _currentPage = 1;
-        _requests = [];
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    } else {
+      setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
@@ -45,12 +76,7 @@ class _AdminParentChildRequestsScreenState
 
       if (mounted) {
         setState(() {
-          final data = response['data'] as List? ?? [];
-          if (refresh) {
-            _requests = data;
-          } else {
-            _requests.addAll(data);
-          }
+          _requests = response['data'] as List? ?? [];
           _currentPage = response['current_page'] ?? 1;
           _lastPage = response['last_page'] ?? 1;
           _isLoading = false;
@@ -104,7 +130,7 @@ class _AdminParentChildRequestsScreenState
     }
   }
 
-  Color _getStatusColor(String status) {
+  Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'approved':
         return Colors.green;
@@ -117,245 +143,451 @@ class _AdminParentChildRequestsScreenState
     }
   }
 
+  String _statusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return 'Disetujui';
+      case 'rejected':
+        return 'Ditolak';
+      case 'pending':
+        return 'Menunggu';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  void _showItemActions(Map<String, dynamic> req) {
+    final cs = Theme.of(context).colorScheme;
+    final id = req['id'] as int;
+    final status = (req['status'] ?? 'pending') as String;
+    final parentName = (req['parent'] ?? {})['name'] ?? '-';
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: cs.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+              child: Text(
+                parentName,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            const Divider(height: 1),
+            if (status.toLowerCase() == 'pending') ...[
+              ListTile(
+                leading:
+                    const Icon(Icons.check_circle_outline, color: Colors.green),
+                title: const Text('Setujui'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _approveRequest(id);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.cancel_outlined, color: cs.error),
+                title: Text('Tolak', style: TextStyle(color: cs.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _rejectRequest(id);
+                },
+              ),
+            ] else
+              ListTile(
+                leading: Icon(Icons.info_outline, color: cs.onSurfaceVariant),
+                title: Text(
+                  'Status: ${_statusLabel(status)}',
+                  style: TextStyle(color: cs.onSurfaceVariant),
+                ),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Persetujuan Wali Murid'),
+        title: const Text('Persetujuan Wali'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _fetchRequests,
+            tooltip: 'Refresh',
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Row(
               children: [
                 _buildFilterChip('Semua', ''),
-                _buildFilterChip('Pending', 'pending'),
+                const SizedBox(width: 8),
+                _buildFilterChip('Menunggu', 'pending'),
+                const SizedBox(width: 8),
                 _buildFilterChip('Disetujui', 'approved'),
+                const SizedBox(width: 8),
                 _buildFilterChip('Ditolak', 'rejected'),
               ],
             ),
           ),
         ),
       ),
-      body: _isLoading && _requests.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Gagal memuat data:\n$_errorMessage',
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => _fetchRequests(),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Coba Lagi'),
-                    ),
-                  ],
-                ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: SearchBar(
+              controller: _searchController,
+              hintText: 'Cari nama wali atau anak...',
+              leading: const Icon(Icons.search),
+              trailing: [
+                if (_searchQuery.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _searchController.clear();
+                      _onSearchChanged('');
+                    },
+                  ),
+              ],
+              onChanged: _onSearchChanged,
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 16),
               ),
-            )
-          : _requests.isEmpty
-          ? const Center(child: Text('Tidak ada permintaan hubungan.'))
-          : RefreshIndicator(
-              onRefresh: () => _fetchRequests(),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount:
-                    _requests.length + (_currentPage < _lastPage ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _requests.length) {
-                    _currentPage++;
-                    _fetchRequests(refresh: false);
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-
-                  final req = _requests[index];
-                  final id = req['id'];
-                  final parent = req['parent'] ?? {};
-                  final child = req['child'] ?? {};
-                  final status = req['status'] ?? 'pending';
-
-                  final parentName = parent['name'] ?? '-';
-                  final parentPhone = parent['phone_number'] ?? '-';
-
-                  final childName = child['name'] ?? '-';
-                  final childNIS = child['username'] ?? '-';
-
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Theme.of(context).dividerColor),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+          ),
+          Expanded(
+            child: _isLoading && _requests.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(
-                                    status,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  status.toUpperCase(),
-                                  style: TextStyle(
-                                    color: _getStatusColor(status),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                ),
+                              Icon(
+                                Icons.wifi_off_rounded,
+                                size: 56,
+                                color: cs.error,
                               ),
+                              const SizedBox(height: 16),
+                              Text('Gagal memuat data', style: tt.titleMedium),
+                              const SizedBox(height: 4),
                               Text(
-                                req['created_at'] != null
-                                    ? req['created_at'].toString().substring(
-                                        0,
-                                        10,
-                                      )
-                                    : '',
-                                style: Theme.of(context).textTheme.bodySmall,
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: tt.bodySmall
+                                    ?.copyWith(color: cs.onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 24),
+                              FilledButton.icon(
+                                onPressed: _fetchRequests,
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: const Text('Coba Lagi'),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          _buildPersonRow(
-                            context,
-                            'WALI / ORANG TUA',
-                            parentName,
-                            'HP: $parentPhone',
-                            Icons.family_restroom,
-                          ),
-                          const Divider(height: 24),
-                          _buildPersonRow(
-                            context,
-                            'ANAK / SISWA',
-                            childName,
-                            'NIS: $childNIS',
-                            Icons.school,
-                          ),
-
-                          if (status == 'pending') ...[
-                            const Divider(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                        ),
+                      )
+                    : _requests.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                OutlinedButton(
-                                  onPressed: () => _rejectRequest(id),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
-                                  ),
-                                  child: const Text('Tolak'),
+                                Icon(
+                                  Icons.family_restroom_rounded,
+                                  size: 56,
+                                  color: cs.outlineVariant,
                                 ),
-                                const SizedBox(width: 12),
-                                ElevatedButton(
-                                  onPressed: () => _approveRequest(id),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text('Setujui'),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Tidak ada permintaan wali',
+                                  style: tt.bodyLarge
+                                      ?.copyWith(color: cs.onSurfaceVariant),
                                 ),
                               ],
                             ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () => _fetchRequests(),
+                            child: ListView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 4, 16, 100),
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Material(
+                                    color: cs.surface,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color:
+                                            cs.outlineVariant.withOpacity(0.5),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: _requests
+                                          .asMap()
+                                          .entries
+                                          .map((entry) {
+                                        final index = entry.key;
+                                        final req = entry.value
+                                            as Map<String, dynamic>;
+                                        final isLast =
+                                            index == _requests.length - 1;
+
+                                        final parent = req['parent'] ?? {};
+                                        final child = req['child'] ?? {};
+                                        final status =
+                                            (req['status'] ?? 'pending')
+                                                as String;
+
+                                        final parentName =
+                                            parent['name'] ?? '-';
+                                        final childName = child['name'] ?? '-';
+                                        final childNIS =
+                                            child['username'] ?? '-';
+                                        final createdAt =
+                                            req['created_at'] != null
+                                                ? req['created_at']
+                                                    .toString()
+                                                    .substring(0, 10)
+                                                : '';
+
+                                        final sColor = _statusColor(status);
+
+                                        return Column(
+                                          children: [
+                                            InkWell(
+                                              onTap: () =>
+                                                  _showItemActions(req),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 10),
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 38,
+                                                      height: 38,
+                                                      decoration: BoxDecoration(
+                                                        color: _iconColor
+                                                            .withOpacity(0.12),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons
+                                                            .family_restroom_rounded,
+                                                        color: _iconColor,
+                                                        size: 20,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Text(
+                                                                  parentName,
+                                                                  style: tt
+                                                                      .bodyMedium
+                                                                      ?.copyWith(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                  ),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              ),
+                                                              // Status badge
+                                                              Container(
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                        6,
+                                                                    vertical:
+                                                                        2),
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: sColor
+                                                                      .withOpacity(
+                                                                          0.12),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              6),
+                                                                ),
+                                                                child: Text(
+                                                                  _statusLabel(
+                                                                      status),
+                                                                  style: tt
+                                                                      .labelSmall
+                                                                      ?.copyWith(
+                                                                    color:
+                                                                        sColor,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          const SizedBox(
+                                                              height: 2),
+                                                          Text(
+                                                            'Anak: $childName · NIS: $childNIS',
+                                                            style: tt.bodySmall
+                                                                ?.copyWith(
+                                                              color: cs
+                                                                  .onSurfaceVariant,
+                                                            ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                          if (createdAt
+                                                              .isNotEmpty)
+                                                            Text(
+                                                              createdAt,
+                                                              style: tt
+                                                                  .labelSmall
+                                                                  ?.copyWith(
+                                                                color: cs
+                                                                    .outlineVariant,
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    IconButton(
+                                                      icon: Icon(
+                                                        Icons.more_vert_rounded,
+                                                        color: cs
+                                                            .onSurfaceVariant,
+                                                      ),
+                                                      onPressed: () =>
+                                                          _showItemActions(req),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            if (!isLast)
+                                              Divider(
+                                                height: 1,
+                                                indent: 54,
+                                                color: cs.outlineVariant
+                                                    .withOpacity(0.4),
+                                              ),
+                                          ],
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // Pagination Controls
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    FilledButton.tonal(
+                                      onPressed: (_currentPage > 1)
+                                          ? () {
+                                              setState(() => _currentPage--);
+                                              _fetchRequests(resetPage: false);
+                                            }
+                                          : null,
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.chevron_left, size: 18),
+                                          SizedBox(width: 4),
+                                          Text('Prev'),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      'Hal $_currentPage dari $_lastPage',
+                                      style: tt.bodyMedium?.copyWith(
+                                        color: cs.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    FilledButton.tonal(
+                                      onPressed: (_currentPage < _lastPage)
+                                          ? () {
+                                              setState(() => _currentPage++);
+                                              _fetchRequests(resetPage: false);
+                                            }
+                                          : null,
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text('Next'),
+                                          SizedBox(width: 4),
+                                          Icon(Icons.chevron_right, size: 18),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 32),
+                              ],
+                            ),
+                          ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildFilterChip(String label, String value) {
     final isSelected = _selectedStatus == value;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (val) {
-          if (val) {
-            setState(() {
-              _selectedStatus = value;
-            });
-            _fetchRequests();
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildPersonRow(
-    BuildContext context,
-    String header,
-    String name,
-    String subtitle,
-    IconData icon,
-  ) {
-    return Row(
-      children: [
-        Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                header,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() => _selectedStatus = value);
+        _fetchRequests();
+      },
     );
   }
 }

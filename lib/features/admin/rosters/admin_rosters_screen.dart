@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:absensi/core/widgets/app_toast.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../data/services/api_service.dart';
+import 'package:absensi/core/widgets/app_toast.dart';
 import 'admin_roster_form_screen.dart';
 
 class AdminRostersScreen extends StatefulWidget {
@@ -14,315 +12,381 @@ class AdminRostersScreen extends StatefulWidget {
 
 class _AdminRostersScreenState extends State<AdminRostersScreen> {
   final ApiService _apiService = ApiService();
-  bool _isLoading = true;
-  String? _error;
-  List<dynamic> _items = [];
+  final SearchController _searchController = SearchController();
 
+  List<dynamic> _items = [];
+  bool _isLoading = false;
+  String? _error;
   int _currentPage = 1;
   int _lastPage = 1;
-  String _searchQuery = '';
-  Timer? _debounce;
+  String _search = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchItems();
+    _fetchData();
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String value) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      setState(() {
-        _searchQuery = value;
-        _currentPage = 1;
-      });
-      _fetchItems();
-    });
-  }
-
-  Future<void> _fetchItems() async {
+  Future<void> _fetchData({int page = 1}) async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-
     try {
-      final data = await _apiService.getRosters(
-        page: _currentPage,
-        search: _searchQuery,
-      );
-      if (!mounted) return;
+      final res = await _apiService.getRosters(page: page, search: _search);
+      final data = res['data'] ?? res;
       setState(() {
         _items = data['data'] ?? [];
         _currentPage = data['current_page'] ?? 1;
         _lastPage = data['last_page'] ?? 1;
-        _isLoading = false;
       });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
-      }
+      setState(() => _error = e.toString());
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _deleteItem(int id) async {
-    final bool? confirm = await showDialog(
+  void _onSearch(String value) {
+    _search = value;
+    _fetchData(page: 1);
+  }
+
+  void _showActionSheet(BuildContext context, dynamic item) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Data'),
-        content: const Text('Apakah Anda yakin ingin menghapus data ini?'),
+      useRootNavigator: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 32,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: cs.onSurfaceVariant.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.edit_rounded, color: cs.primary),
+                title: const Text('Edit'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminRosterFormScreen(item: item),
+                    ),
+                  ).then((_) => _fetchData(page: _currentPage));
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_rounded, color: cs.error),
+                title: Text('Hapus', style: TextStyle(color: cs.error)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(item);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(dynamic item) {
+    final cs = Theme.of(context).colorScheme;
+    final name = item['user']?['name'] ?? item['name'] ?? 'Roster';
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Hapus Roster'),
+        content: Text('Hapus roster milik "$name"?'),
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context, false),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
             child: const Text('Batal'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.pop(context, true),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _apiService.deleteRoster(item['id']);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Roster berhasil dihapus')),
+                  );
+                  _fetchData(page: _currentPage);
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal menghapus: $e')),
+                  );
+                }
+              }
+            },
             child: const Text('Hapus'),
           ),
         ],
       ),
     );
-
-    if (confirm != true) return;
-
-    try {
-      await _apiService.deleteRoster(id);
-      if (mounted) {
-        AppToast.showSuccess(context, message: 'Berhasil dihapus');
-        _fetchItems();
-      }
-    } catch (e) {
-      if (mounted) {
-        AppToast.showError(context, message: 'Gagal: $e');
-      }
-    }
   }
 
-  void _navigateToForm([Map<String, dynamic>? item]) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AdminRosterFormScreen(item: item),
+  Widget _buildItem(dynamic item) {
+    final cs = Theme.of(context).colorScheme;
+    final name = item['user']?['name'] ?? item['name'] ?? 'Roster';
+    final subtitle =
+        '${item["date"] ?? "-"} | Shift: ${item["shift"]?["name"] ?? "-"}';
+
+    return InkWell(
+      onTap: () => _showActionSheet(context, item),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: const Color(0xFF42A5F5).withOpacity(0.12),
+              child: const Icon(
+                Icons.calendar_month_rounded,
+                color: Color(0xFF42A5F5),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                size: 20, color: cs.onSurfaceVariant),
+          ],
+        ),
       ),
     );
+  }
 
-    if (result == true) {
-      _fetchItems();
+  Widget _buildList() {
+    if (_items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.calendar_month_rounded,
+                size: 64, color: const Color(0xFF42A5F5).withOpacity(0.4)),
+            const SizedBox(height: 16),
+            Text('Belum ada data roster',
+                style: Theme.of(context).textTheme.bodyLarge),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => _fetchData(page: 1),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Muat Ulang'),
+            ),
+          ],
+        ),
+      );
     }
+
+    final cs = Theme.of(context).colorScheme;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Material(
+        color: cs.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: cs.outlineVariant.withOpacity(0.4)),
+        ),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _items.length,
+          separatorBuilder: (_, __) => Divider(
+            height: 1,
+            indent: 54,
+            color: cs.outlineVariant.withOpacity(0.4),
+          ),
+          itemBuilder: (_, i) => _buildItem(_items[i]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination() {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        FilledButton.tonal(
+          onPressed: _currentPage > 1
+              ? () => _fetchData(page: _currentPage - 1)
+              : null,
+          child: const Icon(Icons.chevron_left_rounded),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Halaman $_currentPage dari $_lastPage',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: cs.onSurfaceVariant),
+          ),
+        ),
+        FilledButton.tonal(
+          onPressed: _currentPage < _lastPage
+              ? () => _fetchData(page: _currentPage + 1)
+              : null,
+          child: const Icon(Icons.chevron_right_rounded),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manajemen Roster Jadwal'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw),
-            onPressed: _fetchItems,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar.large(
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF42A5F5).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.calendar_month_rounded,
+                    color: Color(0xFF42A5F5),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text('Roster Jadwal'),
+              ],
+            ),
+            floating: true,
+            snap: true,
+            forceElevated: innerBoxIsScrolled,
           ),
         ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                hintText: 'Cari...',
-              ),
-              onChanged: _onSearchChanged,
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Gagal memuat',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
+                        Icon(Icons.cloud_off_rounded,
+                            size: 64,
+                            color: cs.error.withOpacity(0.5)),
                         const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchItems,
-                          child: const Text('Coba Lagi'),
+                        Text('Gagal memuat data',
+                            style: Theme.of(context).textTheme.bodyLarge),
+                        const SizedBox(height: 4),
+                        Text(_error!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: cs.onSurfaceVariant),
+                            textAlign: TextAlign.center),
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
+                          onPressed: () => _fetchData(page: _currentPage),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Coba Lagi'),
                         ),
                       ],
                     ),
                   )
-                : _items.isEmpty
-                ? const Center(child: Text('Tidak ada data'))
-                : ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Column(
-                            children: _items.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final item = entry.value;
-                              final isLast = index == _items.length - 1;
-
-                              return Column(
-                                children: [
-                                  ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    leading: CircleAvatar(
-                                      backgroundColor: Colors.green.withOpacity(
-                                        0.1,
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.calendarDays,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      item['name'] ??
-                                          item['title'] ??
-                                          item['id']?.toString() ??
-                                          'ID: ${item["id"]}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: const SizedBox.shrink(),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(
-                                            LucideIcons.edit2,
-                                            size: 18,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                          ),
-                                          onPressed: () =>
-                                              _navigateToForm(item),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            LucideIcons.trash2,
-                                            size: 18,
-                                            color: Colors.red,
-                                          ),
-                                          onPressed: () =>
-                                              _deleteItem(item['id']),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!isLast)
-                                    Divider(
-                                      height: 1,
-                                      color: Theme.of(context).dividerColor,
-                                    ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                : RefreshIndicator(
+                    onRefresh: () => _fetchData(page: _currentPage),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                      child: Column(
                         children: [
-                          OutlinedButton(
-                            onPressed: (_currentPage > 1)
-                                ? () {
-                                    setState(() => _currentPage--);
-                                    _fetchItems();
-                                  }
-                                : null,
-                            child: const Row(
-                              children: [
-                                Icon(LucideIcons.chevronLeft, size: 16),
-                                SizedBox(width: 4),
-                                Text('Prev'),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            'Page $_currentPage of $_lastPage',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                          SearchBar(
+                            controller: _searchController,
+                            hintText: 'Cari roster...',
+                            leading: const Icon(Icons.search_rounded),
+                            trailing: [
+                              if (_search.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _onSearch('');
+                                  },
                                 ),
-                          ),
-                          OutlinedButton(
-                            onPressed: (_currentPage < _lastPage)
-                                ? () {
-                                    setState(() => _currentPage++);
-                                    _fetchItems();
-                                  }
-                                : null,
-                            child: const Row(
-                              children: [
-                                Text('Next'),
-                                SizedBox(width: 4),
-                                Icon(LucideIcons.chevronRight, size: 16),
-                              ],
+                            ],
+                            onChanged: _onSearch,
+                            padding: const WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(horizontal: 16),
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          _buildList(),
+                          if (_lastPage > 1) ...[
+                            const SizedBox(height: 16),
+                            _buildPagination(),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 32),
-                    ],
+                    ),
                   ),
-          ),
-        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToForm(),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        child: const Icon(LucideIcons.plus),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AdminRosterFormScreen(),
+          ),
+        ).then((_) => _fetchData(page: _currentPage)),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Tambah Roster'),
       ),
     );
   }

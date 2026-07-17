@@ -1,4 +1,5 @@
 import 'package:absensi/core/config.dart';
+import 'package:absensi/core/constants/app_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final data = await _getValidAttendanceData(
         requireLocation,
         needPhoto,
-        'Absen Masuk',
+        AppMessages.get('Absen Masuk'),
         registeredFaceBase64: registeredFaceBase64,
       );
       if (data == null) {
@@ -193,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final data = await _getValidAttendanceData(
         requireLocation,
         needCamera,
-        'Absen Pulang',
+        AppMessages.get('Absen Pulang'),
         registeredFaceBase64: registeredFaceBase64,
       );
       if (data == null) {
@@ -340,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool isCardColored = true;
 
     // Determine status text
-    String statusText = 'Belum Absen';
+    String statusText = AppMessages.get('Belum Absen');
     Color statusBadgeColor = Colors.white.withOpacity(0.2);
     if (todayStatus == 'hadir') {
       statusText = 'HADIR';
@@ -816,7 +817,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ];
 
       // Find the weekday of the first day of this month
-      final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
+      final DateTime firstDayOfMonth = DateTime(_selectedYear, _selectedMonth, 1);
       final int firstWeekday = firstDayOfMonth.weekday; // 1 = Mon, 7 = Sun
       final int prefixEmptyCells = firstWeekday - 1;
 

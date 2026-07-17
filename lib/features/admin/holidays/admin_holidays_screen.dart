@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:absensi/core/widgets/app_toast.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../data/services/api_service.dart';
 import 'admin_holiday_form_screen.dart';
 
@@ -22,6 +21,8 @@ class _AdminHolidaysScreenState extends State<AdminHolidaysScreen> {
   int _lastPage = 1;
   String _searchQuery = '';
   Timer? _debounce;
+
+  static const _iconColor = Color(0xFFEF5350);
 
   @override
   void initState() {
@@ -75,20 +76,22 @@ class _AdminHolidaysScreenState extends State<AdminHolidaysScreen> {
   }
 
   Future<void> _deleteItem(int id) async {
+    final cs = Theme.of(context).colorScheme;
     final bool? confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Data'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Hapus Hari Libur'),
         content: const Text('Apakah Anda yakin ingin menghapus data ini?'),
         actions: [
-          OutlinedButton(
+          TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Batal'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: cs.error,
+              foregroundColor: cs.onError,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Hapus'),
@@ -125,14 +128,62 @@ class _AdminHolidaysScreenState extends State<AdminHolidaysScreen> {
     }
   }
 
+  void _showItemActions(Map<String, dynamic> item) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.edit_rounded, color: cs.primary),
+                title: const Text('Edit'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _navigateToForm(item);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_rounded, color: cs.error),
+                title: Text('Hapus', style: TextStyle(color: cs.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _deleteItem(item['id']);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manajemen Hari Libur'),
+        title: const Text('Hari Libur'),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.refreshCw),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: _fetchItems,
           ),
         ],
@@ -140,189 +191,219 @@ class _AdminHolidaysScreenState extends State<AdminHolidaysScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                hintText: 'Cari...',
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: SearchBar(
+              hintText: 'Cari hari libur...',
+              leading: const Icon(Icons.search_rounded),
               onChanged: _onSearchChanged,
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 16),
+              ),
             ),
           ),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Gagal memuat',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchItems,
-                          child: const Text('Coba Lagi'),
-                        ),
-                      ],
-                    ),
-                  )
-                : _items.isEmpty
-                ? const Center(child: Text('Tidak ada data'))
-                : ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
                           child: Column(
-                            children: _items.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final item = entry.value;
-                              final isLast = index == _items.length - 1;
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.cloud_off_rounded,
+                                size: 56,
+                                color: cs.outlineVariant,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Gagal memuat data',
+                                style: tt.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _error!,
+                                style: tt.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 20),
+                              FilledButton.icon(
+                                onPressed: _fetchItems,
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _items.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.beach_access_rounded,
+                                  size: 56,
+                                  color: cs.outlineVariant,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Belum ada hari libur',
+                                  style: tt.titleMedium?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Material(
+                                  color: cs.surface,
+                                  surfaceTintColor: cs.surfaceTint,
+                                  elevation: 1,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Column(
+                                    children: _items.asMap().entries.map((entry) {
+                                      final index = entry.key;
+                                      final item = entry.value as Map<String, dynamic>;
+                                      final isLast = index == _items.length - 1;
+                                      final date = item['date']?.toString() ?? '';
 
-                              return Column(
+                                      return Column(
+                                        children: [
+                                          InkWell(
+                                            onTap: () => _showItemActions(item),
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 10,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 38,
+                                                    height: 38,
+                                                    decoration: BoxDecoration(
+                                                      color: _iconColor.withOpacity(0.12),
+                                                      borderRadius:
+                                                          BorderRadius.circular(10),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.beach_access_rounded,
+                                                      color: _iconColor,
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          item['name']?.toString() ??
+                                                              'ID: ${item["id"]}',
+                                                          style: tt.bodyMedium?.copyWith(
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        if (date.isNotEmpty) ...[
+                                                          const SizedBox(height: 2),
+                                                          Text(
+                                                            date,
+                                                            style: tt.bodySmall?.copyWith(
+                                                              color: cs.onSurfaceVariant,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons.more_vert_rounded,
+                                                    size: 18,
+                                                    color: cs.onSurfaceVariant,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          if (!isLast)
+                                            Divider(
+                                              height: 1,
+                                              indent: 54,
+                                              color: cs.outlineVariant.withOpacity(0.4),
+                                            ),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    leading: CircleAvatar(
-                                      backgroundColor: Colors.red.withOpacity(
-                                        0.1,
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.calendar,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      item['name'] ??
-                                          item['title'] ??
-                                          item['id']?.toString() ??
-                                          'ID: ${item["id"]}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: const SizedBox.shrink(),
-                                    trailing: Row(
+                                  FilledButton.tonal(
+                                    onPressed: (_currentPage > 1)
+                                        ? () {
+                                            setState(() => _currentPage--);
+                                            _fetchItems();
+                                          }
+                                        : null,
+                                    child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        IconButton(
-                                          icon: Icon(
-                                            LucideIcons.edit2,
-                                            size: 18,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                          ),
-                                          onPressed: () =>
-                                              _navigateToForm(item),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            LucideIcons.trash2,
-                                            size: 18,
-                                            color: Colors.red,
-                                          ),
-                                          onPressed: () =>
-                                              _deleteItem(item['id']),
-                                        ),
+                                        Icon(Icons.chevron_left_rounded, size: 18),
+                                        SizedBox(width: 4),
+                                        Text('Prev'),
                                       ],
                                     ),
                                   ),
-                                  if (!isLast)
-                                    Divider(
-                                      height: 1,
-                                      color: Theme.of(context).dividerColor,
+                                  Text(
+                                    '$_currentPage / $_lastPage',
+                                    style: tt.bodyMedium?.copyWith(
+                                      color: cs.onSurfaceVariant,
                                     ),
+                                  ),
+                                  FilledButton.tonal(
+                                    onPressed: (_currentPage < _lastPage)
+                                        ? () {
+                                            setState(() => _currentPage++);
+                                            _fetchItems();
+                                          }
+                                        : null,
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('Next'),
+                                        SizedBox(width: 4),
+                                        Icon(Icons.chevron_right_rounded, size: 18),
+                                      ],
+                                    ),
+                                  ),
                                 ],
-                              );
-                            }).toList(),
+                              ),
+                              const SizedBox(height: 32),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          OutlinedButton(
-                            onPressed: (_currentPage > 1)
-                                ? () {
-                                    setState(() => _currentPage--);
-                                    _fetchItems();
-                                  }
-                                : null,
-                            child: const Row(
-                              children: [
-                                Icon(LucideIcons.chevronLeft, size: 16),
-                                SizedBox(width: 4),
-                                Text('Prev'),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            'Page $_currentPage of $_lastPage',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                          OutlinedButton(
-                            onPressed: (_currentPage < _lastPage)
-                                ? () {
-                                    setState(() => _currentPage++);
-                                    _fetchItems();
-                                  }
-                                : null,
-                            child: const Row(
-                              children: [
-                                Text('Next'),
-                                SizedBox(width: 4),
-                                Icon(LucideIcons.chevronRight, size: 16),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToForm(),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        child: const Icon(LucideIcons.plus),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Tambah'),
       ),
     );
   }

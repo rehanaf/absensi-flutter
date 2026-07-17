@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:absensi/core/widgets/app_toast.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../data/services/api_service.dart';
 import 'admin_shift_form_screen.dart';
 
@@ -14,313 +12,364 @@ class AdminShiftsScreen extends StatefulWidget {
 
 class _AdminShiftsScreenState extends State<AdminShiftsScreen> {
   final ApiService _apiService = ApiService();
-  bool _isLoading = true;
+  final SearchController _searchController = SearchController();
+
+  List<dynamic> _shifts = [];
+  bool _isLoading = false;
   String? _error;
-  List<dynamic> _items = [];
 
   int _currentPage = 1;
   int _lastPage = 1;
   String _searchQuery = '';
-  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    _fetchItems();
+    _loadShifts();
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String value) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      setState(() {
-        _searchQuery = value;
-        _currentPage = 1;
-      });
-      _fetchItems();
-    });
-  }
-
-  Future<void> _fetchItems() async {
+  Future<void> _loadShifts({int page = 1}) async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-
     try {
-      final data = await _apiService.getShifts(
-        page: _currentPage,
-        search: _searchQuery,
-      );
-      if (!mounted) return;
+      final result = await _apiService.getShifts(page: page, search: _searchQuery);
       setState(() {
-        _items = data['data'] ?? [];
-        _currentPage = data['current_page'] ?? 1;
-        _lastPage = data['last_page'] ?? 1;
+        _shifts = result['data'] ?? [];
+        _currentPage = result['current_page'] ?? 1;
+        _lastPage = result['last_page'] ?? 1;
         _isLoading = false;
       });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _deleteItem(int id) async {
-    final bool? confirm = await showDialog(
+  void _onSearch(String value) {
+    _searchQuery = value;
+    _loadShifts(page: 1);
+  }
+
+  Future<void> _confirmDelete(dynamic item) async {
+    final cs = Theme.of(context).colorScheme;
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Data'),
-        content: const Text('Apakah Anda yakin ingin menghapus data ini?'),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Hapus Shift'),
+        content: Text('Hapus shift "${item['name']}"? Tindakan ini tidak dapat dibatalkan.'),
         actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context, false),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Batal'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.pop(context, true),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: cs.error),
+            onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Hapus'),
           ),
         ],
       ),
     );
 
-    if (confirm != true) return;
-
-    try {
-      await _apiService.deleteShift(id);
-      if (mounted) {
-        AppToast.showSuccess(context, message: 'Berhasil dihapus');
-        _fetchItems();
-      }
-    } catch (e) {
-      if (mounted) {
-        AppToast.showError(context, message: 'Gagal: $e');
+    if (confirmed == true) {
+      try {
+        await _apiService.deleteShift(item['id']);
+        AppToast.showSuccess(context, message: 'Shift berhasil dihapus');
+        _loadShifts(page: _currentPage);
+      } catch (e) {
+        AppToast.showError(context, message: 'Gagal menghapus: $e');
       }
     }
   }
 
-  void _navigateToForm([Map<String, dynamic>? item]) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AdminShiftFormScreen(item: item)),
+  void _showItemActions(dynamic item) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    item['name'] ?? 'Shift',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const Divider(height: 8),
+              ListTile(
+                leading: const Icon(Icons.edit_rounded),
+                title: const Text('Edit'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminShiftFormScreen(item: item),
+                    ),
+                  );
+                  if (result == true) _loadShifts(page: _currentPage);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_rounded, color: cs.error),
+                title: Text('Hapus', style: TextStyle(color: cs.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmDelete(item);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
 
-    if (result == true) {
-      _fetchItems();
+  Widget _buildShiftItem(dynamic item) {
+    final cs = Theme.of(context).colorScheme;
+    const iconColor = Color(0xFF26C6DA);
+    final title = item['name'] ?? 'Shift';
+    final subtitle =
+        '${item["check_in"] ?? "--:--"} - ${item["check_out"] ?? "--:--"}';
+
+    return InkWell(
+      onTap: () => _showItemActions(item),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.work_history_rounded,
+                  color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant)),
+                ],
+              ),
+            ),
+            Icon(Icons.more_vert_rounded,
+                size: 18, color: cs.onSurfaceVariant),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    final cs = Theme.of(context).colorScheme;
+    if (_shifts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.work_history_rounded, size: 56, color: cs.outlineVariant),
+            const SizedBox(height: 12),
+            Text('Belum ada shift',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: cs.onSurfaceVariant)),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => _loadShifts(page: 1),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Muat Ulang'),
+            ),
+          ],
+        ),
+      );
     }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: cs.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: cs.outlineVariant.withOpacity(0.4)),
+        ),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _shifts.length,
+          separatorBuilder: (_, __) => Divider(
+            height: 1,
+            indent: 54,
+            color: cs.outlineVariant.withOpacity(0.4),
+          ),
+          itemBuilder: (_, i) => _buildShiftItem(_shifts[i]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination() {
+    if (_lastPage <= 1) return const SizedBox.shrink();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        FilledButton.tonal(
+          onPressed: _currentPage > 1
+              ? () => _loadShifts(page: _currentPage - 1)
+              : null,
+          child: const Icon(Icons.chevron_left_rounded),
+        ),
+        const SizedBox(width: 12),
+        Text('$_currentPage / $_lastPage',
+            style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(width: 12),
+        FilledButton.tonal(
+          onPressed: _currentPage < _lastPage
+              ? () => _loadShifts(page: _currentPage + 1)
+              : null,
+          child: const Icon(Icons.chevron_right_rounded),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manajemen Shift Kerja'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw),
-            onPressed: _fetchItems,
-          ),
-        ],
+        title: const Text('Shift Kerja'),
+        centerTitle: false,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                hintText: 'Cari...',
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminShiftFormScreen()),
+          );
+          if (result == true) _loadShifts(page: _currentPage);
+        },
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Tambah Shift'),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => _loadShifts(page: _currentPage),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              sliver: SliverToBoxAdapter(
+                child: SearchBar(
+                  controller: _searchController,
+                  hintText: 'Cari shift...',
+                  leading: const Icon(Icons.search_rounded),
+                  trailing: [
+                    if (_searchQuery.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearch('');
+                        },
+                      ),
+                  ],
+                  onChanged: _onSearch,
+                  onSubmitted: _onSearch,
+                ),
               ),
-              onChanged: _onSearchChanged,
             ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Gagal memuat',
-                          style: Theme.of(context).textTheme.titleMedium,
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: _isLoading
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(48),
+                          child: CircularProgressIndicator(),
                         ),
-                        Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchItems,
-                          child: const Text('Coba Lagi'),
-                        ),
-                      ],
-                    ),
-                  )
-                : _items.isEmpty
-                ? const Center(child: Text('Tidak ada data'))
-                : ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Column(
-                            children: _items.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final item = entry.value;
-                              final isLast = index == _items.length - 1;
-
-                              return Column(
-                                children: [
-                                  ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    leading: CircleAvatar(
-                                      backgroundColor: Colors.blue.withOpacity(
-                                        0.1,
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.clock,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      item['name'] ??
-                                          item['title'] ??
-                                          item['id']?.toString() ??
-                                          'ID: ${item["id"]}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: const SizedBox.shrink(),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(
-                                            LucideIcons.edit2,
-                                            size: 18,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                          ),
-                                          onPressed: () =>
-                                              _navigateToForm(item),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            LucideIcons.trash2,
-                                            size: 18,
-                                            color: Colors.red,
-                                          ),
-                                          onPressed: () =>
-                                              _deleteItem(item['id']),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!isLast)
-                                    Divider(
-                                      height: 1,
-                                      color: Theme.of(context).dividerColor,
-                                    ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          OutlinedButton(
-                            onPressed: (_currentPage > 1)
-                                ? () {
-                                    setState(() => _currentPage--);
-                                    _fetchItems();
-                                  }
-                                : null,
-                            child: const Row(
+                      )
+                    : _error != null
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(LucideIcons.chevronLeft, size: 16),
-                                SizedBox(width: 4),
-                                Text('Prev'),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            'Page $_currentPage of $_lastPage',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                                const SizedBox(height: 48),
+                                Icon(Icons.cloud_off_rounded,
+                                    size: 56, color: cs.outlineVariant),
+                                const SizedBox(height: 12),
+                                Text(_error!,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(color: cs.onSurfaceVariant)),
+                                const SizedBox(height: 16),
+                                FilledButton.icon(
+                                  onPressed: () => _loadShifts(),
+                                  icon: const Icon(Icons.refresh_rounded),
+                                  label: const Text('Coba Lagi'),
                                 ),
-                          ),
-                          OutlinedButton(
-                            onPressed: (_currentPage < _lastPage)
-                                ? () {
-                                    setState(() => _currentPage++);
-                                    _fetchItems();
-                                  }
-                                : null,
-                            child: const Row(
-                              children: [
-                                Text('Next'),
-                                SizedBox(width: 4),
-                                Icon(LucideIcons.chevronRight, size: 16),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToForm(),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        child: const Icon(LucideIcons.plus),
+                          )
+                        : _buildList(),
+              ),
+            ),
+            if (!_isLoading && _error == null)
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverToBoxAdapter(child: _buildPagination()),
+              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
       ),
     );
   }

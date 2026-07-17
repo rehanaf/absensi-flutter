@@ -15,12 +15,14 @@ import 'parent_child_requests/admin_parent_child_requests_screen.dart';
 
 class _MenuData {
   final String title;
+  final String subtitle;
   final IconData icon;
   final Color color;
   final Widget screen;
 
   const _MenuData({
     required this.title,
+    required this.subtitle,
     required this.icon,
     required this.color,
     required this.screen,
@@ -33,145 +35,304 @@ class AdminManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.sizeOf(context).width >= 600;
+    final cs = Theme.of(context).colorScheme;
 
     final menus = [
-      const _MenuData(
+      _MenuData(
         title: 'Pengguna',
-        icon: Icons.people,
-        color: Colors.blue,
-        screen: AdminUsersScreen(),
+        subtitle: 'Kelola akun & data user',
+        icon: Icons.people_alt_rounded,
+        color: const Color(0xFF5C6BC0),
+        screen: const AdminUsersScreen(),
       ),
-      const _MenuData(
+      _MenuData(
         title: 'Jadwal Kerja',
-        icon: Icons.access_time,
-        color: Colors.teal,
-        screen: AdminSchedulesScreen(),
+        subtitle: 'Atur jam masuk & pulang',
+        icon: Icons.access_time_rounded,
+        color: const Color(0xFF26A69A),
+        screen: const AdminSchedulesScreen(),
       ),
-      const _MenuData(
+      _MenuData(
         title: 'Kelompok / Kelas',
-        icon: Icons.category,
-        color: Colors.purple,
-        screen: AdminGroupsScreen(),
+        subtitle: 'Grup dan kelas pengguna',
+        icon: Icons.group_work_rounded,
+        color: const Color(0xFFAB47BC),
+        screen: const AdminGroupsScreen(),
       ),
-      const _MenuData(
-        title: 'Kolom Profil',
-        icon: Icons.edit_note,
-        color: Colors.orange,
-        screen: AdminFormFieldsScreen(),
-      ),
-      const _MenuData(
+      _MenuData(
         title: 'Rekap Absensi',
-        icon: Icons.fact_check,
-        color: Colors.green,
-        screen: AdminAttendancesScreen(),
+        subtitle: 'Data kehadiran lengkap',
+        icon: Icons.fact_check_rounded,
+        color: const Color(0xFF66BB6A),
+        screen: const AdminAttendancesScreen(),
       ),
-      const _MenuData(
-        title: 'Hari Libur',
-        icon: Icons.event,
-        color: Colors.redAccent,
-        screen: AdminHolidaysScreen(),
-      ),
-      const _MenuData(
-        title: 'Shift Kerja',
-        icon: Icons.work_history,
-        color: Colors.cyan,
-        screen: AdminShiftsScreen(),
-      ),
-      const _MenuData(
-        title: 'Roster Jadwal',
-        icon: Icons.calendar_month,
-        color: Colors.indigo,
-        screen: AdminRostersScreen(),
-      ),
-      const _MenuData(
-        title: 'Pengumuman',
-        icon: Icons.campaign,
-        color: Colors.deepOrange,
-        screen: AdminAnnouncementsScreen(),
-      ),
-      const _MenuData(
+      _MenuData(
         title: 'Izin & Cuti',
-        icon: Icons.description,
-        color: Colors.amber,
-        screen: AdminPermitsScreen(),
+        subtitle: 'Ajuan izin pengguna',
+        icon: Icons.event_available_rounded,
+        color: const Color(0xFFFFCA28),
+        screen: const AdminPermitsScreen(),
       ),
-      const _MenuData(
+      _MenuData(
+        title: 'Pengumuman',
+        subtitle: 'Informasi & notifikasi',
+        icon: Icons.campaign_rounded,
+        color: const Color(0xFFFF7043),
+        screen: const AdminAnnouncementsScreen(),
+      ),
+      _MenuData(
+        title: 'Shift Kerja',
+        subtitle: 'Konfigurasi shift & jam',
+        icon: Icons.work_history_rounded,
+        color: const Color(0xFF26C6DA),
+        screen: const AdminShiftsScreen(),
+      ),
+      _MenuData(
+        title: 'Roster Jadwal',
+        subtitle: 'Penjadwalan shift harian',
+        icon: Icons.calendar_month_rounded,
+        color: const Color(0xFF42A5F5),
+        screen: const AdminRostersScreen(),
+      ),
+      _MenuData(
+        title: 'Hari Libur',
+        subtitle: 'Tanggal merah & libur',
+        icon: Icons.beach_access_rounded,
+        color: const Color(0xFFEF5350),
+        screen: const AdminHolidaysScreen(),
+      ),
+      _MenuData(
         title: 'Cabang / Lokasi',
-        icon: Icons.location_on,
-        color: Colors.pink,
-        screen: AdminLocationsScreen(),
+        subtitle: 'Titik absen & area kerja',
+        icon: Icons.location_on_rounded,
+        color: const Color(0xFFEC407A),
+        screen: const AdminLocationsScreen(),
       ),
-      const _MenuData(
+      _MenuData(
+        title: 'Kolom Profil',
+        subtitle: 'Form data tambahan user',
+        icon: Icons.edit_note_rounded,
+        color: const Color(0xFFFFA726),
+        screen: const AdminFormFieldsScreen(),
+      ),
+      _MenuData(
         title: 'Role & Akses',
-        icon: Icons.security,
-        color: Colors.blueGrey,
-        screen: AdminRolesScreen(),
+        subtitle: 'Hak akses pengguna',
+        icon: Icons.admin_panel_settings_rounded,
+        color: const Color(0xFF78909C),
+        screen: const AdminRolesScreen(),
       ),
-      const _MenuData(
-        title: 'Persetujuan Wali Murid',
-        icon: Icons.family_restroom,
-        color: Colors.indigoAccent,
-        screen: AdminParentChildRequestsScreen(),
+      _MenuData(
+        title: 'Persetujuan Wali',
+        subtitle: 'Permintaan hubungan orang tua',
+        icon: Icons.family_restroom_rounded,
+        color: const Color(0xFF7E57C2),
+        screen: const AdminParentChildRequestsScreen(),
       ),
     ];
 
     return Scaffold(
       body: SafeArea(
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16.0),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: isDesktop ? 2 : 1,
-            crossAxisSpacing: 0,
-            mainAxisSpacing: 0,
-            mainAxisExtent: 56,
-          ),
-          itemCount: menus.length,
-          itemBuilder: (context, index) {
-            final menu = menus[index];
-            return InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => menu.screen),
-                );
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  'Manajemen',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: menu.color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(menu.icon, color: menu.color, size: 20),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        menu.title,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.normal,
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: isDesktop
+                  ? _buildDesktopGrid(context, menus, cs)
+                  : _buildMobileList(context, menus, cs),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Mobile: grouped list card menyatu
+  Widget _buildMobileList(
+      BuildContext context, List<_MenuData> menus, ColorScheme cs) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (index == 0) {
+            // Render seluruh list dalam satu card
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Material(
+                color: cs.surfaceContainerLowest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: cs.outlineVariant.withOpacity(0.5)),
+                ),
+                child: Column(
+                  children: menus.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final menu = entry.value;
+                    final isLast = i == menus.length - 1;
+                    return Column(
+                      children: [
+                        InkWell(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => menu.screen),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 11),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: menu.color.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(menu.icon,
+                                      color: menu.color, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        menu.title,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        menu.subtitle,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: cs.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 18,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                    ),
-                  ],
+                        if (!isLast)
+                          Divider(
+                            height: 1,
+                            indent: 64,
+                            color: cs.outlineVariant.withOpacity(0.4),
+                          ),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
             );
-          },
-        ),
+          }
+          return null;
+        },
+        childCount: 1,
+      ),
+    );
+  }
+
+  // Desktop: grid 2 kolom dengan card per item
+  Widget _buildDesktopGrid(
+      BuildContext context, List<_MenuData> menus, ColorScheme cs) {
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        mainAxisExtent: 68,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final menu = menus[index];
+          return Material(
+            color: cs.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => menu.screen),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: cs.outlineVariant.withOpacity(0.5)),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: menu.color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(menu.icon, color: menu.color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            menu.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            menu.subtitle,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: cs.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded,
+                        size: 16, color: cs.onSurfaceVariant),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+        childCount: menus.length,
       ),
     );
   }

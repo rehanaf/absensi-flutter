@@ -409,7 +409,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       ];
 
       // Find the weekday of the first day of this month
-      final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
+      final DateTime firstDayOfMonth = DateTime(_selectedYear, _selectedMonth, 1);
       final int firstWeekday = firstDayOfMonth.weekday; // 1 = Mon, 7 = Sun
       final int prefixEmptyCells = firstWeekday - 1;
 
@@ -555,18 +555,17 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                     }
 
                     return Center(
-                      child: AspectRatio(
-                        aspectRatio: 1.0,
-                        child: Container(
-                          decoration: decoration,
-                          alignment: Alignment.center,
-                          child: Text(
-                            '$dayNum',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11, // Slightly smaller text to avoid squeeze
-                              color: textColor,
-                            ),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: decoration,
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$dayNum',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: textColor,
                           ),
                         ),
                       ),
@@ -593,7 +592,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     final monthAttendance = (child['month_attendance'] as List?) ?? [];
     final attendances = (child['attendances'] as List?) ?? [];
 
-    String todayStatus = 'Belum Absen';
+    String todayStatus = AppMessages.get('Belum Absen');
     String todayTime = '';
     if (attendances.isNotEmpty) {
       final todayRecord = attendances.first;
@@ -871,7 +870,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
 
       return LayoutBuilder(
         builder: (context, constraints) {
-          final isDesktop = constraints.maxWidth >= 600;
+          final isDesktop = constraints.maxWidth >= 950;
           return RefreshIndicator(
             onRefresh: _fetchDashboard,
             child: CustomScrollView(
@@ -1013,14 +1012,12 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           ? _buildChildItem(_children[index + 1])
                           : Container();
 
-                      return IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(child: item1),
-                            Expanded(child: item2),
-                          ],
-                        ),
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: item1),
+                          Expanded(child: item2),
+                        ],
                       );
                     }, childCount: _children.length),
                   )

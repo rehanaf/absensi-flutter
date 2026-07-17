@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../data/services/api_service.dart';
+import '../../core/constants/app_messages.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -194,7 +195,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
       _buildDailyCard(
         context,
-        'Belum Absen',
+        AppMessages.get('Belum Absen'),
         '${daily['total_absent'] ?? 0}',
         Icons.cancel,
         Colors.red,
